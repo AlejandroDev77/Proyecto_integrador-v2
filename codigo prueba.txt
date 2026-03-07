@@ -1,0 +1,376 @@
+import React, { useMemo, useState, Suspense } from "react";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls, useGLTF } from "@react-three/drei";
+import { motion } from "framer-motion";
+import { easeOut } from "framer-motion";
+import {
+  Menu,
+  X,
+  Sparkles,
+  ShieldCheck,
+  Ruler,
+  Leaf,
+  Hammer,
+  Check,
+  Filter,
+  ChevronDown,
+  Send,
+  Phone,
+  MapPin,
+  Mail,
+  ChevronRight,
+  Box,
+} from "lucide-react";
+
+/**
+ * MODELO 3D
+ */
+function MuebleModel() {
+  const gltf = useGLTF("/models/mueble2.glb");
+  return <primitive object={gltf.scene} scale={2.2} />;
+}
+useGLTF.preload("/models/mueble2.glb");
+
+/**
+ * PRODUCT DATA (demo)
+ */
+const CATEGORIES = ["Todos", "Sala", "Oficina", "Comedor"] as const;
+type Category = typeof CATEGORIES[number];
+
+const PRODUCTS: { title: string; img: string; category: Category; price: string }[] = [
+  { title: "Sala Moderna", img: "/images/models/modelo1.png", category: "Sala", price: "Bs. 2.450" },
+  { title: "Oficina Ejecutiva", img: "/images/models/modelo2.png", category: "Oficina", price: "Bs. 3.200" },
+  { title: "Comedor Familiar", img: "/images/models/modelo3.png", category: "Comedor", price: "Bs. 2.990" },
+  { title: "Rack Minimalista", img: "/images/models/modelo4.png", category: "Sala", price: "Bs. 1.350" },
+  { title: "Escritorio Pro", img: "/images/models/modelo5.png", category: "Oficina", price: "Bs. 1.850" },
+  { title: "Aparador Nórdico", img: "/images/models/modelo6.png", category: "Comedor", price: "Bs. 2.150" },
+];
+
+/**
+ * UTILS
+ */
+const fadeUp = {
+  initial: { opacity: 0, y: 24 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.7, ease: easeOut },
+};
+
+const SectionTitle: React.FC<{ title: string; subtitle?: string }>
+  = ({ title, subtitle }) => (
+  <div className="text-center max-w-2xl mx-auto mb-12">
+    <motion.h2
+      className="text-3xl md:text-4xl font-extrabold text-[#3a2f22]"
+      {...fadeUp}
+    >
+      {title}
+    </motion.h2>
+    {subtitle && (
+      <motion.p className="text-gray-600 mt-3" {...fadeUp}>
+        {subtitle}
+      </motion.p>
+    )}
+  </div>
+);
+
+/**
+ * MAIN
+ */
+const Landing: React.FC = () => {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [category, setCategory] = useState<Category>("Todos");
+  const [quickView, setQuickView] = useState<null | number>(null);
+
+  const filtered = useMemo(() =>
+    category === "Todos" ? PRODUCTS : PRODUCTS.filter(p => p.category === category)
+  , [category]);
+
+  return (
+    <div className="bg-[#fcfbf8] min-h-screen font-sans text-[#3a2f22]">
+      {/* BACKGROUND DECOR */}
+      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
+        <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-[#f1e7d6] blur-3xl opacity-70" />
+        <div className="absolute bottom-0 -left-24 h-72 w-72 rounded-full bg-[#efe3cf] blur-3xl opacity-70" />
+        <div className="absolute inset-0 bg-[url('/images/noise.png')] opacity-10 mix-blend-multiply" />
+      </div>
+
+      {/* NAVBAR */}
+      <header className="fixed top-0 left-0 w-full bg-white/80 backdrop-blur-md shadow z-50">
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+          <a href="#hero" className="flex items-center gap-2">
+            <img src="/images/logo/BOSQUEJO_PROT_2-removebg-preview.png" alt="Logo" className="h-10 w-auto" />
+            <span className="font-bold text-lg text-[#7c5e3c] hidden sm:block">Bosquejo</span>
+          </a>
+          <nav className="hidden md:flex items-center gap-8 font-medium">
+            <a href="#products" className="hover:text-[#a67c52]">Productos</a>
+            <a href="#benefits" className="hover:text-[#a67c52]">Beneficios</a>
+            <a href="#process" className="hover:text-[#a67c52]">Proceso</a>
+            <a href="#faq" className="hover:text-[#a67c52]">FAQ</a>
+            <a href="#contact" className="hover:text-[#a67c52]">Contacto</a>
+            <a href="/signin" className="ml-2 bg-[#a67c52] hover:bg-[#7c5e3c] text-white px-4 py-2 rounded-lg shadow transition">Iniciar sesión</a>
+          </nav>
+          <button className="md:hidden" onClick={() => setMenuOpen(v => !v)}>
+            {menuOpen ? <X className="w-7 h-7 text-[#7c5e3c]"/> : <Menu className="w-7 h-7 text-[#7c5e3c]"/>}
+          </button>
+        </div>
+        {menuOpen && (
+          <div className="md:hidden bg-white shadow-md">
+            <nav className="flex flex-col px-6 py-4 gap-3">
+              {[{href:'#products',label:'Productos'},{href:'#benefits',label:'Beneficios'},{href:'#process',label:'Proceso'},{href:'#faq',label:'FAQ'},{href:'#contact',label:'Contacto'}].map((l)=> (
+                <a key={l.href} href={l.href} onClick={() => setMenuOpen(false)} className="py-2">{l.label}</a>
+              ))}
+              <a href="/signin" className="bg-[#a67c52] text-white px-4 py-2 rounded-lg shadow" onClick={() => setMenuOpen(false)}>Iniciar sesión</a>
+            </nav>
+          </div>
+        )}
+      </header>
+
+      {/* HERO */}
+      <section id="hero" className="relative max-w-7xl mx-auto px-6 pt-32 md:pt-40 pb-20 grid md:grid-cols-2 gap-12 items-center">
+        <motion.div {...fadeUp} className="text-center md:text-left">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#f3e7d7] text-[#7c5e3c] text-sm font-medium mb-4">
+            <Sparkles className="w-4 h-4"/> Diseño + Fabricación a medida
+          </div>
+          <h1 className="text-5xl md:text-6xl font-extrabold leading-tight mb-6">
+            Muebles que transforman <br className="hidden md:block"/> tu espacio
+          </h1>
+          <p className="text-lg text-gray-600 mb-8 max-w-xl">
+            Modelamos en 3D, producimos con materiales premium y entregamos listos para usar.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+            <a href="#products" className="bg-[#a67c52] hover:bg-[#7c5e3c] text-white px-6 py-3 rounded-xl shadow-md font-semibold transition inline-flex items-center gap-2">
+              <Box className="w-5 h-5"/> Explorar productos
+            </a>
+            <a href="#contact" className="border border-[#a67c52] text-[#7c5e3c] hover:bg-[#fdf8f3] px-6 py-3 rounded-xl shadow font-semibold transition inline-flex items-center gap-2">
+              <Send className="w-5 h-5"/> Cotizar ahora
+            </a>
+          </div>
+
+          {/* KPIs */}
+          <div className="grid grid-cols-3 gap-6 mt-10">
+            {[{k:"+150",l:"Proyectos"},{k:"7 días",l:"Lead time mínimo"},{k:"3 años",l:"Garantía"}].map((s)=> (
+              <div key={s.l} className="bg-white/70 backdrop-blur rounded-2xl p-4 shadow text-center">
+                <div className="text-2xl font-extrabold">{s.k}</div>
+                <div className="text-xs text-gray-500">{s.l}</div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
+        <motion.div {...fadeUp} className="h-[420px] md:h-[520px] bg-gradient-to-br from-[#f8f5f0] to-[#e7d9c2] rounded-3xl shadow-xl overflow-hidden">
+          <Suspense fallback={<div className="w-full h-full grid place-items-center text-gray-500">Cargando modelo…</div>}>
+            <Canvas camera={{ position: [2, 2, 8], fov: 80 }} dpr={[1, 2]}>
+              <ambientLight intensity={0.9} />
+              <directionalLight position={[5, 10, 7]} intensity={1.2} />
+              <MuebleModel />
+              <OrbitControls enablePan={false} autoRotate autoRotateSpeed={1.2} />
+            </Canvas>
+          </Suspense>
+        </motion.div>
+      </section>
+
+      {/* BENEFICIOS */}
+      <section id="benefits" className="py-20">
+        <SectionTitle title="Beneficios que importan" subtitle="Unimos estética, resistencia y precisión para que tu inversión dure."/>
+        <div className="max-w-6xl mx-auto px-6 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[{Icon:ShieldCheck,title:"Garantía real",text:"Cobertura de 3 años en estructura."},{Icon:Ruler,title:"A medida",text:"Optimizamos cada centímetro de tu espacio."},{Icon:Leaf,title:"Acabados eco",text:"Barnices de baja toxicidad y alto desempeño."},{Icon:Hammer,title:"Hecho en Bolivia",text:"Producción local con estándares pro."}].map((b)=> (
+            <motion.div key={b.title} whileHover={{ scale: 1.03 }} className="bg-white rounded-2xl p-6 shadow">
+              <b.Icon className="w-8 h-8 text-[#a67c52] mb-3"/>
+              <h3 className="font-semibold text-lg mb-1">{b.title}</h3>
+              <p className="text-sm text-gray-600">{b.text}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* PRODUCTOS con filtros */}
+      <section id="products" className="bg-[#f8f5f0] py-20">
+        <SectionTitle title="Nuestros productos" subtitle="Filtra por categoría y abre una vista rápida para ver detalles."/>
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex flex-wrap items-center gap-3 justify-between mb-8">
+            <div className="flex flex-wrap gap-2 items-center">
+              <span className="inline-flex items-center gap-2 text-sm text-gray-600"><Filter className="w-4 h-4"/> Categorías:</span>
+              {CATEGORIES.map((c)=> (
+                <button key={c} onClick={()=> setCategory(c)} className={`px-4 py-2 rounded-full text-sm border transition ${category===c? 'bg-[#a67c52] text-white border-[#a67c52]':'border-gray-300 hover:border-[#a67c52] hover:text-[#7c5e3c]'}`}>
+                  {c}
+                </button>
+              ))}
+            </div>
+            <a href="#contact" className="inline-flex items-center gap-2 text-[#7c5e3c] hover:underline font-medium">¿Buscas algo único? <ChevronRight className="w-4 h-4"/></a>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+            {filtered.map((prod, i) => (
+              <motion.div key={prod.title} whileHover={{ y: -4 }} className="bg-white shadow-lg rounded-2xl overflow-hidden group">
+                <div className="relative">
+                  <img src={prod.img} alt={prod.title} className="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-medium shadow">{prod.category}</div>
+                </div>
+                <div className="p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <h3 className="font-semibold text-lg">{prod.title}</h3>
+                    <span className="text-[#7c5e3c] font-bold whitespace-nowrap">{prod.price}</span>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-1">Mueble premium con diseño moderno y personalizado.</p>
+                  <div className="mt-4 flex items-center gap-3">
+                    <button onClick={()=> setQuickView(i)} className="flex-1 bg-[#a67c52] hover:bg-[#7c5e3c] text-white px-4 py-2 rounded-xl transition">Vista rápida</button>
+                    <button className="px-4 py-2 rounded-xl border border-gray-300 hover:border-[#a67c52] transition inline-flex items-center gap-2">
+                      <Check className="w-4 h-4"/> Comparar
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* PROCESO */}
+      <section id="process" className="py-20">
+        <SectionTitle title="Así trabajamos" subtitle="Transparencia en cada etapa, desde la idea hasta la instalación."/>
+        <div className="max-w-4xl mx-auto px-6">
+          <ol className="relative border-s border-[#e8dcc7]">
+            {[{t:"Brief & Medidas",d:"Conversamos sobre necesidades, estilos y tomamos medidas exactas."},{t:"Modelado 3D",d:"Te mostramos renders y ajustamos hasta que quede perfecto."},{t:"Fabricación",d:"Producción con control de calidad en cada pieza."},{t:"Entrega & Instalación",d:"Programamos instalación limpia y garantizada."}].map((step, idx)=> (
+              <li key={step.t} className="mb-10 ms-4">
+                <div className="absolute w-3 h-3 rounded-full bg-[#a67c52] -start-1.5 mt-2"/>
+                <h4 className="text-lg font-semibold">{idx+1}. {step.t}</h4>
+                <p className="text-gray-600 text-sm mt-1">{step.d}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="py-20 bg-[#f8f5f0]">
+        <SectionTitle title="Preguntas frecuentes" subtitle="Si tienes otra duda, escríbenos por WhatsApp o correo."/>
+        <div className="max-w-3xl mx-auto px-6">
+          {[{q:"¿Puedo solicitar un diseño 100% a medida?",a:"Sí. Partimos de tus medidas, referencias y un presupuesto objetivo."},{q:"¿Cuál es el tiempo de entrega?",a:"De 7 a 25 días según complejidad y disponibilidad."},{q:"¿Trabajan con hierro forjado?",a:"Sí, integramos madera + hierro para estructuras robustas y estéticas."},{q:"¿Incluye instalación?",a:"Sí, en la ciudad. Para otras zonas, coordinamos logística."}].map((item, i)=> (
+            <details key={i} className="group bg-white rounded-xl p-5 shadow mb-4">
+              <summary className="cursor-pointer list-none flex items-center justify-between">
+                <span className="font-medium">{item.q}</span>
+                <ChevronDown className="w-5 h-5 transition group-open:rotate-180"/>
+              </summary>
+              <p className="text-gray-600 mt-3">{item.a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA STRIP */}
+      <section className="py-10">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="bg-gradient-to-r from-[#a67c52] to-[#7c5e3c] rounded-2xl p-8 md:p-10 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
+            <div>
+              <h3 className="text-2xl font-bold">¿Listo para comenzar tu proyecto?</h3>
+              <p className="text-white/90">Envíanos un croquis o fotos de referencia y te devolvemos una propuesta.</p>
+            </div>
+            <div className="flex gap-3">
+              <a href="#contact" className="px-5 py-3 bg-white text-[#7c5e3c] rounded-xl font-semibold hover:bg-white/90 transition inline-flex items-center gap-2"><Send className="w-5 h-5"/> Solicitar cotización</a>
+              <a href="#products" className="px-5 py-3 border border-white/70 rounded-xl font-semibold hover:bg-white/10 transition inline-flex items-center gap-2"><Box className="w-5 h-5"/> Ver catálogo</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CONTACTO */}
+      <section id="contact" className="py-20">
+        <SectionTitle title="Hablemos de tu proyecto" subtitle="Déjanos tus datos y te contactamos en menos de 24h hábiles."/>
+        <div className="max-w-5xl mx-auto px-6 grid md:grid-cols-2 gap-10 items-start">
+          <form className="bg-white rounded-2xl shadow p-6 grid gap-4">
+            <input required placeholder="Nombre" className="border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#a67c52] outline-none"/>
+            <input type="email" required placeholder="Correo electrónico" className="border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#a67c52] outline-none"/>
+            <input placeholder="Teléfono (opcional)" className="border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#a67c52] outline-none"/>
+            <textarea required placeholder="Cuéntanos tu idea, medidas aproximadas y presupuesto" className="border border-gray-300 rounded-lg px-4 py-3 h-32 focus:ring-2 focus:ring-[#a67c52] outline-none"/>
+            <button type="submit" className="bg-[#a67c52] hover:bg-[#7c5e3c] text-white px-6 py-3 rounded-lg shadow-md font-semibold transition inline-flex items-center gap-2">
+              <Send className="w-5 h-5"/> Enviar
+            </button>
+          </form>
+          <div className="bg-[#f8f5f0] rounded-2xl p-6">
+            <h4 className="font-semibold mb-4">Contacto directo</h4>
+            <ul className="space-y-3 text-gray-700">
+              <li className="flex items-center gap-3"><Phone className="w-5 h-5 text-[#7c5e3c]"/> +591 777-00000</li>
+              <li className="flex items-center gap-3"><Mail className="w-5 h-5 text-[#7c5e3c]"/> contacto@bosquejo.com</li>
+              <li className="flex items-center gap-3"><MapPin className="w-5 h-5 text-[#7c5e3c]"/> La Paz, Bolivia</li>
+            </ul>
+            <div className="mt-6 grid grid-cols-3 gap-3 text-sm">
+              <div className="bg-white rounded-xl p-4 text-center shadow">
+                <div className="font-bold">L–V</div>
+                <div className="text-gray-500">09:00–18:00</div>
+              </div>
+              <div className="bg-white rounded-xl p-4 text-center shadow">
+                <div className="font-bold">Sáb</div>
+                <div className="text-gray-500">09:00–13:00</div>
+              </div>
+              <div className="bg-white rounded-xl p-4 text-center shadow">
+                <div className="font-bold">Dom</div>
+                <div className="text-gray-500">Cerrado</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="bg-[#3a2f22] text-white py-10">
+        <div className="max-w-7xl mx-auto px-6 grid sm:grid-cols-2 md:grid-cols-4 gap-8">
+          <div>
+            <h3 className="font-semibold mb-3">Bosquejo</h3>
+            <p className="text-sm text-gray-300">Muebles personalizados en madera e hierro forjado.</p>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-3">Enlaces</h4>
+            <ul className="space-y-2 text-gray-300">
+              <li><a href="#products">Productos</a></li>
+              <li><a href="#benefits">Beneficios</a></li>
+              <li><a href="#process">Proceso</a></li>
+              <li><a href="#faq">FAQ</a></li>
+              <li><a href="#contact">Contacto</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-3">Políticas</h4>
+            <ul className="space-y-2 text-gray-300">
+              <li><a href="#">Términos y condiciones</a></li>
+              <li><a href="#">Garantías</a></li>
+              <li><a href="#">Privacidad</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-3">Contacto</h4>
+            <p className="text-gray-300 text-sm">✉ contacto@bosquejo.com</p>
+            <p className="text-gray-300 text-sm">📞 +591 777-00000</p>
+            <p className="text-gray-300 text-sm">📍 La Paz, Bolivia</p>
+          </div>
+        </div>
+        <div className="text-center mt-8 text-sm text-gray-400">© 2025 Bosquejo - Muebles a tu medida</div>
+      </footer>
+
+      {/* QUICK VIEW MODAL */}
+      {quickView !== null && (
+        <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm grid place-items-center p-4" onClick={()=> setQuickView(null)}>
+          <div className="bg-white rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl" onClick={(e)=> e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 border-b">
+              <h4 className="font-semibold">{PRODUCTS[quickView].title}</h4>
+              <button onClick={()=> setQuickView(null)} className="p-2 rounded hover:bg-gray-100"><X className="w-5 h-5"/></button>
+            </div>
+            <div className="grid md:grid-cols-2">
+              <div className="bg-[#f8f5f0] h-72 md:h-80 grid place-items-center">
+                <img src={PRODUCTS[quickView].img} alt={PRODUCTS[quickView].title} className="w-full h-full object-contain p-4"/>
+              </div>
+              <div className="p-6">
+                <p className="text-gray-600 text-sm">Fabricado con madera seleccionada y acabados resistentes. Personalizable en medidas y colores.</p>
+                <div className="mt-4 text-2xl font-extrabold text-[#7c5e3c]">{PRODUCTS[quickView].price}</div>
+                <div className="mt-6 flex gap-3">
+                  <a href="#contact" className="flex-1 bg-[#a67c52] hover:bg-[#7c5e3c] text-white px-4 py-3 rounded-xl text-center">Solicitar cotización</a>
+                  <button onClick={()=> setQuickView(null)} className="px-4 py-3 rounded-xl border border-gray-300">Cerrar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Landing;

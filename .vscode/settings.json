@@ -1,0 +1,4 @@
+{
+    "chat.agent.maxRequests": 1000,
+    "java.compile.nullAnalysis.mode": "automatic"
+}

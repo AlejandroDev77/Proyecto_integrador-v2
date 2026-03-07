@@ -1,0 +1,447 @@
+-- 1. Tablas de usuarios y roles   (HECHO)
+CREATE TABLE roles (
+    id_rol SERIAL PRIMARY KEY,
+    cod_rol VARCHAR (50),
+    nom_rol VARCHAR(100)
+);
+--(HECHO)
+CREATE TABLE usuarios (
+    id_usu SERIAL PRIMARY KEY,
+    cod_usu VARCHAR (50),
+    nom_usu VARCHAR(100),
+    email_usu VARCHAR(200),
+    pas_usu VARCHAR(500),
+    est_usu BOOLEAN,
+    id_rol INT,
+    CONSTRAINT fk_rol FOREIGN KEY (id_rol) REFERENCES roles(id_rol)
+);
+--(HECHO)
+CREATE TABLE clientes (
+    id_cli SERIAL PRIMARY KEY,
+    cod_cli VARCHAR (50),
+    nom_cli VARCHAR(200),
+    ap_pat_cli VARCHAR(200),
+    ap_mat_cli VARCHAR(200),
+    cel_cli INT,
+    dir_cli VARCHAR(200),
+    fec_nac_cli DATE,
+    img_cli VARCHAR(300),
+    ci_cli VARCHAR(30),
+    est_cli BOOLEAN DEFAULT TRUE,  -- Estado del cliente (activo/inactivo)
+    id_usu INT,
+    CONSTRAINT fk_usuario_cliente FOREIGN KEY (id_usu) REFERENCES usuarios(id_usu)
+);
+--(HECHO)
+CREATE TABLE empleados (
+    id_emp SERIAL PRIMARY KEY,
+    cod_emp VARCHAR (50),
+    nom_emp VARCHAR(200),
+    ap_pat_emp VARCHAR(200),
+    ap_mat_emp VARCHAR(200),
+    cel_emp INT,
+    dir_emp VARCHAR(200),
+    fec_nac_emp DATE,
+    img_emp VARCHAR(300),
+    car_emp VARCHAR(300),
+    ci_emp VARCHAR(30),
+    id_usu INT,
+    CONSTRAINT fk_usuario_empleado FOREIGN KEY (id_usu) REFERENCES usuarios(id_usu)
+);
+--(HECHO)
+-- 2. Tablas de proveedores (Nueva tabla)
+CREATE TABLE proveedores (
+    id_prov SERIAL PRIMARY KEY,
+    cod_prov VARCHAR (50),
+    nom_prov VARCHAR(200) NOT NULL,
+    contacto_prov VARCHAR(200),
+    tel_prov VARCHAR(20),
+    email_prov VARCHAR(200),
+    dir_prov VARCHAR(300),
+    nit_prov VARCHAR(50),
+    est_prov BOOLEAN DEFAULT TRUE
+);
+--(HECHO)
+-- 3. Tablas de productos y materiales
+CREATE TABLE categorias_muebles (
+    id_cat SERIAL PRIMARY KEY,
+    cod_cat VARCHAR (50),
+    nom_cat VARCHAR(100) NOT NULL,
+    desc_cat TEXT,
+    est_cat BOOLEAN DEFAULT TRUE
+
+);
+--(HECHO)
+CREATE TABLE materiales (
+    id_mat SERIAL PRIMARY KEY,
+    cod_mat VARCHAR (50),
+    nom_mat VARCHAR(100) NOT NULL,
+    desc_mat TEXT,
+    stock_mat DECIMAL(10, 2) DEFAULT 0,
+    stock_min DECIMAL(10, 2) DEFAULT 0,  -- Stock mínimo para alertas
+    unidad_medida VARCHAR(20) NOT NULL,
+    costo_mat DECIMAL(10, 2) NOT NULL,
+    img_mat VARCHAR(500),
+    est_mat BOOLEAN DEFAULT TRUE  -- Estado del material (activo/inactivo)
+
+);
+
+--(HECHO)
+-- Nueva tabla para compras de materiales
+CREATE TABLE compras_materiales (
+    id_comp SERIAL PRIMARY KEY,
+    cod_comp VARCHAR (50),
+    fec_comp DATE NOT NULL,
+    est_comp VARCHAR(50) DEFAULT 'Pendiente',
+    total_comp DECIMAL(10, 2) NOT NULL,
+    est_comp BOOLEAN DEFAULT TRUE,  -- Estado de la compra (activa/inactiva)
+    id_prov INT NOT NULL,
+    id_emp INT NOT NULL,
+
+    CONSTRAINT fk_proveedor FOREIGN KEY (id_prov) REFERENCES proveedores(id_prov),
+    CONSTRAINT fk_empleado FOREIGN KEY (id_emp) REFERENCES empleados(id_emp)
+);
+--(HECHO)
+-- Nueva tabla para detalles de compras
+CREATE TABLE detalles_compra (
+    id_det_comp SERIAL PRIMARY KEY,
+    cod_det_comp VARCHAR (50),
+    id_comp INT NOT NULL,
+    id_mat INT NOT NULL,
+    cantidad DECIMAL(10, 2) NOT NULL,
+    precio_unitario DECIMAL(10, 2) NOT NULL,
+    subtotal DECIMAL(10, 2) NOT NULL,
+    est_det_comp BOOLEAN DEFAULT TRUE,  -- Estado del detalle (activo/inactivo) 
+    CONSTRAINT fk_compra FOREIGN KEY (id_comp) REFERENCES compras_materiales(id_comp),
+    CONSTRAINT fk_material_compra FOREIGN KEY (id_mat) REFERENCES materiales(id_mat)
+);
+
+--(HECHO)
+CREATE TABLE muebles (
+    id_mue SERIAL PRIMARY KEY,
+    cod_mue VARCHAR (50),
+    nom_mue VARCHAR(200) NOT NULL,
+    desc_mue TEXT,
+    img_mue VARCHAR(300),
+    precio_venta DECIMAL(10, 2) NOT NULL,
+    precio_costo DECIMAL(10, 2) NOT NULL,  -- Nuevo campo para costo total
+    stock INT DEFAULT 0,
+    stock_min INT DEFAULT 0,  -- Stock mínimo para alertas
+    modelo_3d VARCHAR(2000),  -- Corregido el punto y coma
+    dimensiones VARCHAR(100),  -- Nuevo campo para dimensiones
+    est_mue BOOLEAN DEFAULT TRUE,  -- Estado del mueble (activo/inactivo)
+    id_cat INT NOT NULL,
+
+    CONSTRAINT fk_categoria FOREIGN KEY (id_cat) REFERENCES categorias_muebles(id_cat)
+);
+--(HECHO)
+CREATE TABLE mueble_material (
+    id_mue_mat SERIAL PRIMARY KEY,
+    cod_mue_mat VARCHAR (50),
+    id_mue INT NOT NULL,
+    id_mat INT NOT NULL,
+    cantidad DECIMAL(10, 2) NOT NULL,
+    est_mue_mat BOOLEAN DEFAULT TRUE,  -- Estado del mueble-material (activo/inactivo)
+
+    CONSTRAINT fk_mueble FOREIGN KEY (id_mue) REFERENCES muebles(id_mue),
+    CONSTRAINT fk_material FOREIGN KEY (id_mat) REFERENCES materiales(id_mat)
+);
+--(HECHO)
+-- 4. Tablas de ventas directas
+CREATE TABLE ventas (
+    id_ven SERIAL PRIMARY KEY,
+    cod_ven VARCHAR (50),
+    fec_ven DATE NOT NULL,
+    est_ven VARCHAR(50) DEFAULT 'Pendiente',
+    total_ven DECIMAL(10, 2) NOT NULL,
+    descuento DECIMAL(10, 2) DEFAULT 0,  -- Nuevo campo para descuentos
+    id_cli INT NOT NULL,
+    id_emp INT NOT NULL,
+    notas TEXT,  -- Nuevo campo para notas o comentarios
+
+    CONSTRAINT fk_cliente FOREIGN KEY (id_cli) REFERENCES clientes(id_cli),
+    CONSTRAINT fk_empleado FOREIGN KEY (id_emp) REFERENCES empleados(id_emp)
+);
+--(HECHO)
+CREATE TABLE detalles_venta (
+    id_det_ven SERIAL PRIMARY KEY,
+    cod_det_ven VARCHAR (50),
+    id_ven INT NOT NULL,
+    id_mue INT NOT NULL,
+    cantidad INT NOT NULL,
+    precio_unitario DECIMAL(10, 2) NOT NULL,
+    descuento_item DECIMAL(10, 2) DEFAULT 0,  -- Descuento por ítem
+    subtotal DECIMAL(10, 2) NOT NULL,
+
+    CONSTRAINT fk_venta FOREIGN KEY (id_ven) REFERENCES ventas(id_ven),
+    CONSTRAINT fk_mueble_venta FOREIGN KEY (id_mue) REFERENCES muebles(id_mue)
+);
+--(HECHO)
+CREATE TABLE pagos (
+    id_pag SERIAL PRIMARY KEY,
+    cod_pag VARCHAR (50),
+    monto DECIMAL(10, 2) NOT NULL,
+    fec_pag DATE NOT NULL,
+    metodo_pag VARCHAR(50) NOT NULL,
+    referencia_pag VARCHAR(100),  -- Número de referencia para transacciones
+    id_ven INT NOT NULL,
+
+    CONSTRAINT fk_pago_venta FOREIGN KEY (id_ven) REFERENCES ventas(id_ven)
+);
+--(HECHO)
+-- Nueva tabla para devoluciones
+CREATE TABLE devoluciones (
+    id_dev SERIAL PRIMARY KEY,
+    cod_dev VARCHAR (50),
+    fec_dev DATE NOT NULL,
+    motivo_dev TEXT NOT NULL,
+    id_ven INT NOT NULL,
+    total_dev DECIMAL(10, 2) NOT NULL,
+    est_dev VARCHAR(50) DEFAULT 'Pendiente',
+    id_emp INT NOT NULL,
+
+    CONSTRAINT fk_venta_devolucion FOREIGN KEY (id_ven) REFERENCES ventas(id_ven),
+    CONSTRAINT fk_empleado_devolucion FOREIGN KEY (id_emp) REFERENCES empleados(id_emp)
+);
+--(HECHO)
+CREATE TABLE detalles_devolucion (
+    id_det_dev SERIAL PRIMARY KEY,
+    cod_det_dev VARCHAR (50),
+    id_dev INT NOT NULL,
+    id_mue INT NOT NULL,
+    cantidad INT NOT NULL,
+    precio_unitario DECIMAL(10, 2) NOT NULL,
+    subtotal DECIMAL(10, 2) NOT NULL,
+
+    CONSTRAINT fk_devolucion FOREIGN KEY (id_dev) REFERENCES devoluciones(id_dev),
+    CONSTRAINT fk_mueble_devolucion FOREIGN KEY (id_mue) REFERENCES muebles(id_mue)
+);
+--(HECHO)
+-- 5. Tablas de cotizaciones personalizadas
+CREATE TABLE cotizaciones (
+    id_cot SERIAL PRIMARY KEY,
+    cod_cot VARCHAR (50),
+    fec_cot DATE NOT NULL,
+    est_cot VARCHAR(50) DEFAULT 'Pendiente',
+    validez_dias INT DEFAULT 15,  -- Validez de la cotización en días
+    total_cot DECIMAL(10, 2) NOT NULL,
+    descuento DECIMAL(10, 2) DEFAULT 0,
+    id_cli INT NOT NULL,
+    id_emp INT NOT NULL,
+    notas TEXT,
+
+    CONSTRAINT fk_cliente_cot FOREIGN KEY (id_cli) REFERENCES clientes(id_cli),
+    CONSTRAINT fk_empleado_cot FOREIGN KEY (id_emp) REFERENCES empleados(id_emp)
+);
+--(HECHO)
+CREATE TABLE diseños (
+    id_dis SERIAL PRIMARY KEY,
+    cod_dis VARCHAR (50),
+    nom_dis VARCHAR(200) NOT NULL,
+    desc_dis TEXT,
+    archivo_3d VARCHAR(300),
+    img_dis VARCHAR(300),
+    id_cot INT NOT NULL,
+
+    CONSTRAINT fk_cotizacion FOREIGN KEY (id_cot) REFERENCES cotizaciones(id_cot)
+);
+--(HECHO)
+CREATE TABLE detalles_cotizacion (
+    id_det_cot SERIAL PRIMARY KEY,
+    cod_det_cot VARCHAR (50),
+    id_cot INT NOT NULL, 
+    id_mue INT NOT NULL,
+    desc_personalizacion TEXT,
+    cantidad INT NOT NULL,
+    precio_unitario DECIMAL(10, 2) NOT NULL,
+    subtotal DECIMAL(10, 2) NOT NULL,
+
+    CONSTRAINT fk_cotizacion_det FOREIGN KEY (id_cot) REFERENCES cotizaciones(id_cot),
+    CONSTRAINT fk_mueble_cot FOREIGN KEY (id_mue) REFERENCES muebles(id_mue)
+);
+--(HECHO)
+-- 6. Tablas de producción
+CREATE TABLE etapas_produccion (
+    id_eta SERIAL PRIMARY KEY,
+    cod_eta VARCHAR (50),
+    nom_eta VARCHAR(100) NOT NULL,
+    desc_eta TEXT,
+    duracion_estimada INT,  -- Duración estimada en días
+    orden_secuencia INT NOT NULL  -- Orden en que se ejecuta la etapa
+
+);
+--(HECHO)
+CREATE TABLE produccion (
+    id_pro SERIAL PRIMARY KEY,
+    cod_pro VARCHAR (50),
+    fec_ini DATE NOT NULL,
+    fec_fin_estimada DATE NOT NULL,  -- Fecha estimada de finalización
+    fec_fin DATE,  -- Fecha real de finalización
+    est_pro VARCHAR(50) DEFAULT 'Pendiente',
+    prioridad INT DEFAULT 5,  -- Nivel de prioridad (1-10)
+    id_ven INT NULL,
+    id_cot INT NULL,
+    id_emp INT NOT NULL,  -- Empleado responsable
+    notas TEXT,
+    CONSTRAINT fk_pro_venta FOREIGN KEY (id_ven) REFERENCES ventas(id_ven),
+    CONSTRAINT fk_pro_cotizacion FOREIGN KEY (id_cot) REFERENCES cotizaciones(id_cot),
+    CONSTRAINT fk_pro_empleado FOREIGN KEY (id_emp) REFERENCES empleados(id_emp),
+    CONSTRAINT check_venta_o_cotizacion CHECK (id_ven IS NOT NULL OR id_cot IS NOT NULL)
+);
+--(FALTA)
+CREATE TABLE produccion_etapas (
+    id_pro_eta SERIAL PRIMARY KEY,
+    cod_pro_eta VARCHAR (50),
+    id_pro INT NOT NULL,
+    id_eta INT NOT NULL,
+    fec_ini DATE,
+    fec_fin DATE,
+    est_eta VARCHAR(50) DEFAULT 'Pendiente',
+    id_emp INT,  -- Empleado asignado a esta etapa
+    notas TEXT,
+
+    CONSTRAINT fk_produccion FOREIGN KEY (id_pro) REFERENCES produccion(id_pro),
+    CONSTRAINT fk_etapa FOREIGN KEY (id_eta) REFERENCES etapas_produccion(id_eta),
+    CONSTRAINT fk_empleado FOREIGN KEY (id_emp) REFERENCES empleados(id_emp)
+);
+--(FALTA)
+-- 7. Tabla de detalles de producción (nueva tabla)
+CREATE TABLE detalles_produccion (
+    id_det_pro SERIAL PRIMARY KEY,
+    cod_det_pro VARCHAR (50),
+    id_pro INT NOT NULL,
+    id_mue INT NOT NULL,
+    cantidad INT NOT NULL,
+    est_det_pro VARCHAR(50) DEFAULT 'Pendiente',
+    CONSTRAINT fk_produccion_det FOREIGN KEY (id_pro) REFERENCES produccion(id_pro),
+    CONSTRAINT fk_mueble_produccion FOREIGN KEY (id_mue) REFERENCES muebles(id_mue)
+);
+--(FALTA)
+-- 8. Tabla de movimientos de inventario
+CREATE TABLE movimientos_inventario (
+    id_mov SERIAL PRIMARY KEY,
+    cod_mov VARCHAR (50),
+    tipo_mov VARCHAR(10) NOT NULL,  -- 'ENTRADA', 'SALIDA'
+    fecha_mov TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    id_mat INT,
+    id_mue INT,
+    cantidad DECIMAL(10,2) NOT NULL,
+    stock_anterior DECIMAL(10,2) NOT NULL,  -- Stock antes del movimiento
+    stock_posterior DECIMAL(10,2) NOT NULL,  -- Stock después del movimiento
+    id_ven INT,
+    id_pro INT,
+    id_comp INT,  -- Referencia a compras
+    id_dev INT,   -- Referencia a devoluciones
+    motivo VARCHAR(500),
+    id_emp INT NOT NULL,  -- Empleado que realizó el movimiento
+
+    CONSTRAINT fk_mov_mat FOREIGN KEY (id_mat) REFERENCES materiales(id_mat),
+    CONSTRAINT fk_mov_mue FOREIGN KEY (id_mue) REFERENCES muebles(id_mue),
+    CONSTRAINT fk_mov_ven FOREIGN KEY (id_ven) REFERENCES ventas(id_ven),
+    CONSTRAINT fk_mov_pro FOREIGN KEY (id_pro) REFERENCES produccion(id_pro),
+    CONSTRAINT fk_mov_comp FOREIGN KEY (id_comp) REFERENCES compras_materiales(id_comp),
+    CONSTRAINT fk_mov_dev FOREIGN KEY (id_dev) REFERENCES devoluciones(id_dev),
+    CONSTRAINT fk_mov_emp FOREIGN KEY (id_emp) REFERENCES empleados(id_emp),
+    CONSTRAINT check_mat_o_mue CHECK (id_mat IS NOT NULL OR id_mue IS NOT NULL)
+);
+
+
+
+-- USUARIOS
+ALTER TABLE usuarios
+ADD COLUMN cod_usu VARCHAR(50);
+
+-- CLIENTES
+ALTER TABLE clientes
+ADD COLUMN cod_cli VARCHAR(50);
+ALTER TABLE clientes
+ADD COLUMN est_cli BOOLEAN DEFAULT TRUE;
+
+-- EMPLEADOS
+ALTER TABLE empleados
+ADD COLUMN cod_emp VARCHAR(50);
+ALTER TABLE empleados
+ADD COLUMN est_emp BOOLEAN DEFAULT TRUE;
+
+-- PROVEEDORES
+ALTER TABLE proveedores
+ADD COLUMN cod_prov VARCHAR(50);
+
+-- CATEGORIAS_MUEBLES
+ALTER TABLE categorias_muebles
+ADD COLUMN cod_cat VARCHAR(50);
+
+-- MATERIALES
+ALTER TABLE materiales
+ADD COLUMN cod_mat VARCHAR(50);
+
+-- COMPRAS_MATERIALES
+ALTER TABLE compras_materiales
+ADD COLUMN cod_comp VARCHAR(50);
+
+-- DETALLES_COMPRA
+ALTER TABLE detalles_compra
+ADD COLUMN cod_det_comp VARCHAR(50);
+ALTER TABLE detalles_compra
+ADD COLUMN est_det_comp BOOLEAN DEFAULT TRUE;
+
+-- MUEBLES
+ALTER TABLE muebles
+ADD COLUMN cod_mue VARCHAR(50);
+
+-- MUEBLE_MATERIAL
+ALTER TABLE mueble_material
+ADD COLUMN cod_mue_mat VARCHAR(50);
+ALTER TABLE mueble_material
+ADD COLUMN est_mue_mat BOOLEAN DEFAULT TRUE;
+
+-- VENTAS
+ALTER TABLE ventas
+ADD COLUMN cod_ven VARCHAR(50);
+
+-- DETALLES_VENTA
+ALTER TABLE detalles_venta
+ADD COLUMN cod_det_ven VARCHAR(50);
+
+-- PAGOS
+ALTER TABLE pagos
+ADD COLUMN cod_pag VARCHAR(50);
+
+-- DEVOLUCIONES
+ALTER TABLE devoluciones
+ADD COLUMN cod_dev VARCHAR(50);
+
+-- DETALLES_DEVOLUCION
+ALTER TABLE detalles_devolucion
+ADD COLUMN cod_det_dev VARCHAR(50);
+
+-- COTIZACIONES
+ALTER TABLE cotizaciones
+ADD COLUMN cod_cot VARCHAR(50);
+
+-- DISEÑOS
+ALTER TABLE diseños
+ADD COLUMN cod_dis VARCHAR(50);
+
+-- DETALLES_COTIZACION
+ALTER TABLE detalles_cotizacion
+ADD COLUMN cod_det_cot VARCHAR(50);
+
+-- ETAPAS_PRODUCCION
+ALTER TABLE etapas_produccion
+ADD COLUMN cod_eta VARCHAR(50);
+
+-- PRODUCCION
+ALTER TABLE produccion
+ADD COLUMN cod_pro VARCHAR(50);
+
+-- PRODUCCION_ETAPAS
+ALTER TABLE produccion_etapas
+ADD COLUMN cod_pro_eta VARCHAR(50);
+
+-- DETALLES_PRODUCCION
+ALTER TABLE detalles_produccion
+ADD COLUMN cod_det_pro VARCHAR(50);
+
+-- MOVIMIENTOS_INVENTARIO
+ALTER TABLE movimientos_inventario
+ADD COLUMN cod_mov VARCHAR(50);
