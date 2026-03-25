@@ -1,11 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
-
-export interface UserTokenPayload {
-  id_usu: number;
-  id_rol: number;
-  [key: string]: any;
-}
+import { UserTokenPayload } from "../types/auth";
 
 interface AuthContextType {
   id_rol: number | null;
@@ -17,6 +12,7 @@ interface AuthContextType {
   logout: () => void;
   checkAuth: () => void;
 }
+
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -36,11 +32,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (storedToken) {
       try {
         const decoded: UserTokenPayload = jwtDecode(storedToken);
+        
+        // Comprobar si expiró
+        if (decoded.exp && decoded.exp * 1000 < Date.now()) {
+          throw new Error("Token expirado");
+        }
+
         setToken(storedToken);
         setIdUsu(decoded.id_usu);
         setIdRol(decoded.id_rol);
       } catch (error) {
-        // Token inválido, eliminar
+        // Token inválido o expirado, eliminar
         localStorage.removeItem("token");
         setToken(null);
         setIdUsu(null);

@@ -49,12 +49,15 @@ public class UsuarioService implements UsuarioServicePort {
 
     @Override
     public Usuario crear(Usuario usuario) {
-        // Generar código automático (USU-1, USU-2, ...)
         String codigo = persistencePort.generarCodigoUnico();
         usuario.setCodUsu(codigo);
 
-        // Generar contraseña aleatoria y encriptarla
-        String rawPassword = generarPasswordAleatorio(10);
+        // Si el usuario ya trae una contraseña (ej: por Register), la encriptamos.
+        // Si no trae (ej: creado por Admin), generamos una aleatoria.
+        String rawPassword = (usuario.getPasUsu() != null && !usuario.getPasUsu().isBlank()) 
+                             ? usuario.getPasUsu() 
+                             : generarPasswordAleatorio(10);
+                             
         usuario.setPasUsu(passwordEncoder.encode(rawPassword));
 
         return persistencePort.guardar(usuario);
@@ -92,6 +95,21 @@ public class UsuarioService implements UsuarioServicePort {
 
         existente.setEstUsu(nuevoEstado);
         return persistencePort.guardar(existente);
+    }
+
+    @Override
+    public Optional<Usuario> obtenerPorNombre(String nomUsu) {
+        return persistencePort.obtenerPorNombre(nomUsu);
+    }
+
+    @Override
+    public boolean existePorNomUsu(String nomUsu) {
+        return persistencePort.existePorNomUsu(nomUsu);
+    }
+
+    @Override
+    public boolean existePorEmail(String email) {
+        return persistencePort.existePorEmail(email);
     }
 
     // ── Helpers privados ───────────────────────────────────────

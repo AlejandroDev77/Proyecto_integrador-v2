@@ -1,6 +1,6 @@
-import axios from "axios";
+import axiosClient from "../api/axios";
 
-const API_URL = "http://localhost:8080/api/usuarios";
+const API_URL = "/api/usuarios";
 
 export const getUsuarios = async (
   page: number = 1,
@@ -23,7 +23,7 @@ export const getUsuarios = async (
 
   if (sort) params.sort = sort;
 
-  const response = await axios.get(API_URL, { params });
+  const response = await axiosClient.get(API_URL, { params });
   return response.data;
 };
 
@@ -32,5 +32,5 @@ export const cambiarEstadoUsuario = async (
   nuevoEstado: boolean,
 ) => {
   const estadoNumerico = nuevoEstado ? 1 : 0;
-  await axios.put(`${API_URL}/${id}/estado`, { est_usu: estadoNumerico });
+  await axiosClient.put(`${API_URL}/${id}/estado`, { est_usu: estadoNumerico });
 };

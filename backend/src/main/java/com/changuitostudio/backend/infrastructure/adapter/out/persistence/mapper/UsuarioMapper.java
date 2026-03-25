@@ -23,6 +23,8 @@ public class UsuarioMapper {
         entity.setPasUsu(domain.getPasUsu());
         entity.setEstUsu(domain.getEstUsu());
         entity.setCodUsu(domain.getCodUsu());
+        entity.setSecret2fa(domain.getSecret2fa());
+        entity.setIs2faEnabled(domain.getIs2faEnabled());
 
         // Setear relación de rol
         if (domain.getIdRol() != null) {
@@ -46,6 +48,8 @@ public class UsuarioMapper {
                 entity.getEstUsu(),
                 entity.getCodUsu(),
                 entity.getIdRol(),
-                entity.getRol() != null ? entity.getRol().getNomRol() : null);
+                entity.getRol() != null ? entity.getRol().getNomRol() : null,
+                entity.getSecret2fa(),
+                entity.getIs2faEnabled());
     }
 }

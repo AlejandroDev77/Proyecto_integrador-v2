@@ -2,8 +2,8 @@ package com.changuitostudio.backend.infrastructure.adapter.in.web.controller;
 
 import com.changuitostudio.backend.application.port.in.UsuarioServicePort;
 import com.changuitostudio.backend.domain.model.Usuario;
-import com.changuitostudio.backend.infrastructure.adapter.in.web.dto.UsuarioRequestDTO;
-import com.changuitostudio.backend.infrastructure.adapter.in.web.dto.UsuarioResponseDTO;
+import com.changuitostudio.backend.infrastructure.adapter.in.web.dto.UsuarioDTO.UsuarioRequestDTO;
+import com.changuitostudio.backend.infrastructure.adapter.in.web.dto.UsuarioDTO.UsuarioResponseDTO;
 
 import jakarta.validation.Valid;
 
@@ -103,10 +103,11 @@ public class UsuarioController {
     @PostMapping
     public ResponseEntity<UsuarioResponseDTO> store(@Valid @RequestBody UsuarioRequestDTO request) {
         Usuario dominio = new Usuario();
-        dominio.setNomUsu(request.getNom_usu());
-        dominio.setEmailUsu(request.getEmail_usu());
-        dominio.setEstUsu(request.getEst_usu());
-        dominio.setIdRol(request.getId_rol());
+        dominio.setNomUsu(request.getNomUsu());
+        dominio.setEmailUsu(request.getEmailUsu());
+        dominio.setPasUsu(request.getPasUsu());
+        dominio.setEstUsu(request.getEstUsu());
+        dominio.setIdRol(request.getIdRol());
 
         Usuario creado = usuarioServicePort.crear(dominio);
         return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(creado));
@@ -119,10 +120,11 @@ public class UsuarioController {
     public ResponseEntity<UsuarioResponseDTO> update(@PathVariable Long id,
             @RequestBody UsuarioRequestDTO request) {
         Usuario dominio = new Usuario();
-        dominio.setNomUsu(request.getNom_usu());
-        dominio.setEmailUsu(request.getEmail_usu());
-        dominio.setEstUsu(request.getEst_usu());
-        dominio.setIdRol(request.getId_rol());
+        dominio.setNomUsu(request.getNomUsu());
+        dominio.setEmailUsu(request.getEmailUsu());
+        dominio.setPasUsu(request.getPasUsu());
+        dominio.setEstUsu(request.getEstUsu());
+        dominio.setIdRol(request.getIdRol());
 
         Usuario actualizado = usuarioServicePort.actualizar(id, dominio);
         return ResponseEntity.ok(toResponse(actualizado));
@@ -167,7 +169,7 @@ public class UsuarioController {
                 u.getEmailUsu(),
                 u.getEstUsu(),
                 u.getCodUsu(),
-                u.getNomRol(),
-                u.getIdRol());
+                u.getIdRol(),
+                u.getNomRol());
     }
 }

@@ -1,9 +1,5 @@
 package com.changuitostudio.backend.domain.model;
 
-/**
- * Entidad de dominio — Usuario.
- * Campos correspondientes a la tabla 'usuarios' de PostgreSQL.
- */
 public class Usuario {
 
     private Long idUsu;
@@ -13,15 +9,17 @@ public class Usuario {
     private Boolean estUsu;
     private String codUsu;
     private Long idRol;
+    private String secret2fa;
+    private Boolean is2faEnabled;
 
-    // Datos del rol (solo lectura, se carga de la relación)
+    // Datos del rol
     private String nomRol;
 
     public Usuario() {
     }
 
     public Usuario(Long idUsu, String nomUsu, String emailUsu, String pasUsu,
-            Boolean estUsu, String codUsu, Long idRol, String nomRol) {
+            Boolean estUsu, String codUsu, Long idRol, String nomRol, String secret2fa, Boolean is2faEnabled) {
         this.idUsu = idUsu;
         this.nomUsu = nomUsu;
         this.emailUsu = emailUsu;
@@ -30,9 +28,11 @@ public class Usuario {
         this.codUsu = codUsu;
         this.idRol = idRol;
         this.nomRol = nomRol;
+        this.secret2fa = secret2fa;
+        this.is2faEnabled = is2faEnabled;
     }
 
-    // ── Getters & Setters ──────────────────────────────────────
+    // Captadores y Colocadores
 
     public Long getIdUsu() {
         return idUsu;
@@ -80,6 +80,24 @@ public class Usuario {
 
     public void setCodUsu(String codUsu) {
         this.codUsu = codUsu;
+    }
+
+    // Captadores y Colocadores de 2FA
+
+    public String getSecret2fa() {
+        return secret2fa;
+    }
+
+    public void setSecret2fa(String secret2fa) {
+        this.secret2fa = secret2fa;
+    }
+
+    public Boolean getIs2faEnabled() {
+        return is2faEnabled;
+    }
+
+    public void setIs2faEnabled(Boolean is2faEnabled) {
+        this.is2faEnabled = is2faEnabled;
     }
 
     public Long getIdRol() {

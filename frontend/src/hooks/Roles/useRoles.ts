@@ -1,8 +1,12 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
-
-
-const API_URL = "http://localhost:8000/api/roles";
+import axiosClient from "../../api/axios";
+import { 
+  getRoles, 
+  crearRol as crearRolService,
+  actualizarRol as actualizarRolService,
+  eliminarRol as eliminarRolService,
+  API_URL
+} from "../../services/Rol";
 
 interface Rol {
   id_rol: number;
@@ -26,62 +30,41 @@ export const useRoles = () => {
   const [selectedRol, setSelectedRol] = useState<Rol | null>(null);
   const [loadingAction, setLoadingAction] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Cargar roles
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState<Record<string, any>>({});
   const [sort, setSort] = useState<string | null>(null);
 
-  // Cargar roles con paginación
-  const fetchRoles = async (page: number = 1, perPage: number = 20) => {
+  // Cargar roles con paginación y filtros
+  const fetchRoles = async () => {
     setLoading(true);
     try {
-      const params: any = { page, per_page: perPage };
-      if (Object.keys(filters).length > 0) {
-        Object.entries(filters).forEach(([key, value]) => {
-          if (value) {
-            // Evitar duplicar filter[ si ya lo tiene
-            if (key.startsWith('filter[')) {
-              params[key] = value;
-            } else {
-              params[`filter[${key}]`] = value;
-            }
-          }
-        });
-      }
-      if (sort && typeof sort === 'string' && sort !== '') {
-        params.sort = sort;
-      }
-      
-      const response = await axios.get(API_URL, { params });
-      const data = response.data;
+      const data = await getRoles(currentPage, itemsPerPage, filters, sort || "");
       setRoles(data.data || data);
       setTotalPages(data.last_page || 1);
       setTotalItems(data.total || (data.data ? data.data.length : 0));
-      setError(null);
-    } catch (err) {
-      console.error("Error al cargar roles:", err);
-      setError("Error al cargar los roles");
+    } catch (error) {
+      console.error("Error al cargar roles:", error);
+      setError("Error al cargar roles");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchRoles(currentPage, itemsPerPage);
+    fetchRoles();
   }, [currentPage, itemsPerPage, filters, sort]);
 
   // Crear rol
   const crearRol = async (datos: Omit<Rol, "id_rol">) => {
     setLoadingAction(true);
     try {
-      const response = await axios.post(API_URL, datos);
-      setRoles([...roles, response.data]);
+      const response = await crearRolService(datos.nom_rol);
+      setRoles([...roles, response]);
       setShowModalAgregar(false);
       setError(null);
-      return response.data;
+      return response;
     } catch (err: any) {
       const errorMsg = err.response?.data?.message || "Error al crear rol";
       setError(errorMsg);
@@ -96,12 +79,12 @@ export const useRoles = () => {
   const actualizarRol = async (id_rol: number, datos: Partial<Rol>) => {
     setLoadingAction(true);
     try {
-      const response = await axios.put(`${API_URL}/${id_rol}`, datos);
-      setRoles(roles.map((r) => (r.id_rol === id_rol ? response.data : r)));
+      const response = await actualizarRolService(id_rol, datos.nom_rol || "");
+      setRoles(roles.map((r) => (r.id_rol === id_rol ? response : r)));
       setShowModalEditar(false);
       setSelectedRol(null);
       setError(null);
-      return response.data;
+      return response;
     } catch (err: any) {
       const errorMsg = err.response?.data?.message || "Error al actualizar rol";
       setError(errorMsg);
@@ -116,7 +99,7 @@ export const useRoles = () => {
   const eliminarRol = async (id_rol: number) => {
     setLoadingAction(true);
     try {
-      await axios.delete(`${API_URL}/${id_rol}`);
+      await eliminarRolService(id_rol);
       setRoles(roles.filter((r) => r.id_rol !== id_rol));
       setShowModalEliminar(false);
       setSelectedRol(null);
@@ -134,7 +117,7 @@ export const useRoles = () => {
   // Obtener permisos de un rol
   const obtenerPermisosRol = async (id_rol: number) => {
     try {
-      const response = await axios.get(`${API_URL}/${id_rol}/permisos`);
+      const response = await axiosClient.get(`${API_URL}/${id_rol}/permisos`);
       return response.data;
     } catch (err) {
       console.error("Error al obtener permisos del rol:", err);
@@ -145,7 +128,7 @@ export const useRoles = () => {
   // Obtener usuarios de un rol
   const obtenerUsuariosRol = async (id_rol: number) => {
     try {
-      const response = await axios.get(`${API_URL}/${id_rol}/usuarios`);
+      const response = await axiosClient.get(`${API_URL}/${id_rol}/usuarios`);
       return response.data;
     } catch (err) {
       console.error("Error al obtener usuarios del rol:", err);
@@ -153,11 +136,10 @@ export const useRoles = () => {
     }
   };
 
-  // Filtrado y paginación
+  // Filtrado
   const filteredData = roles.filter((r) =>
     r.nom_rol.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  const paginatedData = filteredData; // server already paginates
 
   return {
     roles,
@@ -182,14 +164,14 @@ export const useRoles = () => {
     loadingAction,
     error,
     setError,
-    fetchRoles,
     crearRol,
     actualizarRol,
     eliminarRol,
     obtenerPermisosRol,
     obtenerUsuariosRol,
     filteredData,
-    paginatedData,
+    paginatedData: roles,  // Alias para compatibilidad
+    fetchRoles,            // Función para recargar
     filters,
     setFilters,
     sort,

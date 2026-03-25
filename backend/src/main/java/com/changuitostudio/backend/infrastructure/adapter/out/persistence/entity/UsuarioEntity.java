@@ -29,6 +29,12 @@ public class UsuarioEntity {
     @Column(name = "cod_usu", length = 50)
     private String codUsu;
 
+    @Column(name = "secret_2fa")
+    private String secret2fa;
+
+    @Column(name = "is_2fa_enabled")
+    private Boolean is2faEnabled;
+
     @Column(name = "id_rol", insertable = false, updatable = false)
     private Long idRol;
 
@@ -87,6 +93,22 @@ public class UsuarioEntity {
 
     public void setCodUsu(String codUsu) {
         this.codUsu = codUsu;
+    }
+
+    public String getSecret2fa() {
+        return secret2fa;
+    }
+
+    public void setSecret2fa(String secret2fa) {
+        this.secret2fa = secret2fa;
+    }
+
+    public Boolean getIs2faEnabled() {
+        return is2faEnabled;
+    }
+
+    public void setIs2faEnabled(Boolean is2faEnabled) {
+        this.is2faEnabled = is2faEnabled;
     }
 
     public Long getIdRol() {

@@ -11,10 +11,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Utilidad JWT — Genera y valida tokens con claims personalizados.
- * Claims idénticos al JWT de Laravel: id_usu, id_rol, cod_usu, permisos.
- */
 @Component
 public class JwtUtil {
 
@@ -22,18 +18,16 @@ public class JwtUtil {
     private final long expirationMs;
 
     public JwtUtil(
-            @Value("${jwt.secret:ChanguitoStudiosSecretKeyQueDebeSerLargaYSegura2026!}") String secret,
+            @Value("${jwt.secret:jdsaidjwhfuwfaiw00000iwwqi00i_must_be_32_chars_min}") String secret,
             @Value("${jwt.expiration-ms:86400000}") long expirationMs) {
-        // Asegurar que la clave tenga al menos 256 bits
+
         byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
         this.key = Keys.hmacShaKeyFor(keyBytes);
         this.expirationMs = expirationMs;
     }
 
-    /**
-     * Genera un JWT con claims personalizados (idéntico a lo que hacía Laravel).
-     */
-    public String generateToken(Long idUsu, Long idRol, String codUsu, List<String> permisos) {
+    public String generateToken(Long idUsu, Long idRol, String codUsu, String nomUsu, String emailUsu,
+            List<String> permisos) {
         Date now = new Date();
         Date expiration = new Date(now.getTime() + expirationMs);
 
@@ -42,8 +36,23 @@ public class JwtUtil {
                 .claims(Map.of(
                         "id_usu", idUsu,
                         "id_rol", idRol,
+                        "nom_usu", nomUsu != null ? nomUsu : "",
+                        "email_usu", emailUsu != null ? emailUsu : "",
                         "cod_usu", codUsu != null ? codUsu : "",
                         "permisos", permisos))
+                .issuedAt(now)
+                .expiration(expiration)
+                .signWith(key)
+                .compact();
+    }
+
+    public String generate2faTempToken(Long idUsu) {
+        Date now = new Date();
+        Date expiration = new Date(now.getTime() + 300000); // 5 minutos
+
+        return Jwts.builder()
+                .subject(String.valueOf(idUsu))
+                .claims(Map.of("is_2fa_pending", true))
                 .issuedAt(now)
                 .expiration(expiration)
                 .signWith(key)
