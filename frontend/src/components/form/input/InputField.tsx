@@ -1,5 +1,5 @@
 import type React from "react";
-import type { FC } from "react";
+import type { FC, ReactNode } from "react";
 
 interface InputProps {
   type?: "text" | "number" | "email" | "password" | "date" | "time" | string;
@@ -16,6 +16,7 @@ interface InputProps {
   success?: boolean;
   error?: boolean;
   hint?: string;
+  icon?: ReactNode;
 }
 
 const Input: FC<InputProps> = ({
@@ -33,8 +34,15 @@ const Input: FC<InputProps> = ({
   success = false,
   error = false,
   hint,
+  icon,
 }) => {
-  let inputClasses = ` h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3  dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 ${className}`;
+  let inputClasses = ` h-11 w-full rounded-lg border appearance-none py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 transition-colors duration-200 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 ${className}`;
+
+  if (icon) {
+    inputClasses += " pl-10 pr-4";
+  } else {
+    inputClasses += " px-4";
+  }
 
   if (disabled) {
     inputClasses += ` text-gray-500 border-gray-300 opacity-40 bg-gray-100 cursor-not-allowed dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 opacity-40`;
@@ -48,6 +56,11 @@ const Input: FC<InputProps> = ({
 
   return (
     <div className="relative">
+      {icon && (
+        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
+          {icon}
+        </span>
+      )}
       <input
         type={type}
         id={id}

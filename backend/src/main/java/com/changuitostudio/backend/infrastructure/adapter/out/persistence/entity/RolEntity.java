@@ -5,10 +5,6 @@ import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Entidad JPA — Mapea a la tabla 'roles' en PostgreSQL.
- * Incluye relación Many-to-Many con permisos via tabla pivot 'rol_permiso'.
- */
 @Entity
 @Table(name = "roles")
 public class RolEntity {
@@ -21,7 +17,7 @@ public class RolEntity {
     @Column(name = "nom_rol", nullable = false)
     private String nomRol;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "rol_permiso", joinColumns = @JoinColumn(name = "id_rol"), inverseJoinColumns = @JoinColumn(name = "id_permiso"))
     private Set<PermisoEntity> permisos = new HashSet<>();
 

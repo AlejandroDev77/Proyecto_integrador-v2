@@ -1,20 +1,23 @@
 import axiosClient from "../api/axios";
-import {jwtDecode} from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
+import { 
+  UserTokenPayload, 
+  LoginResponse, 
+  RegisterRequest, 
+  AuthRedirectResponse,
+  Requires2FAResponse
+} from "../types/auth";
 
-// Interfaz para el payload del token
-export interface UserTokenPayload {
-  id_usu: number;
-  id_rol: number;
-  permisos?: string[];
-  [key: string]: any;
-}
-
-export async function login(username: string, password: string) {
+export async function login(username: string, password: string): Promise<LoginResponse | Requires2FAResponse> {
   try {
     const response = await axiosClient.post("/api/login", {
       nom_usu: username,
       password,
     });
+
+    if (response.data.requires_2fa) {
+      return response.data as Requires2FAResponse;
+    }
 
     const { access_token } = response.data;
 
@@ -22,12 +25,14 @@ export async function login(username: string, password: string) {
     localStorage.setItem("token", access_token);
 
     // Decodificar el token para obtener el usuario y sus permisos
-    const decoded: any = jwtDecode(access_token);
-    const id_usu = decoded.id_usu;
-    const id_rol = decoded.id_rol;
-    const permisos: string[] = decoded.permisos || [];
-
-    return { token: access_token, id_usu, id_rol, permisos };
+    const decoded = jwtDecode<UserTokenPayload>(access_token);
+    
+    return { 
+      token: access_token, 
+      id_usu: decoded.id_usu, 
+      id_rol: decoded.id_rol, 
+      permisos: decoded.permisos || [] 
+    } as LoginResponse;
   } catch (error: any) {
     if (error.response && error.response.data) {
       throw new Error(error.response.data.message || "Credenciales inválidas");
@@ -36,14 +41,62 @@ export async function login(username: string, password: string) {
   }
 }
 
+export async function loginWith2fa(tempToken: string, code: string): Promise<LoginResponse> {
+  try {
+    const response = await axiosClient.post("/api/login/2fa", {
+      temp_token: tempToken,
+      code: code
+    });
+
+    const { access_token } = response.data;
+    localStorage.setItem("token", access_token);
+
+    const decoded = jwtDecode<UserTokenPayload>(access_token);
+    
+    return { 
+      token: access_token, 
+      id_usu: decoded.id_usu, 
+      id_rol: decoded.id_rol, 
+      permisos: decoded.permisos || [] 
+    };
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || "Código incorrecto o token expirado.");
+  }
+}
+
+export async function loginWithGoogle(credential: string): Promise<LoginResponse | Requires2FAResponse> {
+  try {
+    const response = await axiosClient.post("/api/login/oauth2/google", {
+      credential
+    });
+
+    if (response.data.requires_2fa) {
+      return response.data as Requires2FAResponse;
+    }
+
+    const { access_token } = response.data;
+    localStorage.setItem("token", access_token);
+
+    const decoded = jwtDecode<UserTokenPayload>(access_token);
+    
+    return { 
+      token: access_token, 
+      id_usu: decoded.id_usu, 
+      id_rol: decoded.id_rol, 
+      permisos: decoded.permisos || [] 
+    } as LoginResponse;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || "Error al iniciar sesión con Google");
+  }
+}
+
 /**
  * Obtiene la ruta de redirección desde el backend según el rol del usuario
- * Esto evita exponer los IDs de roles en el frontend
  */
 export async function getRedirectRoute(id_rol: number): Promise<string> {
   try {
     const token = localStorage.getItem("token");
-    const response = await axiosClient.get(
+    const response = await axiosClient.get<AuthRedirectResponse>(
       `/api/roles/${id_rol}/redirect-route`,
       {
         headers: { Authorization: `Bearer ${token}` },
@@ -51,18 +104,12 @@ export async function getRedirectRoute(id_rol: number): Promise<string> {
     );
     return response.data.route || "/signin";
   } catch (error) {
-    // Fallback seguro
     console.error("Error obteniendo ruta de redirección", error);
     return "/signin";
   }
 }
 
-export async function register(userData: {
-  nom_usu: string;
-  email_usu: string;
-  pas_usu: string;
-  id_rol: number;
-}) {
+export async function register(userData: RegisterRequest) {
   try {
     const response = await axiosClient.post("/api/register", userData);
     return response.data;
@@ -81,9 +128,17 @@ export async function register(userData: {
 export function getUser(): UserTokenPayload | null {
   const token = localStorage.getItem("token");
   if (!token) return null;
+  
   try {
-    return jwtDecode<UserTokenPayload>(token);
+    const decoded = jwtDecode<UserTokenPayload>(token);
+    // Verificar si el token ya expiró
+    if (decoded.exp && decoded.exp * 1000 < Date.now()) {
+      localStorage.removeItem("token");
+      return null;
+    }
+    return decoded;
   } catch {
+    localStorage.removeItem("token");
     return null;
   }
 }
@@ -101,7 +156,32 @@ export async function logout() {
       );
     }
   } catch (error) {
-    // Puedes mostrar un mensaje si lo deseas
+    // Silently proceed to remove token
   }
   localStorage.removeItem("token");
 }
+
+/**
+ * Solicita el envío del correo de recuperación de contraseña.
+ */
+export async function forgotPassword(email: string) {
+  try {
+    const response = await axiosClient.post("/api/forgot-password", { email });
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || "Ocurrió un error procesando tu solicitud.");
+  }
+}
+
+/**
+ * Envía la nueva contraseña junto con el token para ser guardada.
+ */
+export async function resetPassword(token: string, password: string) {
+  try {
+    const response = await axiosClient.post("/api/reset-password", { token, password });
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || "Ocurrió un error reestableciendo la contraseña.");
+  }
+}
+

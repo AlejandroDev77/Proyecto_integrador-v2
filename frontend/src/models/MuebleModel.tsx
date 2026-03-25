@@ -1,7 +1,7 @@
 import { useGLTF } from "@react-three/drei";
 import { Suspense } from "react";
 
-// Fallback mesh when model fails to load
+
 function FallbackModel() {
   return (
     <mesh>
@@ -28,9 +28,9 @@ export function MuebleModel() {
   );
 }
 
-// Preload with error handling
+
 try {
   useGLTF.preload("/models/mueble2.glb");
 } catch (e) {
-  console.warn("Could not preload mueble2.glb");
+  console.warn("archivo no encontrado");
 }

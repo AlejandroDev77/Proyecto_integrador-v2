@@ -76,4 +76,18 @@ public class UsuarioJpaAdapter implements UsuarioPersistencePort {
         } while (jpaRepository.existsByCodUsu(codigo));
         return codigo;
     }
+    @Override
+    public Optional<Usuario> obtenerPorNombre(String nomUsu) {
+        return jpaRepository.findByNomUsu(nomUsu).map(mapper::toDomain);
+    }
+
+    @Override
+    public boolean existePorNomUsu(String nomUsu) {
+        return jpaRepository.existsByNomUsu(nomUsu);
+    }
+
+    @Override
+    public boolean existePorEmail(String email) {
+        return jpaRepository.existsByEmailUsu(email);
+    }
 }

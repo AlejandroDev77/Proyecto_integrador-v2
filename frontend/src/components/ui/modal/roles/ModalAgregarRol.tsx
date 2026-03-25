@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
 import { Shield, X, Save, AlertCircle } from "lucide-react";
+import { useRoles } from "../../../../hooks/Roles/useRoles";
 
 interface Props {
   showModal: boolean;
@@ -14,44 +14,19 @@ const ModalAgregarRol: React.FC<Props> = ({
   setShowModal,
   onSuccess,
 }) => {
+  const { crearRol, loadingAction } = useRoles();
   const [nombre, setNombre] = useState("");
   const [errorMsg, setErrorMsg] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
     if (!nombre.trim()) {
       setErrorMsg("El nombre del rol es requerido.");
       return;
     }
-    setIsSubmitting(true);
+
     setErrorMsg("");
-
-    let idUsuarioLocal = null;
     try {
-      const token = localStorage.getItem("token");
-      if (token) {
-        const p: any = jwtDecode(token);
-        idUsuarioLocal = p.id_usu || null;
-      }
-    } catch {
-      idUsuarioLocal = null;
-    }
-
-    try {
-      const res = await fetch("http://localhost:8000/api/roles", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(idUsuarioLocal ? { "X-USER-ID": idUsuarioLocal } : {}),
-        },
-        body: JSON.stringify({ nom_rol: nombre.trim() }),
-      });
-
-      if (!res.ok) {
-        const e = await res.json();
-        setErrorMsg(e.message || e.error || "Error");
-        return;
-      }
+      await crearRol({ nom_rol: nombre.trim() });
       Swal.fire({
         icon: "success",
         title: "¡Rol creado!",
@@ -61,11 +36,10 @@ const ModalAgregarRol: React.FC<Props> = ({
       });
       handleClose();
       onSuccess?.();
-    } catch (err) {
-      setErrorMsg("Error al agregar");
-      console.error(err);
-    } finally {
-      setIsSubmitting(false);
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || "Error al agregar";
+      setErrorMsg(errorMsg);
+      console.error("Error al crear rol:", err);
     }
   };
 
@@ -111,7 +85,8 @@ const ModalAgregarRol: React.FC<Props> = ({
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
               placeholder="Ej: Moderador"
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-rose-500"
+              disabled={loadingAction}
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-rose-500 disabled:opacity-50"
             />
           </div>
         </div>
@@ -119,16 +94,17 @@ const ModalAgregarRol: React.FC<Props> = ({
         <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-6 py-4 flex justify-end gap-3">
           <button
             onClick={handleClose}
-            className="px-5 py-2.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 text-gray-800 dark:text-gray-200 rounded-xl font-medium"
+            disabled={loadingAction}
+            className="px-5 py-2.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 text-gray-800 dark:text-gray-200 rounded-xl font-medium disabled:opacity-50"
           >
             Cancelar
           </button>
           <button
             onClick={handleSubmit}
-            disabled={isSubmitting}
+            disabled={loadingAction}
             className="flex items-center gap-2 px-6 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:bg-gray-400 text-white rounded-xl font-semibold shadow-lg shadow-rose-600/30"
           >
-            {isSubmitting ? (
+            {loadingAction ? (
               <>
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 Guardando...

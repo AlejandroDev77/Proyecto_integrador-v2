@@ -1,8 +1,9 @@
 package com.changuitostudio.backend.infrastructure.adapter.in.web.controller;
 
-import com.changuitostudio.backend.infrastructure.adapter.out.persistence.entity.PermisoEntity;
-import com.changuitostudio.backend.infrastructure.adapter.out.persistence.entity.UsuarioEntity;
-import com.changuitostudio.backend.infrastructure.adapter.out.persistence.repository.UsuarioJpaRepository;
+import com.changuitostudio.backend.application.port.in.RolesServicePort;
+import com.changuitostudio.backend.application.port.in.UsuarioServicePort;
+import com.changuitostudio.backend.domain.model.Permiso;
+import com.changuitostudio.backend.domain.model.Usuario;
 import com.changuitostudio.backend.infrastructure.config.JwtUtil;
 
 import jakarta.validation.Valid;
@@ -19,38 +20,55 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Auth Controller — Login, Register, Me, Logout.
- * Respuestas 100% compatibles con el frontend existente.
- */
+
+import com.changuitostudio.backend.application.service.EmailService;
+import com.changuitostudio.backend.infrastructure.adapter.out.persistence.entity.UsuarioEntity;
+import com.changuitostudio.backend.infrastructure.adapter.out.persistence.entity.VerificationTokenEntity;
+import com.changuitostudio.backend.infrastructure.adapter.out.persistence.repository.UsuarioJpaRepository;
+import com.changuitostudio.backend.infrastructure.adapter.out.persistence.repository.VerificationTokenJpaRepository;
+import com.changuitostudio.backend.application.service.GoogleAuthService;
+import java.time.LocalDateTime;
+
 @RestController
 @RequestMapping("/api")
 @CrossOrigin(origins = "*")
 public class AuthController {
 
-    private final UsuarioJpaRepository usuarioRepository;
+    private final UsuarioServicePort usuarioServicePort;
+    private final RolesServicePort rolesServicePort;
     private final JwtUtil jwtUtil;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    
+    // Inyecciones para recuperación de contraseña
+    private final EmailService emailService;
+    private final UsuarioJpaRepository usuarioJpaRepository;
+    private final VerificationTokenJpaRepository tokenRepository;
+    private final GoogleAuthService googleAuthService;
 
-    public AuthController(UsuarioJpaRepository usuarioRepository, JwtUtil jwtUtil) {
-        this.usuarioRepository = usuarioRepository;
+    public AuthController(UsuarioServicePort usuarioServicePort, RolesServicePort rolesServicePort, JwtUtil jwtUtil, 
+                          EmailService emailService, UsuarioJpaRepository usuarioJpaRepository, VerificationTokenJpaRepository tokenRepository,
+                          GoogleAuthService googleAuthService) {
+        this.usuarioServicePort = usuarioServicePort;
+        this.rolesServicePort = rolesServicePort;
         this.jwtUtil = jwtUtil;
+        this.emailService = emailService;
+        this.usuarioJpaRepository = usuarioJpaRepository;
+        this.tokenRepository = tokenRepository;
+        this.googleAuthService = googleAuthService;
     }
 
-    // ────────────────────────────────────────────────────────────
-    // POST /api/login
-    // ────────────────────────────────────────────────────────────
+   
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        // Buscar usuario por nom_usu
-        Optional<UsuarioEntity> optUsuario = usuarioRepository.findByNomUsu(request.nom_usu);
+        // Buscar usuario por nom_usu a través del puerto
+        Optional<Usuario> optUsuario = usuarioServicePort.obtenerPorNombre(request.nom_usu);
 
         if (optUsuario.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", "Credenciales incorrectas"));
         }
 
-        UsuarioEntity usuario = optUsuario.get();
+        Usuario usuario = optUsuario.get();
 
         // Validar password
         if (!passwordEncoder.matches(request.password, usuario.getPasUsu())) {
@@ -58,19 +76,35 @@ public class AuthController {
                     .body(Map.of("message", "Credenciales incorrectas"));
         }
 
-        // Obtener permisos del rol
+        // Obtener permisos del rol llamando al servicio de roles
         List<String> permisos = new ArrayList<>();
-        if (usuario.getRol() != null && usuario.getRol().getPermisos() != null) {
-            permisos = usuario.getRol().getPermisos().stream()
-                    .map(PermisoEntity::getNombre)
-                    .collect(Collectors.toList());
+        if (usuario.getIdRol() != null) {
+            rolesServicePort.obtenerPorId(usuario.getIdRol()).ifPresent(rol -> {
+                if (rol.getPermisos() != null) {
+                    permisos.addAll(rol.getPermisos().stream()
+                            .map(Permiso::getNombre)
+                            .collect(Collectors.toList()));
+                }
+            });
         }
 
-        // Generar JWT con claims personalizados (idéntico a Laravel)
+        // Si tiene 2FA activado, detener el flujo y pedir el código
+        if (Boolean.TRUE.equals(usuario.getIs2faEnabled())) {
+            String tempToken = jwtUtil.generate2faTempToken(usuario.getIdUsu());
+            return ResponseEntity.ok(Map.of(
+                "requires_2fa", true,
+                "temp_token", tempToken,
+                "message", "Autenticación de 2 Factores requerida."
+            ));
+        }
+
+        // Generar JWT con claims personalizados
         String token = jwtUtil.generateToken(
                 usuario.getIdUsu(),
                 usuario.getIdRol(),
                 usuario.getCodUsu(),
+                usuario.getNomUsu(),
+                usuario.getEmailUsu(),
                 permisos);
 
         // Respuesta en formato idéntico al Laravel
@@ -83,60 +117,127 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    // ────────────────────────────────────────────────────────────
-    // POST /api/register
-    // ────────────────────────────────────────────────────────────
+   
+    @PostMapping("/login/2fa")
+    public ResponseEntity<?> loginWith2fa(@RequestBody Map<String, String> request) {
+        String tempToken = request.get("temp_token");
+        String code = request.get("code");
+
+        if (tempToken == null || code == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Token temporal y código son requeridos."));
+        }
+
+        if (!jwtUtil.validateToken(tempToken)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Token temporal inválido o expirado."));
+        }
+
+        Long idUsu = Long.parseLong(jwtUtil.getSubjectFromToken(tempToken));
+        Optional<Usuario> optUsuario = usuarioServicePort.obtenerPorId(idUsu);
+
+        if (optUsuario.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Usuario no encontrado"));
+        }
+
+        Usuario usuario = optUsuario.get();
+
+        // Verificar el código 2FA
+        com.changuitostudio.backend.application.service.TwoFactorAuthService tfaService = new com.changuitostudio.backend.application.service.TwoFactorAuthService();
+        if (!tfaService.isOtpValid(usuario.getSecret2fa(), code)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Código 2FA incorrecto."));
+        }
+
+        // Obtener permisos del rol llamando al servicio de roles
+        List<String> permisos = new ArrayList<>();
+        if (usuario.getIdRol() != null) {
+            rolesServicePort.obtenerPorId(usuario.getIdRol()).ifPresent(rol -> {
+                if (rol.getPermisos() != null) {
+                    permisos.addAll(rol.getPermisos().stream()
+                            .map(Permiso::getNombre)
+                            .collect(Collectors.toList()));
+                }
+            });
+        }
+
+        // Generar JWT REAL
+        String token = jwtUtil.generateToken(
+                usuario.getIdUsu(),
+                usuario.getIdRol(),
+                usuario.getCodUsu(),
+                usuario.getNomUsu(),
+                usuario.getEmailUsu(),
+                permisos);
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("message", "Inicio de sesión exitoso");
+        response.put("access_token", token);
+        response.put("token_type", "bearer");
+        response.put("expires_in", 86400000); // 24 horas en ms
+
+        return ResponseEntity.ok(response);
+    }
+
+
+    @PostMapping("/login/oauth2/google")
+    public ResponseEntity<?> loginWithGoogle(@RequestBody Map<String, String> request) {
+        String idToken = request.get("credential");
+        if (idToken == null || idToken.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "El token de Google es requerido."));
+        }
+
+        try {
+            Map<String, Object> response = googleAuthService.authenticateWithGoogle(idToken);
+            
+            // Si retorna un 2FA temporal 
+            if (response.containsKey("requires_2fa")) {
+                response.put("message", "Autenticación de 2 Factores requerida.");
+                return ResponseEntity.ok(response);
+            }
+
+            // Mapeamos a la respuesta tradicional compatible con el resto del Frontend
+            response.put("message", "Inicio de sesión con Google exitoso");
+            response.put("token_type", "bearer");
+            response.put("expires_in", 86400000); // 24 horas
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "No se pudo verificar el token de Google: " + e.getMessage()));
+        }
+    }
+
+
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         // Validar unicidad de nom_usu
-        if (usuarioRepository.existsByNomUsu(request.nom_usu)) {
+        if (usuarioServicePort.existePorNomUsu(request.nom_usu)) {
             return ResponseEntity.status(422)
                     .body(Map.of("errors", Map.of("nom_usu", List.of("El nombre de usuario ya está en uso."))));
         }
 
         // Validar unicidad de email_usu
-        if (usuarioRepository.existsByEmailUsu(request.email_usu)) {
+        if (usuarioServicePort.existePorEmail(request.email_usu)) {
             return ResponseEntity.status(422)
                     .body(Map.of("errors", Map.of("email_usu", List.of("El email ya está en uso."))));
         }
 
-        // Generar código automático (USU-1, USU-2, ...)
-        int nextId = 1;
-        String codigo;
-        do {
-            codigo = "USU-" + nextId;
-            nextId++;
-        } while (usuarioRepository.existsByCodUsu(codigo));
+   
+        Usuario dominio = new Usuario();
+        dominio.setNomUsu(request.nom_usu);
+        dominio.setEmailUsu(request.email_usu);
+        dominio.setPasUsu(request.pas_usu); 
+        dominio.setEstUsu(true); 
+        dominio.setIdRol(request.id_rol);
 
-        // Crear usuario
-        UsuarioEntity entity = new UsuarioEntity();
-        entity.setCodUsu(codigo);
-        entity.setNomUsu(request.nom_usu);
-        entity.setEmailUsu(request.email_usu);
-        entity.setPasUsu(passwordEncoder.encode(request.pas_usu));
-        entity.setEstUsu(true); // Activo por defecto
-
-        // Setear rol
-        var rol = new com.changuitostudio.backend.infrastructure.adapter.out.persistence.entity.RolEntity();
-        rol.setIdRol(request.id_rol);
-        entity.setRol(rol);
-
-        usuarioRepository.save(entity);
+        usuarioServicePort.crear(dominio);
 
         return ResponseEntity.ok(Map.of("message", "Usuario registrado correctamente"));
     }
 
-    // ────────────────────────────────────────────────────────────
-    // GET /api/me (verificar token válido)
-    // ────────────────────────────────────────────────────────────
     @GetMapping("/me")
     public ResponseEntity<?> me() {
         return ResponseEntity.ok(Map.of("valid", true));
     }
 
-    // ────────────────────────────────────────────────────────────
-    // POST /api/logout (invalidar token — stateless, solo respuesta)
-    // ────────────────────────────────────────────────────────────
+
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
         // JWT es stateless, no se invalida en el servidor.
@@ -144,7 +245,62 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("message", "Sesión cerrada correctamente."));
     }
 
-    // ── DTOs internos ──────────────────────────────────────────
+ 
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        Optional<UsuarioEntity> optUsuario = usuarioJpaRepository.findByEmailUsu(email);
+
+        if (optUsuario.isPresent()) {
+            UsuarioEntity usuario = optUsuario.get();
+            String token = UUID.randomUUID().toString();
+
+            // Guardar token expira en 1 hora
+            VerificationTokenEntity myToken = new VerificationTokenEntity(
+                    token, usuario, LocalDateTime.now().plusHours(1), "PASSWORD_RESET");
+            tokenRepository.save(myToken);
+
+            // Enviar correo
+            String resetUrl = "http://localhost:5173/reset-password?token=" + token;
+            String mensaje = "Hola " + usuario.getNomUsu() + ",\n\n" +
+                    "Recibimos una solicitud para restablecer tu contraseña. Haz clic en el siguiente enlace:\n" +
+                    resetUrl + "\n\n" +
+                    "Si no fuiste tú, ignora este correo.\n\n" +
+                    "Equipo de Bosquejo.";
+
+            emailService.sendEmail(email, "Restablece tu contraseña - Bosquejo", mensaje);
+        }
+
+        // Siempre devolver 200 
+        return ResponseEntity.ok(Map.of("message", "Si el correo existe, recibirás instrucciones para restablecer tu contraseña."));
+    }
+
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request) {
+        String token = request.get("token");
+        String newPassword = request.get("password");
+
+        Optional<VerificationTokenEntity> optToken = tokenRepository.findByToken(token);
+
+        if (optToken.isEmpty() || optToken.get().isExpired() || !optToken.get().getTokenType().equals("PASSWORD_RESET")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Token inválido o expirado."));
+        }
+
+        VerificationTokenEntity tokenEntity = optToken.get();
+        UsuarioEntity usuario = tokenEntity.getUsuario();
+
+       
+        usuario.setPasUsu(passwordEncoder.encode(newPassword));
+        usuarioJpaRepository.save(usuario);
+
+     
+        tokenRepository.delete(tokenEntity);
+
+        return ResponseEntity.ok(Map.of("message", "Contraseña restablecida con éxito."));
+    }
+
+  
 
     public static class LoginRequest {
         public String nom_usu;

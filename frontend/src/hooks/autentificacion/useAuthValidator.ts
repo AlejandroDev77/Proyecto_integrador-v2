@@ -12,7 +12,7 @@ export const useAuthValidator = () => {
           if (message === "El token ha expirado") {
             localStorage.removeItem("token");
             localStorage.removeItem("user");
-            alert("⚠️ Tu sesión ha expirado. Vuelve a iniciar sesión.");
+            alert(" Tu sesión ha expirado. Vuelve a iniciar sesión.");
             window.location.href = "/signin";
           }
         }
