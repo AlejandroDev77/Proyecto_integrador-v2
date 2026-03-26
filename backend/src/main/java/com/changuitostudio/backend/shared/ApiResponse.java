@@ -1,9 +1,5 @@
 package com.changuitostudio.backend.shared;
 
-/**
- * Respuesta estandarizada de la API.
- * Se puede usar en todos los controllers para dar formato consistente.
- */
 public class ApiResponse<T> {
 
     private boolean success;
@@ -19,7 +15,7 @@ public class ApiResponse<T> {
         this.data = data;
     }
 
-    // ── Factory methods ────────────────────────────────────────
+
 
     public static <T> ApiResponse<T> ok(T data) {
         return new ApiResponse<>(true, "Operación exitosa", data);
@@ -33,7 +29,7 @@ public class ApiResponse<T> {
         return new ApiResponse<>(false, message, null);
     }
 
-    // ── Getters & Setters ──────────────────────────────────────
+    
 
     public boolean isSuccess() {
         return success;

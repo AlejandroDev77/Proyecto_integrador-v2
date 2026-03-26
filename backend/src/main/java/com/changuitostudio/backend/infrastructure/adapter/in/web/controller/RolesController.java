@@ -1,101 +1,71 @@
 package com.changuitostudio.backend.infrastructure.adapter.in.web.controller;
 
-import com.changuitostudio.backend.infrastructure.adapter.out.persistence.entity.RolEntity;
-import com.changuitostudio.backend.infrastructure.adapter.out.persistence.repository.RolJpaRepository;
+import com.changuitostudio.backend.application.port.in.RolesServicePort;
+import com.changuitostudio.backend.domain.model.Rol;
+import com.changuitostudio.backend.infrastructure.adapter.in.web.dto.RolDTO.RolDTO;
+import com.changuitostudio.backend.infrastructure.adapter.in.web.dto.RolDTO.RolRequestDTO;
+import com.changuitostudio.backend.infrastructure.adapter.in.web.dto.RolDTO.RolResponseDTO;
+
+import jakarta.validation.Valid;
 
 import org.springframework.data.domain.Page;
+
+import org.springframework.http.HttpStatus;
+
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 //import org.springframework.data.domain.Sort;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
-/**
- * Controller para Roles — CRUD + redirect-route.
- * Compatible con el formato de paginación Laravel.
- */
 @RestController
 @RequestMapping("/api/roles")
-@CrossOrigin(origins = "*")
 public class RolesController {
 
-    private final RolJpaRepository rolRepository;
+    private final RolesServicePort rolServicePort;
 
-    // Mapeo de rutas por rol (idéntico a Laravel)
+    // Mapeo de rutas por rol
     private static final Map<Long, String> ROUTE_MAP = Map.of(
-            1L, "/dashboard", // Administrador
-            2L, "/negocio", // Empleado
-            3L, "/products", // Cliente
+            1L, "/dashboard",
+            2L, "/negocio",
+            3L, "/products",
             5L, "/dashboard");
 
-    public RolesController(RolJpaRepository rolRepository) {
-        this.rolRepository = rolRepository;
+    public RolesController(RolesServicePort rolServicePort) {
+        this.rolServicePort = rolServicePort;
     }
 
-    /**
-     * GET /api/roles (index con paginación, compatible con Laravel paginator)
-     */
     @GetMapping
     public ResponseEntity<?> index(
-            @RequestParam(value = "page", required = false) Integer page,
-            @RequestParam(value = "per_page", required = false) Integer perPage,
-            @RequestParam(value = "sort", required = false, defaultValue = "") String sort,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer per_page,
+            @RequestParam(required = false, defaultValue = "") String sort,
             @RequestParam Map<String, String> allParams) {
 
-        // Extraer filtro de nom_rol
-        String nomRolFilter = null;
-        for (Map.Entry<String, String> entry : allParams.entrySet()) {
-            if (entry.getKey().equals("filter[nom_rol]")) {
-                nomRolFilter = entry.getValue();
+        Map<String, String> filters = new HashMap<>();
+        allParams.forEach((key, value) -> {
+            if (key.startsWith("filter[") && key.endsWith("]")) {
+                String filterName = key.substring(7, key.length() - 1);
+                filters.put(filterName, value);
             }
-        }
+        });
 
-        // Si no hay paginación, devolver todo
-        if (page == null && perPage == null) {
-            List<RolEntity> allRoles = rolRepository.findAll();
-            if (nomRolFilter != null && !nomRolFilter.isBlank()) {
-                String filter = nomRolFilter.toLowerCase();
-                allRoles = allRoles.stream()
-                        .filter(r -> r.getNomRol().toLowerCase().contains(filter))
-                        .toList();
-            }
-            return ResponseEntity.ok(allRoles.stream().map(this::toMap).toList());
+        if (page == null && per_page == null) {
+            Page<Rol> allRolesPage = rolServicePort.listarRoles(1, Integer.MAX_VALUE, filters, sort);
+            return ResponseEntity.ok(allRolesPage.getContent().stream().map(this::toRolDTO).toList());
         }
 
         int currentPage = (page != null) ? page : 1;
-        int size = (perPage != null) ? perPage : 20;
-        Pageable pageable = PageRequest.of(currentPage - 1, size);
+        int size = (per_page != null) ? per_page : 20;
 
-        Page<RolEntity> resultado;
-        if (nomRolFilter != null && !nomRolFilter.isBlank()) {
-            String filter = nomRolFilter.toLowerCase();
-            // Filtrar en memoria (para datasets pequeños como roles)
-            List<RolEntity> all = rolRepository.findAll();
-            List<RolEntity> filtered = all.stream()
-                    .filter(r -> r.getNomRol().toLowerCase().contains(filter))
-                    .toList();
+        Page<Rol> resultado = rolServicePort.listarRoles(currentPage, size, filters, sort);
 
-            int start = Math.min((currentPage - 1) * size, filtered.size());
-            int end = Math.min(start + size, filtered.size());
-            List<RolEntity> pageContent = filtered.subList(start, end);
-
-            Map<String, Object> response = new LinkedHashMap<>();
-            response.put("current_page", currentPage);
-            response.put("data", pageContent.stream().map(this::toMap).toList());
-            response.put("last_page", (int) Math.ceil((double) filtered.size() / size));
-            response.put("per_page", size);
-            response.put("total", filtered.size());
-            return ResponseEntity.ok(response);
-        }
-
-        resultado = rolRepository.findAll(pageable);
-
-        // Formato Laravel paginator
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("current_page", resultado.getNumber() + 1);
-        response.put("data", resultado.getContent().stream().map(this::toMap).toList());
+        response.put("data", resultado.getContent().stream().map(this::toRolDTO).toList());
         response.put("last_page", resultado.getTotalPages());
         response.put("per_page", size);
         response.put("total", resultado.getTotalElements());
@@ -103,34 +73,70 @@ public class RolesController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * GET /api/roles/{id_rol}/redirect-route
-     */
     @GetMapping("/{id_rol}/redirect-route")
     public ResponseEntity<?> getRedirectRoute(@PathVariable Long id_rol) {
-        var optRol = rolRepository.findById(id_rol);
-
+        Optional<Rol> optRol = rolServicePort.obtenerPorId(id_rol);
         if (optRol.isEmpty()) {
-            return ResponseEntity.status(404)
-                    .body(Map.of("message", "Rol no encontrado"));
+            return ResponseEntity.status(404).body(Map.of("message", "Rol no encontrado"));
         }
-
-        RolEntity rol = optRol.get();
+        Rol rol = optRol.get();
         String route = ROUTE_MAP.getOrDefault(id_rol, "/signin");
-
         Map<String, Object> resp = new LinkedHashMap<>();
         resp.put("route", route);
         resp.put("nom_rol", rol.getNomRol());
-
         return ResponseEntity.ok(resp);
     }
 
-    // ── Helper ──
+    @GetMapping("/{id_rol}")
+    public ResponseEntity<?> obtenerRol(@PathVariable Long id_rol) {
+        Optional<Rol> optRol = rolServicePort.obtenerPorId(id_rol);
+        if (optRol.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("message", "Rol no encontrado", "id_rol", id_rol));
+        }
+        return ResponseEntity.ok(toRolDTO(optRol.get()));
+    }
 
-    private Map<String, Object> toMap(RolEntity rol) {
-        Map<String, Object> map = new LinkedHashMap<>();
-        map.put("id_rol", rol.getIdRol());
-        map.put("nom_rol", rol.getNomRol());
-        return map;
+    @PostMapping
+    public ResponseEntity<RolResponseDTO> store(@Valid @RequestBody RolRequestDTO request) {
+        Rol dominio = new Rol();
+        dominio.setNomRol(request.getNom_rol());
+
+        Rol creado = rolServicePort.crear(dominio);
+        return ResponseEntity.status(HttpStatus.CREATED).body(toResponseDTO(creado));
+    }
+
+    @PutMapping("/{id_rol}")
+    public ResponseEntity<RolResponseDTO> update(@PathVariable Long id_rol,
+            @RequestBody RolRequestDTO request) {
+        Rol dominio = new Rol();
+        dominio.setNomRol(request.getNom_rol());
+
+        Rol actualizado = rolServicePort.actualizar(id_rol, dominio);
+        return ResponseEntity.ok(toResponseDTO(actualizado));
+    }
+
+    @DeleteMapping("/{id_rol}")
+    public ResponseEntity<Void> destroy(@PathVariable Long id_rol) {
+        rolServicePort.eliminar(id_rol);
+        return ResponseEntity.noContent().build();
+    }
+
+    private RolDTO toRolDTO(Rol r) {
+        var permisosDTO = r.getPermisos() != null
+                ? r.getPermisos().stream()
+                .map(p -> new RolDTO.PermisoConPivotDTO(
+                        p.getId(),
+                        p.getNombre(),
+                        p.getDescripcion(),
+                        r.getId()
+                )).toList()
+                : null;
+        return new RolDTO(r.getId(), r.getNomRol(), permisosDTO);
+    }
+
+    private RolResponseDTO toResponseDTO(Rol u) {
+        return new RolResponseDTO(
+                u.getId(),
+                u.getNomRol());
     }
 }

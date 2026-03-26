@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 import Swal from "sweetalert2";
+import { useRoles } from "../../../../hooks/Roles/useRoles";
 
 interface Rol {
   id_rol: number;
@@ -21,30 +22,13 @@ const ModalEliminarRol: React.FC<ModalEliminarRolProps> = ({
   rolSeleccionado,
   onSuccess,
 }) => {
-  const [loading, setLoading] = useState(false);
+  const { eliminarRol, loadingAction } = useRoles();
 
   const handleEliminar = async () => {
     if (!rolSeleccionado) return;
 
-    setLoading(true);
     try {
-      const res = await fetch(
-        `http://localhost:8000/api/roles/${rolSeleccionado.id_rol}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(
-          error.message || "Error al eliminar rol"
-        );
-      }
-
+      await eliminarRol(rolSeleccionado.id_rol);
       Swal.fire({
         icon: "success",
         title: "Rol eliminado",
@@ -55,15 +39,13 @@ const ModalEliminarRol: React.FC<ModalEliminarRolProps> = ({
 
       setShowModal(false);
       onSuccess?.();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error al eliminar rol:", error);
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: error instanceof Error ? error.message : "No se pudo eliminar el rol.",
+        text: error.response?.data?.message || "No se pudo eliminar el rol.",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -82,16 +64,17 @@ const ModalEliminarRol: React.FC<ModalEliminarRolProps> = ({
             <div className="flex justify-center gap-4">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded text-black dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+                disabled={loadingAction}
+                className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded text-black dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 disabled:opacity-50"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleEliminar}
-                disabled={loading}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded dark:bg-red-500 dark:hover:bg-red-600"
+                disabled={loadingAction}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded dark:bg-red-500 dark:hover:bg-red-600 disabled:opacity-50"
               >
-                {loading ? "Eliminando..." : "Eliminar"}
+                {loadingAction ? "Eliminando..." : "Eliminar"}
               </button>
             </div>
           </div>

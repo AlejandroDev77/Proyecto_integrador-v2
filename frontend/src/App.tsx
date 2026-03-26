@@ -5,6 +5,8 @@ import CartDrawer from "./components/Cart/CartDrawer";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SignIn from "./pages/AuthPages/SignIn";
 import SignUp from "./pages/AuthPages/SignUp";
+import ForgotPassword from "./pages/AuthPages/ForgotPassword";
+import ResetPassword from "./pages/AuthPages/ResetPassword";
 import NotFound from "./pages/OtherPage/NotFound";
 import UserProfiles from "./pages/UserProfiles";
 import Videos from "./pages/UiElements/Videos";
@@ -67,145 +69,157 @@ import MisProducciones from "./pages/ClientPortal/MisProducciones";
 
 import Home from "./pages/Dashboard/Home";
 
+import { GoogleOAuthProvider } from "@react-oauth/google"; // autenticacion con google
+
 export default function App() {
   return (
-    <PermissionsProvider>
-      <CartProvider>
-        <Router>
-          <ScrollToTop />
-          <CartDrawer />
-          <Routes>
-            {/* Public routes */}
-            <Route path="/products" element={<Products />} />
-            <Route path="/" element={<Landing />} />
+    <GoogleOAuthProvider clientId="828039070580-33kssas6vujhm90ofclcundsc8ko0fsj.apps.googleusercontent.com">
+      <PermissionsProvider>
+        <CartProvider>
+          <Router>
+            <ScrollToTop />
+            <CartDrawer />
+            <Routes>
+              {/* Rutas publicas */}
+              <Route path="/products" element={<Products />} />
+              <Route path="/" element={<Landing />} />
 
-            {/* Protected routes */}
-            <Route element={<ProtectedRoute />}>
-              {/* Public profile (independent, no admin layout) */}
-              <Route path="/user-profile" element={<UserPublicProfile />} />
+              {/* Rutas protegidas */}
+              <Route element={<ProtectedRoute />}>
+                {/* Perfil publico (independiente, sin layout de admin) */}
+                <Route path="/user-profile" element={<UserPublicProfile />} />
 
-              {/* Client Portal Routes - Nested under ClientPortalLayout */}
-              <Route element={<ClientPortalLayout />}>
-                <Route path="/cotizaciones" element={<MisCotizaciones />} />
-                <Route path="/pedidos" element={<MisPedidos />} />
-                <Route
-                  path="/solicitar-cotizacion"
-                  element={<SolicitarCotizacion />}
-                />
-                <Route path="/favoritos" element={<MisFavoritos />} />
-                <Route path="/carrito" element={<MiCarrito />} />
-                <Route path="/mis-producciones" element={<MisProducciones />} />
-              </Route>
+                {/* Rutas del portal de clientes - Anidadas bajo ClientPortalLayout */}
+                <Route element={<ClientPortalLayout />}>
+                  <Route path="/cotizaciones" element={<MisCotizaciones />} />
+                  <Route path="/pedidos" element={<MisPedidos />} />
+                  <Route
+                    path="/solicitar-cotizacion"
+                    element={<SolicitarCotizacion />}
+                  />
+                  <Route path="/favoritos" element={<MisFavoritos />} />
+                  <Route path="/carrito" element={<MiCarrito />} />
+                  <Route
+                    path="/mis-producciones"
+                    element={<MisProducciones />}
+                  />
+                </Route>
 
-              {/* Dashboard/Admin Layout */}
-              <Route element={<AppLayout />}>
-                {/* <Route index path="/home" element={<Home />} />*/}
+                {/* Dashboard/Admin Layout */}
+                <Route element={<AppLayout />}>
+                  {/* <Route index path="/home" element={<Home />} />*/}
 
-                {/* <Route element={<PermissionRoute permiso="ver_permiso" />}>
+                  {/* <Route element={<PermissionRoute permiso="ver_permiso" />}>
                   <Route path="/permisos" element={<Permisos />} />
                 </Route> */}
-                <Route path="/permisos" element={<Permisos />} />
-                <Route path="/roles" element={<Roles />} />
+                  <Route path="/permisos" element={<Permisos />} />
+                  <Route path="/roles" element={<Roles />} />
 
-                <Route path="/roles-permisos" element={<Roles_Permiso />} />
+                  <Route path="/roles-permisos" element={<Roles_Permiso />} />
 
-                {/* Others Page */}
-                <Route path="/profile" element={<UserProfiles />} />
-                <Route path="/calendar" element={<Calendar />} />
-                <Route path="/blank" element={<Blank />} />
-                <Route path="/dashboard" element={<Home />} />
+                  {/* Others Page */}
+                  <Route path="/profile" element={<UserProfiles />} />
+                  <Route path="/calendar" element={<Calendar />} />
+                  <Route path="/blank" element={<Blank />} />
+                  <Route path="/dashboard" element={<Home />} />
 
-                {/* Forms */}
-                <Route path="/form-elements" element={<FormElements />} />
+                  {/* Forms */}
+                  <Route path="/form-elements" element={<FormElements />} />
 
-                <Route path="/negocio" element={<Negocio />} />
+                  <Route path="/negocio" element={<Negocio />} />
 
-                {/* Tables */}
-                <Route path="/usuarios" element={<Usuarios />} />
-                <Route path="/clientes" element={<Clientes />} />
-                <Route path="/empleados" element={<Empleados />} />
-                <Route path="/materiales" element={<Materiales />} />
-                <Route
-                  path="/categorias-muebles"
-                  element={<Categorias_Muebles />}
-                />
-                <Route path="/diseños" element={<Diseños />} />
-                <Route
-                  path="/movimientos-inventarios"
-                  element={<Movimientos_Inventarios />}
-                />
-                <Route path="/muebles" element={<Muebles />} />
-                <Route
-                  path="/muebles-materiales"
-                  element={<Muebles_Materiales />}
-                />
-                <Route path="/proveedores" element={<Proveedores />} />
-                <Route path="/prueba" element={<Prueba />} />
-                <Route
-                  path="/compras-materiales"
-                  element={<Compras_Materiales />}
-                />
-                <Route path="/ventas" element={<Ventas />} />
-                <Route
-                  path="/detalles-compras"
-                  element={<Detalles_Compras />}
-                />
-                <Route path="/detalles-ventas" element={<Detalles_Ventas />} />
-                <Route path="/pagos" element={<Pagos />} />
-                <Route
-                  path="/detalles-cotizaciones"
-                  element={<Detalles_Cotizaciones />}
-                />
-                <Route
-                  path="/detalles-devoluciones"
-                  element={<Detalles_Devoluciones />}
-                />
+                  {/* Tables */}
+                  <Route path="/usuarios" element={<Usuarios />} />
+                  <Route path="/clientes" element={<Clientes />} />
+                  <Route path="/empleados" element={<Empleados />} />
+                  <Route path="/materiales" element={<Materiales />} />
+                  <Route
+                    path="/categorias-muebles"
+                    element={<Categorias_Muebles />}
+                  />
+                  <Route path="/diseños" element={<Diseños />} />
+                  <Route
+                    path="/movimientos-inventarios"
+                    element={<Movimientos_Inventarios />}
+                  />
+                  <Route path="/muebles" element={<Muebles />} />
+                  <Route
+                    path="/muebles-materiales"
+                    element={<Muebles_Materiales />}
+                  />
+                  <Route path="/proveedores" element={<Proveedores />} />
+                  <Route path="/prueba" element={<Prueba />} />
+                  <Route
+                    path="/compras-materiales"
+                    element={<Compras_Materiales />}
+                  />
+                  <Route path="/ventas" element={<Ventas />} />
+                  <Route
+                    path="/detalles-compras"
+                    element={<Detalles_Compras />}
+                  />
+                  <Route
+                    path="/detalles-ventas"
+                    element={<Detalles_Ventas />}
+                  />
+                  <Route path="/pagos" element={<Pagos />} />
+                  <Route
+                    path="/detalles-cotizaciones"
+                    element={<Detalles_Cotizaciones />}
+                  />
+                  <Route
+                    path="/detalles-devoluciones"
+                    element={<Detalles_Devoluciones />}
+                  />
 
-                <Route path="/admin-cotizaciones" element={<Cotizaciones />} />
-                <Route
-                  path="/detalles-producciones"
-                  element={<Detalles_Producciones />}
-                />
-                <Route path="/devoluciones" element={<Devoluciones />} />
-                <Route
-                  path="/etapas-producciones"
-                  element={<Etapas_Producciones />}
-                />
-                <Route
-                  path="/producciones-etapas"
-                  element={<Producciones_Etapas />}
-                />
-                <Route path="/producciones" element={<Producciones />} />
-                <Route
-                  path="/costos-cotizacion"
-                  element={<CostosCotizacion />}
-                />
-                <Route
-                  path="/evidencias-produccion"
-                  element={<EvidenciasProduccion />}
-                />
-                <Route
-                  path="/logs"
-                  element={
-                    <PermissionRoute permiso="ver_logs">
-                      <Logs />
-                    </PermissionRoute>
-                  }
-                />
+                  <Route
+                    path="/admin-cotizaciones"
+                    element={<Cotizaciones />}
+                  />
+                  <Route
+                    path="/detalles-producciones"
+                    element={<Detalles_Producciones />}
+                  />
+                  <Route path="/devoluciones" element={<Devoluciones />} />
+                  <Route
+                    path="/etapas-producciones"
+                    element={<Etapas_Producciones />}
+                  />
+                  <Route
+                    path="/producciones-etapas"
+                    element={<Producciones_Etapas />}
+                  />
+                  <Route path="/producciones" element={<Producciones />} />
+                  <Route
+                    path="/costos-cotizacion"
+                    element={<CostosCotizacion />}
+                  />
+                  <Route
+                    path="/evidencias-produccion"
+                    element={<EvidenciasProduccion />}
+                  />
+                  <Route
+                    path="/logs"
+                    element={
+                      <PermissionRoute permiso="ver_logs">
+                        <Logs />
+                      </PermissionRoute>
+                    }
+                  />
 
-                {/* Tables with Role Based Access Control */}
-                {/* <Route path="/diseños" element={<Diseños />} /> */}
-                {/* <Route path="/movimientos-inventarios" element={<Movimientos_Inventarios />} /> */}
+                  {/* Tables with Role Based Access Control */}
+                  {/* <Route path="/diseños" element={<Diseños />} /> */}
+                  {/* <Route path="/movimientos-inventarios" element={<Movimientos_Inventarios />} /> */}
 
-                {/* 3D Modelling */}
-                {/* <Route path="/prueba-modificacion-3d" element={<PruebaModificacion3D />} /> */}
+                  {/* 3D Modelling */}
+                  {/* <Route path="/prueba-modificacion-3d" element={<PruebaModificacion3D />} /> */}
 
-                {/* Basic Tables */}
-                {/* <Route path="/compras-materiales" element={<Compras_Materiales />} /> */}
-                {/* <Route path="/detalles-compras" element={<Detalles_Compras />} /> */}
-                {/* <Route path="/detalles-ventas" element={<Detalles_Ventas />} /> */}
+                  {/* Basic Tables */}
+                  {/* <Route path="/compras-materiales" element={<Compras_Materiales />} /> */}
+                  {/* <Route path="/detalles-compras" element={<Detalles_Compras />} /> */}
+                  {/* <Route path="/detalles-ventas" element={<Detalles_Ventas />} /> */}
 
-                {/* Tables with Role Based Access Control 
+                  {/* Tables with Role Based Access Control 
             
             
 
@@ -214,46 +228,49 @@ export default function App() {
             <Route path="/movimientos-inventarios" element={<Movimientos_Inventarios />} />
             
                 */}
-                {/* 3D Modelling */}
+                  {/* 3D Modelling */}
 
-                {/* Basic Tables */}
+                  {/* Basic Tables */}
 
-                {/* <Route path="/compras-materiales" element={<Compras_Materiales />} /> */}
-                {/* <Route path="/detalles-compras" element={<Detalles_Compras />} /> */}
-                {/* <Route path="/detalles-ventas" element={<Detalles_Ventas />} /> */}
-                {/* <Route path="/prueba" element={<Prueba />} /> */}
+                  {/* <Route path="/compras-materiales" element={<Compras_Materiales />} /> */}
+                  {/* <Route path="/detalles-compras" element={<Detalles_Compras />} /> */}
+                  {/* <Route path="/detalles-ventas" element={<Detalles_Ventas />} /> */}
+                  {/* <Route path="/prueba" element={<Prueba />} /> */}
 
-                {/* 3D Modelling */}
-                {/* <Route path="/prueba-modificacion-3d" element={<PruebaModificacion3D />} /> */}
+                  {/* 3D Modelling */}
+                  {/* <Route path="/prueba-modificacion-3d" element={<PruebaModificacion3D />} /> */}
 
-                {/* <Route path="/muebles-materiales" element={<Muebles_Materiales />} /> */}
-                {/* <Route path="/muebles-materiales" element={<Muebles_Materiales />} /> */}
+                  {/* <Route path="/muebles-materiales" element={<Muebles_Materiales />} /> */}
+                  {/* <Route path="/muebles-materiales" element={<Muebles_Materiales />} /> */}
 
-                {/* Basic Tables */}
+                  {/* Basic Tables */}
 
-                {/* Ui Elements */}
-                <Route path="/alerts" element={<Alerts />} />
-                <Route path="/avatars" element={<Avatars />} />
-                <Route path="/badge" element={<Badges />} />
-                <Route path="/buttons" element={<Buttons />} />
-                <Route path="/images" element={<Images />} />
-                <Route path="/videos" element={<Videos />} />
+                  {/* Ui Elements */}
+                  <Route path="/alerts" element={<Alerts />} />
+                  <Route path="/avatars" element={<Avatars />} />
+                  <Route path="/badge" element={<Badges />} />
+                  <Route path="/buttons" element={<Buttons />} />
+                  <Route path="/images" element={<Images />} />
+                  <Route path="/videos" element={<Videos />} />
 
-                {/* Charts */}
-                <Route path="/line-chart" element={<LineChart />} />
-                <Route path="/bar-chart" element={<BarChart />} />
+                  {/* Charts */}
+                  <Route path="/line-chart" element={<LineChart />} />
+                  <Route path="/bar-chart" element={<BarChart />} />
+                </Route>
               </Route>
-            </Route>
 
-            {/* Auth Layout */}
-            <Route path="/signin" element={<SignIn />} />
-            <Route path="/signup" element={<SignUp />} />
+              {/* Auth Layout */}
+              <Route path="/signin" element={<SignIn />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
 
-            {/* Fallback Route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Router>
-      </CartProvider>
-    </PermissionsProvider>
+              {/* Fallback Route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Router>
+        </CartProvider>
+      </PermissionsProvider>
+    </GoogleOAuthProvider>
   );
 }

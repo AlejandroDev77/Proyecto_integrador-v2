@@ -23,4 +23,10 @@ public interface UsuarioPersistencePort {
     void eliminarPorId(Long id);
 
     String generarCodigoUnico();
+    
+    Optional<Usuario> obtenerPorNombre(String nomUsu);
+
+    boolean existePorNomUsu(String nomUsu);
+
+    boolean existePorEmail(String email);
 }

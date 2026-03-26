@@ -7,7 +7,7 @@ const axiosClient = axios.create({
   },
 });
 
-// 🔹 Interceptor para agregar el Bearer Token automáticamente
+// Interceptor para agregar el Bearer Token automáticamente
 axiosClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {
@@ -16,15 +16,23 @@ axiosClient.interceptors.request.use((config) => {
   return config;
 });
 
-// 🔹 Interceptor para manejar respuestas y errores
+// Interceptor para manejar respuestas y errores
 axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
+ 
     if (error.response && error.response.status === 401) {
-      // Eliminar token y redirigir al login ante cualquier 401
-      localStorage.removeItem("token");
-
-      window.location.href = "/signin";
+    
+      const isLoginRequest = error.config.url?.includes("/api/login");
+      
+      if (!isLoginRequest) {
+       
+        localStorage.removeItem("token");
+        
+        if (window.location.pathname !== "/signin") {
+          window.location.href = "/signin";
+        }
+      }
     }
     return Promise.reject(error);
   },

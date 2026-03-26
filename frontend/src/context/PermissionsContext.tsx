@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { getUser } from "../services/authService";
 import { getUserPermissionsFromApi } from "../services/permissionsService";
+import { useAuth } from "./AuthContext";
 
 interface PermissionsContextType {
   permissions: string[];
@@ -18,12 +19,16 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
   const [permissions, setPermissions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Usamos el token del contexto de la app para saber cuándo cambia la sesión
+  const { token } = useAuth();
 
   useEffect(() => {
     async function loadPermissions() {
       try {
+        setLoading(true);
         const user = getUser();
-        if (!user?.id_usu) {
+        if (!user?.id_usu || !token) {
           setPermissions([]);
           setLoading(false);
           return;
@@ -53,7 +58,7 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
     }
 
     loadPermissions();
-  }, []);
+  }, [token]); // <-- Re-ejecutar cada vez que el token cambie (Login/Logout)
 
   const hasPermission = (name: string) => {
     if (!name) return false;

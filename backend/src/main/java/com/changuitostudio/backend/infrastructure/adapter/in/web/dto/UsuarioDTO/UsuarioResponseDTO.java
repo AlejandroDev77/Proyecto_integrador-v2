@@ -1,10 +1,10 @@
-package com.changuitostudio.backend.infrastructure.adapter.in.web.dto;
+package com.changuitostudio.backend.infrastructure.adapter.in.web.dto.UsuarioDTO;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * DTO de salida — Coincide exactamente con el JSON que devolvía Laravel.
- * Campos con underscore para compatibilidad con el frontend.
+ * DTO para RESPONSE de Usuario
+ * Se usa para devolver data de usuarios al cliente en formato.
  */
 public class UsuarioResponseDTO {
 
@@ -23,27 +23,27 @@ public class UsuarioResponseDTO {
     @JsonProperty("cod_usu")
     private String codUsu;
 
-    @JsonProperty("nom_rol")
-    private String nomRol;
-
     @JsonProperty("id_rol")
     private Long idRol;
+
+    @JsonProperty("nom_rol")
+    private String nomRol;
 
     public UsuarioResponseDTO() {
     }
 
-    public UsuarioResponseDTO(Long idUsu, String nomUsu, String emailUsu,
-            Boolean estUsu, String codUsu, String nomRol, Long idRol) {
+    public UsuarioResponseDTO(Long idUsu, String nomUsu, String emailUsu, Boolean estUsu, 
+                              String codUsu, Long idRol, String nomRol) {
         this.idUsu = idUsu;
         this.nomUsu = nomUsu;
         this.emailUsu = emailUsu;
         this.estUsu = estUsu;
         this.codUsu = codUsu;
-        this.nomRol = nomRol;
         this.idRol = idRol;
+        this.nomRol = nomRol;
     }
 
-    // ── Getters & Setters ──────────────────────────────────────
+    
 
     public Long getIdUsu() {
         return idUsu;
@@ -85,19 +85,19 @@ public class UsuarioResponseDTO {
         this.codUsu = codUsu;
     }
 
-    public String getNomRol() {
-        return nomRol;
-    }
-
-    public void setNomRol(String nomRol) {
-        this.nomRol = nomRol;
-    }
-
     public Long getIdRol() {
         return idRol;
     }
 
     public void setIdRol(Long idRol) {
         this.idRol = idRol;
+    }
+
+    public String getNomRol() {
+        return nomRol;
+    }
+
+    public void setNomRol(String nomRol) {
+        this.nomRol = nomRol;
     }
 }

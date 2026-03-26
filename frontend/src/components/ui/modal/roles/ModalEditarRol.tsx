@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
 import { Shield, X, Save, AlertCircle } from "lucide-react";
+import { useRoles } from "../../../../hooks/Roles/useRoles";
 
 interface Rol {
   id_rol: number;
   cod_rol?: string;
   nom_rol: string;
 }
+
 interface Props {
   showModal: boolean;
   setShowModal: (show: boolean) => void;
@@ -21,9 +22,9 @@ const ModalEditarRol: React.FC<Props> = ({
   rolSeleccionado,
   onSuccess,
 }) => {
+  const { actualizarRol, loadingAction } = useRoles();
   const [nombre, setNombre] = useState("");
   const [errorMsg, setErrorMsg] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (rolSeleccionado) setNombre(rolSeleccionado.nom_rol || "");
@@ -35,38 +36,10 @@ const ModalEditarRol: React.FC<Props> = ({
       setErrorMsg("El nombre es requerido.");
       return;
     }
-    setIsSubmitting(true);
+
     setErrorMsg("");
-
-    let idUsuarioLocal = null;
     try {
-      const token = localStorage.getItem("token");
-      if (token) {
-        const p: any = jwtDecode(token);
-        idUsuarioLocal = p.id_usu || null;
-      }
-    } catch {
-      idUsuarioLocal = null;
-    }
-
-    try {
-      const res = await fetch(
-        `http://localhost:8000/api/roles/${rolSeleccionado.id_rol}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            ...(idUsuarioLocal ? { "X-USER-ID": idUsuarioLocal } : {}),
-          },
-          body: JSON.stringify({ nom_rol: nombre.trim() }),
-        }
-      );
-
-      if (!res.ok) {
-        const e = await res.json();
-        setErrorMsg(e.message || "Error");
-        return;
-      }
+      await actualizarRol(rolSeleccionado.id_rol, { nom_rol: nombre.trim() });
       Swal.fire({
         icon: "success",
         title: "¡Rol actualizado!",
@@ -75,11 +48,10 @@ const ModalEditarRol: React.FC<Props> = ({
       });
       setShowModal(false);
       onSuccess?.();
-    } catch (err) {
-      setErrorMsg("Error al editar");
-      console.error(err);
-    } finally {
-      setIsSubmitting(false);
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || "Error al editar";
+      setErrorMsg(errorMsg);
+      console.error("Error al actualizar rol:", err);
     }
   };
 
@@ -99,7 +71,8 @@ const ModalEditarRol: React.FC<Props> = ({
             </span>
             <button
               onClick={() => setShowModal(false)}
-              className="text-white/80 hover:text-white hover:bg-white/20 p-2 rounded-lg"
+              disabled={loadingAction}
+              className="text-white/80 hover:text-white hover:bg-white/20 p-2 rounded-lg disabled:opacity-50"
             >
               <X className="w-6 h-6" />
             </button>
@@ -123,7 +96,8 @@ const ModalEditarRol: React.FC<Props> = ({
               type="text"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-rose-500"
+              disabled={loadingAction}
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-rose-500 disabled:opacity-50"
             />
           </div>
         </div>
@@ -131,16 +105,17 @@ const ModalEditarRol: React.FC<Props> = ({
         <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-6 py-4 flex justify-end gap-3">
           <button
             onClick={() => setShowModal(false)}
-            className="px-5 py-2.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 text-gray-800 dark:text-gray-200 rounded-xl font-medium"
+            disabled={loadingAction}
+            className="px-5 py-2.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 text-gray-800 dark:text-gray-200 rounded-xl font-medium disabled:opacity-50"
           >
             Cancelar
           </button>
           <button
             onClick={handleSubmit}
-            disabled={isSubmitting}
+            disabled={loadingAction}
             className="flex items-center gap-2 px-6 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:bg-gray-400 text-white rounded-xl font-semibold shadow-lg shadow-rose-600/30"
           >
-            {isSubmitting ? (
+            {loadingAction ? (
               <>
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 Guardando...

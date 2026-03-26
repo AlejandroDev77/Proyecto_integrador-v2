@@ -74,7 +74,7 @@ export const useUsuarios = () => {
   || u.email_usu.toLowerCase().includes(searchTerm.toLowerCase())
   );
   
-  const paginatedData = filteredData; // server already paginates
+  const paginatedData = filteredData;
 
   return {
     usuarios,
