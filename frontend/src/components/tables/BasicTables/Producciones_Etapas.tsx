@@ -59,7 +59,7 @@ export default function ProduccionEtapa() {
 
     try {
       const res = await fetch(
-        `http://localhost:8000/api/produccion-etapa/${id_pro_eta}`,
+        `http://localhost:8080/api/produccion-etapa/${id_pro_eta}`,
         {
           method: "DELETE",
           headers,
@@ -80,7 +80,7 @@ export default function ProduccionEtapa() {
   /* const descargarBackup = async () => {
     try {
       const response = await fetch(
-        `http://localhost:8000/api/produccion-etapa/exportar-sql`
+        `http://localhost:8080/api/produccion-etapa/exportar-sql`
       );
       if (!response.ok) throw new Error("Error al descargar el respaldo");
       const blob = await response.blob();

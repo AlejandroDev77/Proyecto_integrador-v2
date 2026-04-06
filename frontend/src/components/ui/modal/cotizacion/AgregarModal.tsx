@@ -538,7 +538,7 @@ export default function ModalAgregarCotizacion({
           per_page: "8",
         });
         if (search) params.append("filter[nom_cli]", search);
-        const res = await fetch(`http://localhost:8000/api/clientes?${params}`);
+        const res = await fetch(`http://localhost:8080/api/clientes?${params}`);
         const payload = await res.json();
         const items = payload?.data ?? payload;
         setClientes(Array.isArray(items) ? items : []);
@@ -569,7 +569,7 @@ export default function ModalAgregarCotizacion({
         });
         if (search) params.append("filter[nom_emp]", search);
         const res = await fetch(
-          `http://localhost:8000/api/empleados?${params}`
+          `http://localhost:8080/api/empleados?${params}`
         );
         const payload = await res.json();
         const items = payload?.data ?? payload;
@@ -600,7 +600,7 @@ export default function ModalAgregarCotizacion({
           per_page: "8",
         });
         if (search) params.append("filter[nom_mue]", search);
-        const res = await fetch(`http://localhost:8000/api/mueble?${params}`);
+        const res = await fetch(`http://localhost:8080/api/mueble?${params}`);
         const payload = await res.json();
         const items = payload?.data ?? payload;
         setMuebles(Array.isArray(items) ? items : []);
@@ -748,7 +748,7 @@ export default function ModalAgregarCotizacion({
         id_emp: selectedEmpleado.id_emp,
       };
 
-      const res = await fetch("http://localhost:8000/api/cotizacion", {
+      const res = await fetch("http://localhost:8080/api/cotizacion", {
         method: "POST",
         headers,
         body: JSON.stringify(cotizacionData),
@@ -768,7 +768,7 @@ export default function ModalAgregarCotizacion({
           precio_unitario: det.precio,
           subtotal: det.subtotal,
         };
-        await fetch("http://localhost:8000/api/detalle-cotizacion", {
+        await fetch("http://localhost:8080/api/detalle-cotizacion", {
           method: "POST",
           headers,
           body: JSON.stringify(detalleData),
@@ -776,7 +776,7 @@ export default function ModalAgregarCotizacion({
       }
 
       // Refresh cotizaciones
-      const updatedRes = await fetch("http://localhost:8000/api/cotizacion");
+      const updatedRes = await fetch("http://localhost:8080/api/cotizacion");
       const updatedPayload: any = await updatedRes.json();
       const updatedItems = updatedPayload?.data ?? updatedPayload;
       setCotizaciones(Array.isArray(updatedItems) ? updatedItems : []);

@@ -250,7 +250,7 @@ const ModalEditarVenta = ({
           per_page: "6",
         });
         if (search) params.append("filter[nom_cli]", search);
-        const res = await fetch(`http://localhost:8000/api/clientes?${params}`);
+        const res = await fetch(`http://localhost:8080/api/clientes?${params}`);
         const payload = await res.json();
         const items = payload?.data ?? payload;
         setClientes(Array.isArray(items) ? items : []);
@@ -281,7 +281,7 @@ const ModalEditarVenta = ({
         });
         if (search) params.append("filter[nom_emp]", search);
         const res = await fetch(
-          `http://localhost:8000/api/empleados?${params}`
+          `http://localhost:8080/api/empleados?${params}`
         );
         const payload = await res.json();
         const items = payload?.data ?? payload;
@@ -358,7 +358,7 @@ const ModalEditarVenta = ({
       };
 
       const res = await fetch(
-        `http://localhost:8000/api/venta/${ventaSeleccionada.id_ven}`,
+        `http://localhost:8080/api/venta/${ventaSeleccionada.id_ven}`,
         {
           method: "PUT",
           headers,
@@ -383,7 +383,7 @@ const ModalEditarVenta = ({
       }
 
       // Refrescar todas las ventas desde la API para obtener relaciones correctas
-      const updatedRes = await fetch("http://localhost:8000/api/venta");
+      const updatedRes = await fetch("http://localhost:8080/api/venta");
       const updatedPayload: any = await updatedRes.json();
       const updatedItems = updatedPayload?.data ?? updatedPayload;
       setVentas(Array.isArray(updatedItems) ? updatedItems : []);

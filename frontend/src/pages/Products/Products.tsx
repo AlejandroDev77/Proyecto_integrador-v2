@@ -133,7 +133,7 @@ export default function ProductsPage() {
   // Fetch categories from API
   const fetchCategories = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/categoria");
+      const res = await axios.get("http://localhost:8080/api/categoria");
       const cats = (res.data.data || res.data)
         .filter((c: any) => c.est_cat)
         .map((c: any) => ({
@@ -149,7 +149,7 @@ export default function ProductsPage() {
 
   const fetchProducts = (page: number = 1) => {
     axios
-      .get(`http://localhost:8000/api/mueble?page=${page}`)
+      .get(`http://localhost:8080/api/mueble?page=${page}`)
       .then((res) => {
         const muebles = res.data.data
           .filter((m: any) => m.est_mue === true)
@@ -190,7 +190,7 @@ export default function ProductsPage() {
     if (!userId) return;
     try {
       const res = await fetch(
-        `http://localhost:8000/api/cliente/favoritos/ids`,
+        `http://localhost:8080/api/cliente/favoritos/ids`,
         {
           headers: { "X-USER-ID": userId.toString() },
         }
@@ -205,7 +205,7 @@ export default function ProductsPage() {
   const toggleFavorite = async (productId: number, isFav: boolean) => {
     if (!userId) return;
     try {
-      await fetch(`http://localhost:8000/api/cliente/favoritos/toggle`, {
+      await fetch(`http://localhost:8080/api/cliente/favoritos/toggle`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

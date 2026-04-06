@@ -319,7 +319,7 @@ export default function ModalAgregarDetalleVenta({
     setLoadingVenta(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/venta?page=${page}&per_page=8${
+        `http://localhost:8080/api/venta?page=${page}&per_page=8${
           search ? `&search=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -341,7 +341,7 @@ export default function ModalAgregarDetalleVenta({
     setLoadingMueble(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/mueble?page=${page}&per_page=8${
+        `http://localhost:8080/api/mueble?page=${page}&per_page=8${
           search ? `&filter[nom_mue]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -422,7 +422,7 @@ export default function ModalAgregarDetalleVenta({
     } catch {}
 
     try {
-      const res = await fetch("http://localhost:8000/api/detalle-venta", {
+      const res = await fetch("http://localhost:8080/api/detalle-venta", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

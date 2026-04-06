@@ -315,7 +315,7 @@ const ModalAgregarEvidencia: React.FC<ModalAgregarEvidenciaProps> = ({
     setLoadingEtapa(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/produccion-etapa?page=${page}&per_page=6${
+        `http://localhost:8080/api/produccion-etapa?page=${page}&per_page=6${
           search ? `&filter[nom_eta]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -337,7 +337,7 @@ const ModalAgregarEvidencia: React.FC<ModalAgregarEvidenciaProps> = ({
     setLoadingEmp(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/empleados?page=${page}&per_page=6${
+        `http://localhost:8080/api/empleados?page=${page}&per_page=6${
           search ? `&filter[nom_emp]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -420,7 +420,7 @@ const ModalAgregarEvidencia: React.FC<ModalAgregarEvidenciaProps> = ({
       fd.append("archivo", archivo);
 
       const res = await fetch(
-        "http://localhost:8000/api/evidencia-produccion",
+        "http://localhost:8080/api/evidencia-produccion",
         { method: "POST", body: fd }
       );
       if (!res.ok) throw new Error("Error al crear");

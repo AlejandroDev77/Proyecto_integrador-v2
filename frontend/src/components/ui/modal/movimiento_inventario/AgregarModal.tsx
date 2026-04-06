@@ -405,7 +405,7 @@ export default function ModalAgregarMovimientoInventario({
     setLoadingMat(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/materiales?page=${page}&per_page=6${
+        `http://localhost:8080/api/materiales?page=${page}&per_page=6${
           search ? `&filter[nom_mat]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -426,7 +426,7 @@ export default function ModalAgregarMovimientoInventario({
     setLoadingMue(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/mueble?page=${page}&per_page=6${
+        `http://localhost:8080/api/mueble?page=${page}&per_page=6${
           search ? `&filter[nom_mue]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -447,7 +447,7 @@ export default function ModalAgregarMovimientoInventario({
     setLoadingEmp(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/empleados?page=${page}&per_page=6${
+        `http://localhost:8080/api/empleados?page=${page}&per_page=6${
           search ? `&filter[nom_emp]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -532,7 +532,7 @@ export default function ModalAgregarMovimientoInventario({
     } catch {}
     try {
       const res = await fetch(
-        "http://localhost:8000/api/movimiento-inventario",
+        "http://localhost:8080/api/movimiento-inventario",
         {
           method: "POST",
           headers: {

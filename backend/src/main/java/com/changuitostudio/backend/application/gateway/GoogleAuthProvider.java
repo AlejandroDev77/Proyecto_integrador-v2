@@ -1,0 +1,24 @@
+package com.changuitostudio.backend.application.gateway;
+
+import java.util.Map;
+
+/**
+ * Puerto de salida: AutenticaciÃ³n con Google OAuth2.
+ */
+public interface GoogleAuthProvider {
+
+    /**
+     * Resultado de verificar un token de Google.
+     */
+    record GoogleUserInfo(
+            String email,
+            String nombre,
+            String foto
+    ) {}
+
+    /**
+     * Verifica el ID token de Google y retorna la info del usuario.
+     */
+    GoogleUserInfo verifyToken(String idTokenString) throws Exception;
+}
+

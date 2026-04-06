@@ -69,7 +69,7 @@ export default function ModalEditarCliente({
     if (showModal) {
       setValidationErrors(null);
       setGeneralError(null);
-      fetch("http://localhost:8000/api/usuarios")
+      fetch("http://localhost:8080/api/usuarios")
         .then((res) => res.json())
         .then((payload: any) => {
           const items = payload?.data ?? payload;
@@ -125,7 +125,7 @@ export default function ModalEditarCliente({
 
     try {
       const res = await fetch(
-        `http://localhost:8000/api/clientes/${clienteSeleccionado.id_cli}`,
+        `http://localhost:8080/api/clientes/${clienteSeleccionado.id_cli}`,
         {
           method: "PUT",
           headers,

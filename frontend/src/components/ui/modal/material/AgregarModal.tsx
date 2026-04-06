@@ -105,7 +105,7 @@ export default function ModalAgregarMaterial({
         formData.append("img_mat", imgFile);
       }
 
-      const res = await fetch("http://localhost:8000/api/materiales", {
+      const res = await fetch("http://localhost:8080/api/materiales", {
         method: "POST",
         headers: {
           Accept: "application/json",

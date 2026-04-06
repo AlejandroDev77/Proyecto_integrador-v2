@@ -32,7 +32,7 @@ export async function getEmpleados(
     params.sort = sort;
   }
 
-  const response = await axios.get("http://localhost:8000/api/empleados", {
+  const response = await axios.get("http://localhost:8080/api/empleados", {
     params,
   });
   return response.data;

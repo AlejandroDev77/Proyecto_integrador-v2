@@ -62,7 +62,7 @@ export default function MovimientosInventarios() {
 
     try {
       const res = await fetch(
-        `http://localhost:8000/api/movimiento-inventario/${id_mov}`,
+        `http://localhost:8080/api/movimiento-inventario/${id_mov}`,
         {
           method: "DELETE",
           headers,
@@ -83,7 +83,7 @@ export default function MovimientosInventarios() {
   /* const descargarBackup = async () => {
     try {
       const response = await fetch(
-        `http://localhost:8000/api/movimiento-inventario/exportar-sql`
+        `http://localhost:8080/api/movimiento-inventario/exportar-sql`
       );
       if (!response.ok) throw new Error("Error al descargar el respaldo");
       const blob = await response.blob();

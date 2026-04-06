@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-const API_URL = "http://localhost:8000/api/roles-permisos";
+const API_URL = "http://localhost:8080/api/roles-permisos";
 
 interface RolPermiso {
   id_rol: number;
@@ -90,7 +90,7 @@ export const useRolesPermisos = () => {
   const asignarPermiso = async (id_rol: number, id_permiso: number) => {
     setLoadingAction(true);
     try {
-      await axios.post(`http://localhost:8000/api/roles/${id_rol}/permisos/${id_permiso}`);
+      await axios.post(`http://localhost:8080/api/roles/${id_rol}/permisos/${id_permiso}`);
       await fetchRolesPermisos();
       setShowModalAgregar(false);
       setError(null);
@@ -110,7 +110,7 @@ export const useRolesPermisos = () => {
     setLoadingAction(true);
     try {
       await axios.delete(
-        `http://localhost:8000/api/roles/${id_rol}/permisos/${id_permiso}`
+        `http://localhost:8080/api/roles/${id_rol}/permisos/${id_permiso}`
       );
       await fetchRolesPermisos();
       setShowModalEliminar(false);
@@ -132,7 +132,7 @@ export const useRolesPermisos = () => {
     setLoadingAction(true);
     try {
       await axios.post(
-        `http://localhost:8000/api/roles/${id_rol}/permisos-batch`,
+        `http://localhost:8080/api/roles/${id_rol}/permisos-batch`,
         { id_permisos }
       );
       await fetchRolesPermisos();
@@ -157,7 +157,7 @@ export const useRolesPermisos = () => {
     setLoadingAction(true);
     try {
       await axios.delete(
-        `http://localhost:8000/api/roles/${id_rol}/permisos-batch`,
+        `http://localhost:8080/api/roles/${id_rol}/permisos-batch`,
         { data: { id_permisos } }
       );
       await fetchRolesPermisos();
@@ -179,7 +179,7 @@ export const useRolesPermisos = () => {
     setLoadingAction(true);
     try {
       await axios.put(
-        `http://localhost:8000/api/roles/${id_rol}/permisos`,
+        `http://localhost:8080/api/roles/${id_rol}/permisos`,
         { id_permisos }
       );
       await fetchRolesPermisos();

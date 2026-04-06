@@ -292,7 +292,7 @@ export default function ModalAgregarDiseño({
         });
         if (search) params.append("filter[cod_cot]", search);
         const res = await fetch(
-          `http://localhost:8000/api/cotizacion?${params}`
+          `http://localhost:8080/api/cotizacion?${params}`
         );
         const payload = await res.json();
         const items = payload?.data ?? payload;
@@ -367,14 +367,14 @@ export default function ModalAgregarDiseño({
       const headers: Record<string, string> = {};
       if (idUsuarioLocal) headers["X-USER-ID"] = idUsuarioLocal;
 
-      const res = await fetch("http://localhost:8000/api/diseño", {
+      const res = await fetch("http://localhost:8080/api/diseño", {
         method: "POST",
         headers,
         body: formData,
       });
       if (!res.ok) throw new Error("Error al crear diseño");
 
-      const updatedRes = await fetch("http://localhost:8000/api/diseño");
+      const updatedRes = await fetch("http://localhost:8080/api/diseño");
       const updatedPayload: any = await updatedRes.json();
       const updatedItems = updatedPayload?.data ?? updatedPayload;
       setDiseños(Array.isArray(updatedItems) ? updatedItems : []);

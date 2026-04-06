@@ -1,5 +1,6 @@
 package com.changuitostudio.backend.infrastructure.config;
 
+import com.changuitostudio.backend.application.gateway.JwtProvider;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,8 +12,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * ImplementaciÃ³n de JwtProvider usando la librerÃ­a jjwt.
+ */
 @Component
-public class JwtUtil {
+public class JwtUtil implements JwtProvider {
 
     private final SecretKey key;
     private final long expirationMs;
@@ -26,6 +30,7 @@ public class JwtUtil {
         this.expirationMs = expirationMs;
     }
 
+    @Override
     public String generateToken(Long idUsu, Long idRol, String codUsu, String nomUsu, String emailUsu,
             List<String> permisos) {
         Date now = new Date();
@@ -46,6 +51,7 @@ public class JwtUtil {
                 .compact();
     }
 
+    @Override
     public String generate2faTempToken(Long idUsu) {
         Date now = new Date();
         Date expiration = new Date(now.getTime() + 300000); // 5 minutos
@@ -59,9 +65,7 @@ public class JwtUtil {
                 .compact();
     }
 
-    /**
-     * Extrae el subject (id_usu) del token.
-     */
+    @Override
     public String getSubjectFromToken(String token) {
         return Jwts.parser()
                 .verifyWith(key)
@@ -71,9 +75,7 @@ public class JwtUtil {
                 .getSubject();
     }
 
-    /**
-     * Valida si el token es correcto y no ha expirado.
-     */
+    @Override
     public boolean validateToken(String token) {
         try {
             Jwts.parser()
@@ -86,3 +88,4 @@ public class JwtUtil {
         }
     }
 }
+

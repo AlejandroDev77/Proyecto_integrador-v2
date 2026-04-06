@@ -61,8 +61,8 @@ export default function RolesPermisos() {
     const loadData = async () => {
       try {
         const [rolesResRaw, permisosResRaw] = await Promise.all([
-          fetch("http://localhost:8000/api/roles").then((r) => r.json()),
-          fetch("http://localhost:8000/api/permisos").then((r) => r.json()),
+          fetch("http://localhost:8080/api/roles").then((r) => r.json()),
+          fetch("http://localhost:8080/api/permisos").then((r) => r.json()),
         ]);
 
         // A veces la API devuelve { data: [...] } u otra envoltura. Normalizamos a array.

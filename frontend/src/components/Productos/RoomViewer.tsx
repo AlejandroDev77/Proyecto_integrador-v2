@@ -311,7 +311,7 @@ export default function RoomViewer() {
   // Fetch products with 3D models
   useEffect(() => {
     axios
-      .get("http://localhost:8000/api/mueble")
+      .get("http://localhost:8080/api/mueble")
       .then((res) => {
         const muebles = (res.data.data || res.data)
           .filter((m: any) => m.est_mue && m.modelo_3d)

@@ -64,7 +64,7 @@ export default function Pagos() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8000/api/pago/${id_pag}`, {
+      const res = await fetch(`http://localhost:8080/api/pago/${id_pag}`, {
         method: "DELETE",
         headers,
       });
@@ -81,7 +81,7 @@ export default function Pagos() {
   /* const descargarBackup = async () => {
     try {
       const response = await fetch(
-        `http://localhost:8000/api/pago/exportar-sql`
+        `http://localhost:8080/api/pago/exportar-sql`
       );
       if (!response.ok) throw new Error("Error al descargar el respaldo");
       const blob = await response.blob();

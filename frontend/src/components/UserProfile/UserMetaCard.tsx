@@ -17,7 +17,7 @@ export default function UserMetaCard({ forceLight = false }: Props) {
               {/**
                * Mostrar la imagen del cliente si existe (`cliente.img_cli`).
                * Si `img_cli` es una URL completa la usamos tal cual; si es sólo un nombre de archivo
-               * asumimos que está disponible en el backend en `http://localhost:8000/storage/{img}`.
+               * asumimos que está disponible en el backend en `http://localhost:8080/storage/{img}`.
                * En caso de no existir, mostramos la imagen por defecto en `public/images/user/owner.jpg`.
                */}
                 <img

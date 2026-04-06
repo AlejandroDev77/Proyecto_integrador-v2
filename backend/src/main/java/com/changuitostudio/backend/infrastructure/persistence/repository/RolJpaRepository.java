@@ -1,0 +1,17 @@
+package com.changuitostudio.backend.infrastructure.persistence.repository;
+
+import com.changuitostudio.backend.infrastructure.persistence.entity.RolEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.stereotype.Repository;
+
+/**
+ * âœ… Repositorio Spring Data JPA para roles.
+ * 
+ * IMPORTANTE: Extiende JpaSpecificationExecutor para soportar bÃºsquedas
+ * con Specifications (filtros dinÃ¡micos) como en RolPersistencePort.buscarTodos()
+ */
+@Repository
+public interface RolJpaRepository extends JpaRepository<RolEntity, Long>, JpaSpecificationExecutor<RolEntity> {
+}
+

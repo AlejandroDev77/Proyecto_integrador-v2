@@ -260,7 +260,7 @@ export default function ModalAgregarEmpleado({
     setLoadingUsu(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/usuarios-sin-relaciones?page=${page}&per_page=6${
+        `http://localhost:8080/api/usuarios-sin-relaciones?page=${page}&per_page=6${
           search ? `&filter[nom_usu]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -329,7 +329,7 @@ export default function ModalAgregarEmpleado({
       }
     } catch {}
     try {
-      const res = await fetch("http://localhost:8000/api/empleados", {
+      const res = await fetch("http://localhost:8080/api/empleados", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

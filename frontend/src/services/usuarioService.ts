@@ -1,6 +1,21 @@
 import axiosClient from "../api/axios";
+import { jwtDecode } from "jwt-decode";
+import { CrearUsuarioDTO, ActualizarUsuarioDTO } from "../types/usuario";
 
 const API_URL = "/api/usuarios";
+
+const getIdUsuarioFromToken = (): string | null => {
+  try {
+    const token = localStorage.getItem("token");
+    if (token) {
+      const p: any = jwtDecode(token);
+      return p.id_usu || null;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+};
 
 export const getUsuarios = async (
   page: number = 1,
@@ -27,10 +42,31 @@ export const getUsuarios = async (
   return response.data;
 };
 
-export const cambiarEstadoUsuario = async (
-  id: number,
-  nuevoEstado: boolean,
-) => {
+export const crearUsuario = async (userData: CrearUsuarioDTO) => {
+  const idUsuario = getIdUsuarioFromToken();
+  const headers: any = {};
+  if (idUsuario) {
+    headers["X-USER-ID"] = idUsuario;
+  }
+
+  const response = await axiosClient.post(API_URL, userData, { headers });
+  return response.data;
+};
+
+export const actualizarUsuario = async (id: number, userData: ActualizarUsuarioDTO) => {
+  const idUsuario = getIdUsuarioFromToken();
+  const headers: any = {};
+  if (idUsuario) {
+    headers["X-USER-ID"] = idUsuario;
+  }
+
+  const response = await axiosClient.put(`${API_URL}/${id}`, userData, {
+    headers,
+  });
+  return response.data;
+};
+
+export const cambiarEstadoUsuario = async (id: number, nuevoEstado: boolean) => {
   const estadoNumerico = nuevoEstado ? 1 : 0;
   await axiosClient.put(`${API_URL}/${id}/estado`, { est_usu: estadoNumerico });
 };

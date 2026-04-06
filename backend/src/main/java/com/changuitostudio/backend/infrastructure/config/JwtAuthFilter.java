@@ -1,5 +1,6 @@
 package com.changuitostudio.backend.infrastructure.config;
 
+import com.changuitostudio.backend.application.gateway.JwtProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,16 +15,16 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Filtro JWT — Intercepta cada request, extrae el Bearer token,
- * lo valida y establece la autenticación en el SecurityContext.
+ * Filtro JWT â€” Intercepta cada request, extrae el Bearer token,
+ * lo valida y establece la autenticaciÃ³n en el SecurityContext.
  */
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-    private final JwtUtil jwtUtil;
+    private final JwtProvider jwtProvider;
 
-    public JwtAuthFilter(JwtUtil jwtUtil) {
-        this.jwtUtil = jwtUtil;
+    public JwtAuthFilter(JwtProvider jwtProvider) {
+        this.jwtProvider = jwtProvider;
     }
 
     @Override
@@ -36,10 +37,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
 
-            if (jwtUtil.validateToken(token)) {
-                String subject = jwtUtil.getSubjectFromToken(token);
+            if (jwtProvider.validateToken(token)) {
+                String subject = jwtProvider.getSubjectFromToken(token);
 
-                // Crear autenticación con el ID del usuario como principal
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         subject,
                         null,
@@ -52,3 +52,4 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
+

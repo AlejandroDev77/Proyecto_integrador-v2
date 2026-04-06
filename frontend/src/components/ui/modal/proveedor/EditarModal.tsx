@@ -91,7 +91,7 @@ export default function ModalEditarProveedor({
 
     try {
       const res = await fetch(
-        `http://localhost:8000/api/proveedor/${proveedorSeleccionado.id_prov}`,
+        `http://localhost:8080/api/proveedor/${proveedorSeleccionado.id_prov}`,
         {
           method: "PUT",
           headers: {

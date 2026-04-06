@@ -352,7 +352,7 @@ export default function ModalAgregarPago({
         per_page: "6",
       });
       if (search) params.append("filter[cod_ven]", search);
-      const res = await fetch(`http://localhost:8000/api/venta?${params}`);
+      const res = await fetch(`http://localhost:8080/api/venta?${params}`);
       const payload = await res.json();
       const items = payload?.data ?? payload;
       setVentas(Array.isArray(items) ? items : []);
@@ -424,7 +424,7 @@ export default function ModalAgregarPago({
         monto: parseFloat(form.monto),
         id_ven: selectedVenta.id_ven,
       };
-      const res = await fetch("http://localhost:8000/api/pago", {
+      const res = await fetch("http://localhost:8080/api/pago", {
         method: "POST",
         headers,
         body: JSON.stringify(pagoData),
@@ -447,7 +447,7 @@ export default function ModalAgregarPago({
         return;
       }
 
-      const updatedRes = await fetch("http://localhost:8000/api/pago");
+      const updatedRes = await fetch("http://localhost:8080/api/pago");
       const updatedPayload: any = await updatedRes.json();
       const updatedItems = updatedPayload?.data ?? updatedPayload;
       setPagos(Array.isArray(updatedItems) ? updatedItems : []);

@@ -59,7 +59,7 @@ const ModalEditarPermiso: React.FC<Props> = ({
 
     try {
       const res = await fetch(
-        `http://localhost:8000/api/permisos/${permisoSeleccionado.id_permiso}`,
+        `http://localhost:8080/api/permisos/${permisoSeleccionado.id_permiso}`,
         {
           method: "PUT",
           headers: {

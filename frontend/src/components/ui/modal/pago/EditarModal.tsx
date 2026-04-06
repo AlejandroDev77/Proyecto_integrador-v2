@@ -209,7 +209,7 @@ const ModalEditarPago: React.FC<Props> = ({
   const fetchVentas = useCallback(async (page = 1, search = "") => {
     setLoadingVenta(true);
     try {
-      const url = `http://localhost:8000/api/venta?page=${page}&per_page=6${
+      const url = `http://localhost:8080/api/venta?page=${page}&per_page=6${
         search ? `&search=${encodeURIComponent(search)}` : ""
       }`;
       const res = await fetch(url);
@@ -251,7 +251,7 @@ const ModalEditarPago: React.FC<Props> = ({
         monto: pagoSeleccionado.monto || 0,
       });
       if (pagoSeleccionado.id_ven) {
-        fetch(`http://localhost:8000/api/venta/${pagoSeleccionado.id_ven}`)
+        fetch(`http://localhost:8080/api/venta/${pagoSeleccionado.id_ven}`)
           .then((r) => r.json())
           .then((v) => setSelectedVenta(v?.data ?? v))
           .catch(() => {});
@@ -281,7 +281,7 @@ const ModalEditarPago: React.FC<Props> = ({
 
     try {
       const res = await fetch(
-        `http://localhost:8000/api/pago/${pagoSeleccionado.id_pag}`,
+        `http://localhost:8080/api/pago/${pagoSeleccionado.id_pag}`,
         {
           method: "PUT",
           headers: {

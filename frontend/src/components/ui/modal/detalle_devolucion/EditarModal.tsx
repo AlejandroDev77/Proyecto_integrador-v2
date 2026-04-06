@@ -279,7 +279,7 @@ export default function ModalEditarDetalleDevolucion({
     setLoadingDev(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/devolucion?page=${page}&per_page=6${
+        `http://localhost:8080/api/devolucion?page=${page}&per_page=6${
           search ? `&filter[cod_dev]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -300,7 +300,7 @@ export default function ModalEditarDetalleDevolucion({
     setLoadingMueble(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/mueble?page=${page}&per_page=6${
+        `http://localhost:8080/api/mueble?page=${page}&per_page=6${
           search ? `&filter[nom_mue]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -378,7 +378,7 @@ export default function ModalEditarDetalleDevolucion({
     } catch {}
     try {
       const res = await fetch(
-        `http://localhost:8000/api/detalle-devolucion/${detalledevolucionSeleccionado.id_det_dev}`,
+        `http://localhost:8080/api/detalle-devolucion/${detalledevolucionSeleccionado.id_det_dev}`,
         {
           method: "PUT",
           headers: {

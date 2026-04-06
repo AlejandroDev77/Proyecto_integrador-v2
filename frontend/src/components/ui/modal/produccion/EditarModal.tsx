@@ -348,7 +348,7 @@ const ModalEditarProduccion: React.FC<Props> = ({
     setLoadingVenta(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/venta?page=${page}&per_page=6${
+        `http://localhost:8080/api/venta?page=${page}&per_page=6${
           search ? `&search=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -373,7 +373,7 @@ const ModalEditarProduccion: React.FC<Props> = ({
     setLoadingEmp(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/empleados?page=${page}&per_page=6${
+        `http://localhost:8080/api/empleados?page=${page}&per_page=6${
           search ? `&search=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -398,7 +398,7 @@ const ModalEditarProduccion: React.FC<Props> = ({
     setLoadingCot(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/cotizacion?page=${page}&per_page=6${
+        `http://localhost:8080/api/cotizacion?page=${page}&per_page=6${
           search ? `&search=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -452,7 +452,7 @@ const ModalEditarProduccion: React.FC<Props> = ({
       });
       if (produccionSeleccionado.id_ven) {
         fetch(
-          `http://localhost:8000/api/venta/${produccionSeleccionado.id_ven}`
+          `http://localhost:8080/api/venta/${produccionSeleccionado.id_ven}`
         )
           .then((r) => r.json())
           .then((v) => setSelectedVenta(v?.data ?? v))
@@ -460,7 +460,7 @@ const ModalEditarProduccion: React.FC<Props> = ({
       }
       if (produccionSeleccionado.id_emp) {
         fetch(
-          `http://localhost:8000/api/empleados/${produccionSeleccionado.id_emp}`
+          `http://localhost:8080/api/empleados/${produccionSeleccionado.id_emp}`
         )
           .then((r) => r.json())
           .then((e) => setSelectedEmpleado(e?.data ?? e))
@@ -468,7 +468,7 @@ const ModalEditarProduccion: React.FC<Props> = ({
       }
       if (produccionSeleccionado.id_cot) {
         fetch(
-          `http://localhost:8000/api/cotizacion/${produccionSeleccionado.id_cot}`
+          `http://localhost:8080/api/cotizacion/${produccionSeleccionado.id_cot}`
         )
           .then((r) => r.json())
           .then((c) => setSelectedCotizacion(c?.data ?? c))
@@ -518,7 +518,7 @@ const ModalEditarProduccion: React.FC<Props> = ({
 
     try {
       const res = await fetch(
-        `http://localhost:8000/api/produccion/${produccionSeleccionado.id_pro}`,
+        `http://localhost:8080/api/produccion/${produccionSeleccionado.id_pro}`,
         {
           method: "PUT",
           headers: {

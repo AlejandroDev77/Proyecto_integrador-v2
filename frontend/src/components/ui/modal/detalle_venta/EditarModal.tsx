@@ -285,7 +285,7 @@ export default function ModalEditarDetalleVenta({
     setLoadingVenta(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/venta?page=${page}&per_page=6${
+        `http://localhost:8080/api/venta?page=${page}&per_page=6${
           search ? `&filter[cod_ven]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -306,7 +306,7 @@ export default function ModalEditarDetalleVenta({
     setLoadingMueble(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/mueble?page=${page}&per_page=6${
+        `http://localhost:8080/api/mueble?page=${page}&per_page=6${
           search ? `&filter[nom_mue]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -385,7 +385,7 @@ export default function ModalEditarDetalleVenta({
 
     try {
       const res = await fetch(
-        `http://localhost:8000/api/detalle-venta/${detalleSeleccionado.id_det_ven}`,
+        `http://localhost:8080/api/detalle-venta/${detalleSeleccionado.id_det_ven}`,
         {
           method: "PUT",
           headers: {

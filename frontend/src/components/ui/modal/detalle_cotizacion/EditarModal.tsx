@@ -341,7 +341,7 @@ export default function ModalEditarDetalleCotizacion({
     setLoadingCot(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/cotizacion?page=${page}&per_page=6${
+        `http://localhost:8080/api/cotizacion?page=${page}&per_page=6${
           search ? `&filter[cod_cot]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -363,7 +363,7 @@ export default function ModalEditarDetalleCotizacion({
     setLoadingMueble(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/mueble?page=${page}&per_page=6${
+        `http://localhost:8080/api/mueble?page=${page}&per_page=6${
           search ? `&filter[nom_mue]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -486,7 +486,7 @@ export default function ModalEditarDetalleCotizacion({
       }
 
       const res = await fetch(
-        `http://localhost:8000/api/detalle-cotizacion/${detallecotizacionSeleccionado.id_det_cot}`,
+        `http://localhost:8080/api/detalle-cotizacion/${detallecotizacionSeleccionado.id_det_cot}`,
         {
           method: "PUT",
           headers: {

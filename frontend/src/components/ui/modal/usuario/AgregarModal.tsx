@@ -1,55 +1,18 @@
-import { useState, useEffect, useCallback } from "react";
-import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
-import { ValidationErrors, parseApiErrors } from "../shared";
-import {
-  UserPlus,
-  Shield,
-  Settings,
-  ClipboardCheck,
-  X,
-  Check,
-  ChevronRight,
-  ChevronLeft,
-  ChevronsLeft,
-  ChevronsRight,
-  Search,
-  AlertCircle,
-  Mail,
-  CheckCircle,
-} from "lucide-react";
+import { Shield, Settings, ClipboardCheck, X, Check, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, Search, AlertCircle, Mail, CheckCircle, UserPlus } from "lucide-react";
+import { ValidationErrors } from "../shared";
+import { useAgregarUsuario } from "../../../../hooks/usuarios/useAgregarUsuario";
 
-interface Usuario {
-  id_usu: number;
-  nom_usu: string;
-  email_usu: string;
-  est_usu: boolean;
-  id_rol: number;
-  rol?: { nom_rol: string };
-}
-interface Rol {
-  id_rol: number;
-  nom_rol: string;
-  desc_rol?: string;
-}
+import { Usuario } from "../../../../types/usuario";
+import { Rol } from "../../../../types/rol";
+import { PaginationInfo } from "../../../../types/pagination";
+
 interface Props {
   showModal: boolean;
   setShowModal: (show: boolean) => void;
   setUsuarios: React.Dispatch<React.SetStateAction<Usuario[]>>;
 }
-interface PaginationInfo {
-  currentPage: number;
-  lastPage: number;
-  total: number;
-}
 
-function StepIndicator({
-  currentStep,
-  steps,
-}: {
-  currentStep: number;
-  steps: { label: string; icon: React.ReactNode }[];
-}) {
+function StepIndicator({ currentStep, steps }: { currentStep: number; steps: { label: string; icon: React.ReactNode }[] }) {
   return (
     <div className="flex items-center justify-center w-full px-2 py-4">
       {steps.map((step, index) => (
@@ -64,28 +27,14 @@ function StepIndicator({
                     : "bg-gray-200 dark:bg-gray-700 text-gray-500"
               }`}
             >
-              {index + 1 < currentStep ? (
-                <Check className="w-5 h-5" />
-              ) : (
-                step.icon
-              )}
+              {index + 1 < currentStep ? <Check className="w-5 h-5" /> : step.icon}
             </div>
-            <span
-              className={`mt-1 text-xs font-medium hidden sm:block ${
-                index + 1 === currentStep ? "text-violet-600" : "text-gray-500"
-              }`}
-            >
+            <span className={`mt-1 text-xs font-medium hidden sm:block ${index + 1 === currentStep ? "text-violet-600" : "text-gray-500"}`}>
               {step.label}
             </span>
           </div>
           {index < steps.length - 1 && (
-            <div
-              className={`w-8 sm:w-16 h-1 mx-1 rounded ${
-                index + 1 < currentStep
-                  ? "bg-green-500"
-                  : "bg-gray-200 dark:bg-gray-700"
-              }`}
-            />
+            <div className={`w-8 sm:w-16 h-1 mx-1 rounded ${index + 1 < currentStep ? "bg-green-500" : "bg-gray-200 dark:bg-gray-700"}`} />
           )}
         </div>
       ))}
@@ -93,15 +42,7 @@ function StepIndicator({
   );
 }
 
-function SearchInput({
-  value,
-  onChange,
-  placeholder,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  placeholder: string;
-}) {
+function SearchInput({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {
   return (
     <div className="relative">
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -116,88 +57,44 @@ function SearchInput({
   );
 }
 
-function MiniPagination({
-  pagination,
-  onPageChange,
-  isLoading,
-}: {
-  pagination: PaginationInfo;
-  onPageChange: (p: number) => void;
-  isLoading: boolean;
-}) {
+function MiniPagination({ pagination, onPageChange, isLoading }: { pagination: PaginationInfo; onPageChange: (p: number) => void; isLoading: boolean }) {
   if (pagination.lastPage <= 1) return null;
   return (
     <div className="flex items-center justify-center gap-1 mt-3 pt-2 border-t">
-      <button
-        onClick={() => onPageChange(1)}
-        disabled={isLoading}
-        className="p-1 rounded bg-gray-100 dark:bg-gray-700 disabled:opacity-50"
-      >
+      <button onClick={() => onPageChange(1)} disabled={isLoading || pagination.currentPage <= 1} className="p-1 rounded bg-gray-100 dark:bg-gray-700 disabled:opacity-50">
         <ChevronsLeft className="w-3.5 h-3.5" />
       </button>
-      <button
-        onClick={() => onPageChange(pagination.currentPage - 1)}
-        disabled={isLoading}
-        className="p-1 rounded bg-gray-100 dark:bg-gray-700 disabled:opacity-50"
-      >
+      <button onClick={() => onPageChange(pagination.currentPage - 1)} disabled={isLoading || pagination.currentPage <= 1} className="p-1 rounded bg-gray-100 dark:bg-gray-700 disabled:opacity-50">
         <ChevronLeft className="w-3.5 h-3.5" />
       </button>
       <span className="text-xs px-2">
         {pagination.currentPage}/{pagination.lastPage}
       </span>
-      <button
-        onClick={() => onPageChange(pagination.currentPage + 1)}
-        disabled={isLoading}
-        className="p-1 rounded bg-gray-100 dark:bg-gray-700 disabled:opacity-50"
-      >
+      <button onClick={() => onPageChange(pagination.currentPage + 1)} disabled={isLoading || pagination.currentPage >= pagination.lastPage} className="p-1 rounded bg-gray-100 dark:bg-gray-700 disabled:opacity-50">
         <ChevronRight className="w-3.5 h-3.5" />
       </button>
-      <button
-        onClick={() => onPageChange(pagination.lastPage)}
-        disabled={isLoading}
-        className="p-1 rounded bg-gray-100 dark:bg-gray-700 disabled:opacity-50"
-      >
+      <button onClick={() => onPageChange(pagination.lastPage)} disabled={isLoading || pagination.currentPage >= pagination.lastPage} className="p-1 rounded bg-gray-100 dark:bg-gray-700 disabled:opacity-50">
         <ChevronsRight className="w-3.5 h-3.5" />
       </button>
     </div>
   );
 }
 
-function RolCard({
-  rol,
-  isSelected,
-  onSelect,
-}: {
-  rol: Rol;
-  isSelected: boolean;
-  onSelect: () => void;
-}) {
+function RolCard({ rol, isSelected, onSelect }: { rol: Rol; isSelected: boolean; onSelect: () => void }) {
   return (
     <div
       onClick={onSelect}
       className={`cursor-pointer rounded-xl border-2 p-4 transition-all hover:shadow-md ${
-        isSelected
-          ? "border-violet-500 bg-violet-50 dark:bg-violet-900/20 shadow-md"
-          : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+        isSelected ? "border-violet-500 bg-violet-50 dark:bg-violet-900/20 shadow-md" : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
       }`}
     >
       <div className="flex items-center gap-3">
-        <div
-          className={`w-12 h-12 rounded-full flex items-center justify-center ${
-            isSelected
-              ? "bg-violet-500 text-white"
-              : "bg-gray-200 dark:bg-gray-700"
-          }`}
-        >
+        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isSelected ? "bg-violet-500 text-white" : "bg-gray-200 dark:bg-gray-700"}`}>
           <Shield className="w-6 h-6" />
         </div>
         <div className="flex-1">
-          <h4 className="font-semibold text-gray-900 dark:text-white">
-            {rol.nom_rol}
-          </h4>
-          {rol.desc_rol && (
-            <p className="text-sm text-gray-500 truncate">{rol.desc_rol}</p>
-          )}
+          <h4 className="font-semibold text-gray-900 dark:text-white">{rol.nom_rol}</h4>
+          {rol.desc_rol && <p className="text-sm text-gray-500 truncate">{rol.desc_rol}</p>}
         </div>
         {isSelected && <Check className="w-6 h-6 text-violet-500" />}
       </div>
@@ -205,31 +102,29 @@ function RolCard({
   );
 }
 
-export default function ModalAgregarUsuario({
-  showModal,
-  setShowModal,
-  setUsuarios,
-}: Props) {
-  const [step, setStep] = useState(1);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [form, setForm] = useState({
-    nom_usu: "",
-    email_usu: "",
-    est_usu: true,
-  });
-  const [selectedRol, setSelectedRol] = useState<Rol | null>(null);
-  const [roles, setRoles] = useState<Rol[]>([]);
-  const [rolSearch, setRolSearch] = useState("");
-  const [rolPag, setRolPag] = useState<PaginationInfo>({
-    currentPage: 1,
-    lastPage: 1,
-    total: 0,
-  });
-  const [loadingRol, setLoadingRol] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<{
-    [key: string]: string[];
-  } | null>(null);
-  const [generalError, setGeneralError] = useState<string | null>(null);
+export default function ModalAgregarUsuario({ showModal, setShowModal, setUsuarios }: Props) {
+  const {
+    step,
+    setStep,
+    isSubmitting,
+    form,
+    setForm,
+    selectedRol,
+    setSelectedRol,
+    roles,
+    rolSearch,
+    setRolSearch,
+    rolPag,
+    loadingRol,
+    validationErrors,
+    setValidationErrors,
+    generalError,
+    setGeneralError,
+    canGoNext,
+    handleClose,
+    handleSubmit,
+    fetchRolesData,
+  } = useAgregarUsuario(showModal, setShowModal, setUsuarios);
 
   const steps = [
     { label: "Rol", icon: <Shield className="w-4 h-4" /> },
@@ -237,165 +132,17 @@ export default function ModalAgregarUsuario({
     { label: "Confirmar", icon: <ClipboardCheck className="w-4 h-4" /> },
   ];
 
-  const fetchRoles = useCallback(async (page = 1, search = "") => {
-    setLoadingRol(true);
-    try {
-      const res = await fetch(
-        `http://localhost:8080/api/roles?page=${page}&per_page=6${
-          search ? `&filter[nom_rol]=${encodeURIComponent(search)}` : ""
-        }`,
-      );
-      const p = await res.json();
-      setRoles(p?.data || []);
-      setRolPag({
-        currentPage: p.current_page || 1,
-        lastPage: p.last_page || 1,
-        total: p.total || 0,
-      });
-    } catch {
-      setRoles([]);
-    } finally {
-      setLoadingRol(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (showModal) {
-      fetchRoles();
-    }
-  }, [showModal, fetchRoles]);
-  useEffect(() => {
-    const t = setTimeout(() => fetchRoles(1, rolSearch), 300);
-    return () => clearTimeout(t);
-  }, [rolSearch, fetchRoles]);
-
-  const handleClose = () => {
-    setShowModal(false);
-    setStep(1);
-    setSelectedRol(null);
-    setForm({ nom_usu: "", email_usu: "", est_usu: true });
-    setValidationErrors(null);
-    setGeneralError(null);
-  };
-  const canGoNext = () => {
-    switch (step) {
-      case 1:
-        return !!selectedRol;
-      case 2:
-        return form.nom_usu.trim() && form.email_usu.trim();
-      default:
-        return true;
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!selectedRol || !form.nom_usu || !form.email_usu) return;
-    setIsSubmitting(true);
-    setValidationErrors(null);
-    setGeneralError(null);
-    let uid = null;
-    try {
-      const token = localStorage.getItem("token");
-      if (token) {
-        uid = (jwtDecode(token) as any).id_usu;
-      }
-    } catch {}
-    try {
-      // Validar duplicados
-      const resU = await fetch("http://localhost:8080/api/usuarios");
-      const users = (await resU.json())?.data ?? [];
-      if (
-        users.some(
-          (u: Usuario) =>
-            u.nom_usu?.toLowerCase() === form.nom_usu.toLowerCase(),
-        )
-      ) {
-        setGeneralError("El nombre de usuario ya existe.");
-        setStep(2);
-        setIsSubmitting(false);
-        return;
-      }
-      if (
-        users.some(
-          (u: Usuario) =>
-            u.email_usu?.toLowerCase() === form.email_usu.toLowerCase(),
-        )
-      ) {
-        setGeneralError("El email ya está registrado.");
-        setStep(2);
-        setIsSubmitting(false);
-        return;
-      }
-
-      const res = await fetch("http://localhost:8080/api/usuarios", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          ...(uid ? { "X-USER-ID": uid } : {}),
-        },
-        body: JSON.stringify({
-          nom_usu: form.nom_usu,
-          email_usu: form.email_usu,
-          est_usu: form.est_usu,
-          id_rol: selectedRol.id_rol,
-        }),
-      });
-
-      let responseData;
-      try {
-        responseData = await res.json();
-      } catch {
-        responseData = { message: `Error del servidor (${res.status})` };
-      }
-
-      if (!res.ok) {
-        const { fieldErrors, generalError: genError } =
-          parseApiErrors(responseData);
-        setValidationErrors(fieldErrors);
-        setGeneralError(genError);
-        setStep(2);
-        setIsSubmitting(false);
-        return;
-      }
-
-      setUsuarios((prev) => [
-        ...prev,
-        {
-          ...(responseData?.data ?? responseData),
-          rol: { nom_rol: selectedRol.nom_rol },
-        },
-      ]);
-      Swal.fire({
-        icon: "success",
-        title: "¡Usuario creado!",
-        showConfirmButton: false,
-        timer: 1500,
-      });
-      handleClose();
-    } catch {
-      setGeneralError(
-        "Error de conexión. Por favor, verifique su conexión a internet.",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   if (!showModal) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[95vh] overflow-hidden flex flex-col">
-        <div className="bg-gradient-to-r from-violet-500 to-fuchsia-500 px-6 py-4 flex items-center justify-between">
+        <div className="bg-linear-to-r from-violet-500 to-fuchsia-500 px-6 py-4 flex items-center justify-between">
           <h2 className="text-xl font-bold text-white flex items-center gap-3">
             <UserPlus className="w-6 h-6" />
             Nuevo Usuario
           </h2>
-          <button
-            onClick={handleClose}
-            className="text-white/80 hover:text-white p-2 rounded-lg"
-          >
+          <button onClick={handleClose} className="text-white/80 hover:text-white p-2 rounded-lg">
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -410,11 +157,7 @@ export default function ModalAgregarUsuario({
                 <Shield className="w-5 h-5 text-violet-600" />
                 Seleccionar Rol
               </h3>
-              <SearchInput
-                value={rolSearch}
-                onChange={setRolSearch}
-                placeholder="Buscar rol..."
-              />
+              <SearchInput value={rolSearch} onChange={setRolSearch} placeholder="Buscar rol..." />
               {loadingRol ? (
                 <div className="flex justify-center py-12">
                   <div className="w-10 h-10 border-4 border-violet-600 border-t-transparent rounded-full animate-spin" />
@@ -424,12 +167,7 @@ export default function ModalAgregarUsuario({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto">
                     {roles.length > 0 ? (
                       roles.map((r) => (
-                        <RolCard
-                          key={r.id_rol}
-                          rol={r}
-                          isSelected={selectedRol?.id_rol === r.id_rol}
-                          onSelect={() => setSelectedRol(r)}
-                        />
+                        <RolCard key={r.id_rol} rol={r} isSelected={selectedRol?.id_rol === r.id_rol} onSelect={() => setSelectedRol(r)} />
                       ))
                     ) : (
                       <div className="col-span-2 flex flex-col items-center py-8 text-gray-500">
@@ -438,11 +176,7 @@ export default function ModalAgregarUsuario({
                       </div>
                     )}
                   </div>
-                  <MiniPagination
-                    pagination={rolPag}
-                    onPageChange={(p) => fetchRoles(p, rolSearch)}
-                    isLoading={loadingRol}
-                  />
+                  <MiniPagination pagination={rolPag} onPageChange={(p) => fetchRolesData(p, rolSearch)} isLoading={loadingRol} />
                 </>
               )}
             </div>
@@ -474,9 +208,7 @@ export default function ModalAgregarUsuario({
                   <input
                     type="text"
                     value={form.nom_usu}
-                    onChange={(e) =>
-                      setForm({ ...form, nom_usu: e.target.value })
-                    }
+                    onChange={(e) => setForm({ ...form, nom_usu: e.target.value })}
                     placeholder="Nombre de usuario"
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-violet-500"
                   />
@@ -489,9 +221,7 @@ export default function ModalAgregarUsuario({
                   <input
                     type="email"
                     value={form.email_usu}
-                    onChange={(e) =>
-                      setForm({ ...form, email_usu: e.target.value })
-                    }
+                    onChange={(e) => setForm({ ...form, email_usu: e.target.value })}
                     placeholder="correo@ejemplo.com"
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-violet-500"
                   />
@@ -506,9 +236,7 @@ export default function ModalAgregarUsuario({
                       type="button"
                       onClick={() => setForm({ ...form, est_usu: true })}
                       className={`flex-1 py-3 rounded-xl border-2 font-medium transition-all ${
-                        form.est_usu
-                          ? "border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700"
-                          : "border-gray-200 dark:border-gray-700 text-gray-500"
+                        form.est_usu ? "border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700" : "border-gray-200 dark:border-gray-700 text-gray-500"
                       }`}
                     >
                       Activo
@@ -517,9 +245,7 @@ export default function ModalAgregarUsuario({
                       type="button"
                       onClick={() => setForm({ ...form, est_usu: false })}
                       className={`flex-1 py-3 rounded-xl border-2 font-medium transition-all ${
-                        !form.est_usu
-                          ? "border-red-500 bg-red-50 dark:bg-red-900/20 text-red-700"
-                          : "border-gray-200 dark:border-gray-700 text-gray-500"
+                        !form.est_usu ? "border-red-500 bg-red-50 dark:bg-red-900/20 text-red-700" : "border-gray-200 dark:border-gray-700 text-gray-500"
                       }`}
                     >
                       Inactivo
@@ -542,26 +268,14 @@ export default function ModalAgregarUsuario({
                     <Shield className="w-6 h-6 text-violet-600" />
                     <span className="font-semibold">Rol</span>
                   </div>
-                  <p className="text-lg font-bold text-violet-600">
-                    {selectedRol?.nom_rol}
-                  </p>
+                  <p className="text-lg font-bold text-violet-600">{selectedRol?.nom_rol}</p>
                 </div>
                 <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border">
                   <div className="flex items-center gap-3 mb-2">
-                    <CheckCircle
-                      className={`w-6 h-6 ${
-                        form.est_usu ? "text-green-600" : "text-red-600"
-                      }`}
-                    />
+                    <CheckCircle className={`w-6 h-6 ${form.est_usu ? "text-green-600" : "text-red-600"}`} />
                     <span className="font-semibold">Estado</span>
                   </div>
-                  <p
-                    className={`text-lg font-bold ${
-                      form.est_usu ? "text-green-600" : "text-red-600"
-                    }`}
-                  >
-                    {form.est_usu ? "Activo" : "Inactivo"}
-                  </p>
+                  <p className={`text-lg font-bold ${form.est_usu ? "text-green-600" : "text-red-600"}`}>{form.est_usu ? "Activo" : "Inactivo"}</p>
                 </div>
               </div>
               <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">

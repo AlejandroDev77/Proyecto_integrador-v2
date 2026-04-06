@@ -74,7 +74,7 @@ export default function ModalEditarEtapaProduccion({
 
     try {
       const res = await fetch(
-        `http://localhost:8000/api/etapa-produccion/${etapaproduccionSeleccionado.id_eta}`,
+        `http://localhost:8080/api/etapa-produccion/${etapaproduccionSeleccionado.id_eta}`,
         {
           method: "PUT",
           headers: {

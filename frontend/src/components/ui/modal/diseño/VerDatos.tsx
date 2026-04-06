@@ -150,7 +150,7 @@ const ModalVerDiseño: React.FC<ModalVerDiseñoProps> = ({
     if (path.startsWith("http://") || path.startsWith("https://")) {
       return path;
     }
-    return `http://localhost:8000/storage/${path.replace("public/", "")}`;
+    return `http://localhost:8080/storage/${path.replace("public/", "")}`;
   };
 
   return (

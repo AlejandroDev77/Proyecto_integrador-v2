@@ -71,7 +71,7 @@ export default function Proveedores() {
 
     try {
       const res = await fetch(
-        `http://localhost:8000/api/proveedor/${id_prov}`,
+        `http://localhost:8080/api/proveedor/${id_prov}`,
         {
           method: "DELETE",
           headers,
@@ -90,7 +90,7 @@ export default function Proveedores() {
   /* const descargarBackup = async () => {
     try {
       const response = await fetch(
-        `http://localhost:8000/api/proveedor/exportar-sql`
+        `http://localhost:8080/api/proveedor/exportar-sql`
       );
       if (!response.ok) throw new Error("Error al descargar el respaldo");
       const blob = await response.blob();

@@ -259,7 +259,7 @@ const ModalEditarCompraMaterial: React.FC<Props> = ({
   const fetchProveedores = useCallback(async (page = 1, search = "") => {
     setLoadingProv(true);
     try {
-      const url = `http://localhost:8000/api/proveedor?page=${page}&per_page=6${
+      const url = `http://localhost:8080/api/proveedor?page=${page}&per_page=6${
         search ? `&search=${encodeURIComponent(search)}` : ""
       }`;
       const res = await fetch(url);
@@ -284,7 +284,7 @@ const ModalEditarCompraMaterial: React.FC<Props> = ({
   const fetchEmpleados = useCallback(async (page = 1, search = "") => {
     setLoadingEmp(true);
     try {
-      const url = `http://localhost:8000/api/empleados?page=${page}&per_page=6${
+      const url = `http://localhost:8080/api/empleados?page=${page}&per_page=6${
         search ? `&search=${encodeURIComponent(search)}` : ""
       }`;
       const res = await fetch(url);
@@ -334,7 +334,7 @@ const ModalEditarCompraMaterial: React.FC<Props> = ({
       // Preseleccionar proveedor y empleado
       if (compramaterialSeleccionado.id_prov) {
         fetch(
-          `http://localhost:8000/api/proveedor/${compramaterialSeleccionado.id_prov}`
+          `http://localhost:8080/api/proveedor/${compramaterialSeleccionado.id_prov}`
         )
           .then((r) => r.json())
           .then((p) => setSelectedProveedor(p?.data ?? p))
@@ -342,7 +342,7 @@ const ModalEditarCompraMaterial: React.FC<Props> = ({
       }
       if (compramaterialSeleccionado.id_emp) {
         fetch(
-          `http://localhost:8000/api/empleados/${compramaterialSeleccionado.id_emp}`
+          `http://localhost:8080/api/empleados/${compramaterialSeleccionado.id_emp}`
         )
           .then((r) => r.json())
           .then((e) => setSelectedEmpleado(e?.data ?? e))
@@ -376,7 +376,7 @@ const ModalEditarCompraMaterial: React.FC<Props> = ({
 
     try {
       const res = await fetch(
-        `http://localhost:8000/api/compra-material/${compramaterialSeleccionado.id_comp}`,
+        `http://localhost:8080/api/compra-material/${compramaterialSeleccionado.id_comp}`,
         {
           method: "PUT",
           headers: {

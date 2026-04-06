@@ -510,7 +510,7 @@ export default function ModalAgregarCompraMaterial({
         });
         if (search) params.append("filter[nom_prov]", search);
         const res = await fetch(
-          `http://localhost:8000/api/proveedor?${params}`
+          `http://localhost:8080/api/proveedor?${params}`
         );
         const payload = await res.json();
         const items = payload?.data ?? payload;
@@ -542,7 +542,7 @@ export default function ModalAgregarCompraMaterial({
         });
         if (search) params.append("filter[nom_emp]", search);
         const res = await fetch(
-          `http://localhost:8000/api/empleados?${params}`
+          `http://localhost:8080/api/empleados?${params}`
         );
         const payload = await res.json();
         const items = payload?.data ?? payload;
@@ -574,7 +574,7 @@ export default function ModalAgregarCompraMaterial({
         });
         if (search) params.append("filter[nom_mat]", search);
         const res = await fetch(
-          `http://localhost:8000/api/materiales?${params}`
+          `http://localhost:8080/api/materiales?${params}`
         );
         const payload = await res.json();
         const items = payload?.data ?? payload;
@@ -694,7 +694,7 @@ export default function ModalAgregarCompraMaterial({
         id_prov: selectedProveedor.id_prov,
         id_emp: selectedEmpleado.id_emp,
       };
-      const res = await fetch("http://localhost:8000/api/compra-material", {
+      const res = await fetch("http://localhost:8080/api/compra-material", {
         method: "POST",
         headers,
         body: JSON.stringify(compraData),
@@ -711,7 +711,7 @@ export default function ModalAgregarCompraMaterial({
           precio_unitario: det.precio_unitario,
           subtotal: det.subtotal,
         };
-        await fetch("http://localhost:8000/api/detalle-compra", {
+        await fetch("http://localhost:8080/api/detalle-compra", {
           method: "POST",
           headers,
           body: JSON.stringify(detalleData),
@@ -719,7 +719,7 @@ export default function ModalAgregarCompraMaterial({
       }
 
       const updatedRes = await fetch(
-        "http://localhost:8000/api/compra-material"
+        "http://localhost:8080/api/compra-material"
       );
       const updatedPayload: any = await updatedRes.json();
       const updatedItems = updatedPayload?.data ?? updatedPayload;

@@ -205,7 +205,7 @@ const ModalEditarDiseño: React.FC<Props> = ({
   const fetchCotizaciones = useCallback(async (page = 1, search = "") => {
     setLoadingCot(true);
     try {
-      const url = `http://localhost:8000/api/cotizacion?page=${page}&per_page=6${
+      const url = `http://localhost:8080/api/cotizacion?page=${page}&per_page=6${
         search ? `&search=${encodeURIComponent(search)}` : ""
       }`;
       const res = await fetch(url);
@@ -249,7 +249,7 @@ const ModalEditarDiseño: React.FC<Props> = ({
       setImgDisFile(null);
       if (diseñoSeleccionado.id_cot) {
         fetch(
-          `http://localhost:8000/api/cotizacion/${diseñoSeleccionado.id_cot}`
+          `http://localhost:8080/api/cotizacion/${diseñoSeleccionado.id_cot}`
         )
           .then((r) => r.json())
           .then((c) => setSelectedCotizacion(c?.data ?? c))
@@ -321,7 +321,7 @@ const ModalEditarDiseño: React.FC<Props> = ({
       }
 
       const res = await fetch(
-        `http://localhost:8000/api/diseño/${diseñoSeleccionado.id_dis}`,
+        `http://localhost:8080/api/diseño/${diseñoSeleccionado.id_dis}`,
         { method: "POST", headers, body: formData }
       );
 
