@@ -71,7 +71,7 @@ export default function Muebles() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8000/api/mueble/${id_mue}`, {
+      const res = await fetch(`http://localhost:8080/api/mueble/${id_mue}`, {
         method: "DELETE",
         headers,
       });
@@ -88,7 +88,7 @@ export default function Muebles() {
   /* const descargarBackup = async () => {
     try {
       const response = await fetch(
-        `http://localhost:8000/api/mueble/exportar-sql`
+        `http://localhost:8080/api/mueble/exportar-sql`
       );
       if (!response.ok) throw new Error("Error al descargar el respaldo");
       const blob = await response.blob();

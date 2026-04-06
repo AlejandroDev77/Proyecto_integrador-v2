@@ -1,30 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import AdvancedFilters from '../filters/AdvancedFilters';
-import axios from 'axios';
+import { Rol } from '../../types/rol';
+import { getRoles } from '../../services/rolService';
 
 interface UsuariosFiltersProps {
   onFiltersChange: (filters: Record<string, any>) => void;
-  roles?: { id_rol: number; nom_rol: string }[];
+  roles?: Rol[];
 }
 
 export const UsuariosAdvancedFilters: React.FC<UsuariosFiltersProps> = ({
   onFiltersChange,
   roles = [],
 }) => {
-  const [rolesList, setRolesList] = useState<{ id_rol: number; nom_rol: string }[]>(roles);
+  const [rolesList, setRolesList] = useState<Rol[]>(roles);
 
   // Cargar roles disponibles al montar
   useEffect(() => {
     if (rolesList.length === 0) {
-      const fetchRoles = async () => {
+      const fetchRolesData = async () => {
         try {
-          const response = await axios.get('http://localhost:8000/api/roles');
-          setRolesList(response.data.data || response.data);
+          const data = await getRoles(1, 100);
+          setRolesList(data.data || data.content || data || []);
         } catch (error) {
           console.error('Error al cargar roles:', error);
         }
       };
-      fetchRoles();
+      fetchRolesData();
     }
   }, []);
 

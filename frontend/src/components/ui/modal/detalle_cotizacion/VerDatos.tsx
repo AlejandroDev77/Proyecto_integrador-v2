@@ -160,7 +160,7 @@ const ModalVerDetalleCotizacion: React.FC<ModalVerDetalleCotizacionProps> = ({
               src={
                 d.img_referencia.startsWith("http")
                   ? d.img_referencia
-                  : `http://localhost:8000/storage/${d.img_referencia}`
+                  : `http://localhost:8080/storage/${d.img_referencia}`
               }
               alt="Referencia"
               className="max-w-full h-48 object-cover rounded-xl border"

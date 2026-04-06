@@ -305,7 +305,7 @@ export default function ModalAgregarDetalleCompra({
     setLoadingCompra(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/compra-material?page=${page}&per_page=8${
+        `http://localhost:8080/api/compra-material?page=${page}&per_page=8${
           search ? `&search=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -326,7 +326,7 @@ export default function ModalAgregarDetalleCompra({
     setLoadingMaterial(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/materiales?page=${page}&per_page=8${
+        `http://localhost:8080/api/materiales?page=${page}&per_page=8${
           search ? `&filter[nom_mat]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -395,7 +395,7 @@ export default function ModalAgregarDetalleCompra({
       }
     } catch {}
     try {
-      const res = await fetch("http://localhost:8000/api/detalle-compra", {
+      const res = await fetch("http://localhost:8080/api/detalle-compra", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

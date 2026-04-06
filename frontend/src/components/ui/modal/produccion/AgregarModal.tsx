@@ -419,7 +419,7 @@ export default function ModalAgregarProduccion({
         per_page: "8",
       });
       if (search) params.append("filter[cod_ven]", search);
-      const res = await fetch(`http://localhost:8000/api/venta?${params}`);
+      const res = await fetch(`http://localhost:8080/api/venta?${params}`);
       const payload = await res.json();
       const items = payload?.data ?? payload;
       setVentas(Array.isArray(items) ? items : []);
@@ -448,7 +448,7 @@ export default function ModalAgregarProduccion({
         });
         if (search) params.append("filter[cod_cot]", search);
         const res = await fetch(
-          `http://localhost:8000/api/cotizacion?${params}`
+          `http://localhost:8080/api/cotizacion?${params}`
         );
         const payload = await res.json();
         const items = payload?.data ?? payload;
@@ -480,7 +480,7 @@ export default function ModalAgregarProduccion({
         });
         if (search) params.append("filter[nom_emp]", search);
         const res = await fetch(
-          `http://localhost:8000/api/empleados?${params}`
+          `http://localhost:8080/api/empleados?${params}`
         );
         const payload = await res.json();
         const items = payload?.data ?? payload;
@@ -572,14 +572,14 @@ export default function ModalAgregarProduccion({
         id_cot: selectedCotizacion.id_cot,
         id_emp: selectedEmpleado.id_emp,
       };
-      const res = await fetch("http://localhost:8000/api/produccion", {
+      const res = await fetch("http://localhost:8080/api/produccion", {
         method: "POST",
         headers,
         body: JSON.stringify(produccionData),
       });
       if (!res.ok) throw new Error("Error al crear la producción");
 
-      const updatedRes = await fetch("http://localhost:8000/api/produccion");
+      const updatedRes = await fetch("http://localhost:8080/api/produccion");
       const updatedPayload: any = await updatedRes.json();
       const updatedItems = updatedPayload?.data ?? updatedPayload;
       setProducciones(Array.isArray(updatedItems) ? updatedItems : []);

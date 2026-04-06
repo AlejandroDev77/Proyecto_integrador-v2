@@ -244,7 +244,7 @@ export default function ModalEditarMueble({
     setLoadingCat(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/categoria-mueble?page=${page}&per_page=6${
+        `http://localhost:8080/api/categoria-mueble?page=${page}&per_page=6${
           search ? `&filter[nom_cat]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -337,7 +337,7 @@ export default function ModalEditarMueble({
       if (modelo3dFile) formData.append("modelo_3d", modelo3dFile);
 
       const res = await fetch(
-        `http://localhost:8000/api/mueble/${muebleSeleccionado.id_mue}`,
+        `http://localhost:8080/api/mueble/${muebleSeleccionado.id_mue}`,
         {
           method: "POST",
           headers: {
@@ -396,7 +396,7 @@ export default function ModalEditarMueble({
   const existingImgUrl = muebleSeleccionado.img_mue?.startsWith("http")
     ? muebleSeleccionado.img_mue
     : muebleSeleccionado.img_mue
-    ? `http://localhost:8000/storage/${muebleSeleccionado.img_mue}`
+    ? `http://localhost:8080/storage/${muebleSeleccionado.img_mue}`
     : null;
   const existingModelo3d = muebleSeleccionado.modelo_3d;
 

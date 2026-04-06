@@ -277,7 +277,7 @@ export default function ModalEditarDetalleCompra({
     setLoadingCompra(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/compra-material?page=${page}&per_page=6${
+        `http://localhost:8080/api/compra-material?page=${page}&per_page=6${
           search ? `&search=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -298,7 +298,7 @@ export default function ModalEditarDetalleCompra({
     setLoadingMaterial(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/materiales?page=${page}&per_page=6${
+        `http://localhost:8080/api/materiales?page=${page}&per_page=6${
           search ? `&filter[nom_mat]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -370,7 +370,7 @@ export default function ModalEditarDetalleCompra({
     } catch {}
     try {
       const res = await fetch(
-        `http://localhost:8000/api/detalle-compra/${detalleSeleccionado.id_det_comp}`,
+        `http://localhost:8080/api/detalle-compra/${detalleSeleccionado.id_det_comp}`,
         {
           method: "PUT",
           headers: {

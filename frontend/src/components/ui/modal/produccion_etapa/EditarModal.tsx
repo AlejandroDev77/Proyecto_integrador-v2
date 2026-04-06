@@ -350,7 +350,7 @@ export default function ModalEditarProduccionEtapa({
     setLoadingProd(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/produccion?page=${page}&per_page=6${
+        `http://localhost:8080/api/produccion?page=${page}&per_page=6${
           search ? `&filter[cod_pro]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -371,7 +371,7 @@ export default function ModalEditarProduccionEtapa({
     setLoadingEtapa(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/etapa-produccion?page=${page}&per_page=6${
+        `http://localhost:8080/api/etapa-produccion?page=${page}&per_page=6${
           search ? `&filter[nom_eta]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -392,7 +392,7 @@ export default function ModalEditarProduccionEtapa({
     setLoadingEmp(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/empleados?page=${page}&per_page=6${
+        `http://localhost:8080/api/empleados?page=${page}&per_page=6${
           search ? `&filter[nom_emp]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -480,7 +480,7 @@ export default function ModalEditarProduccionEtapa({
     } catch {}
     try {
       const res = await fetch(
-        `http://localhost:8000/api/produccion-etapa/${produccionetapaSeleccionado.id_pro_eta}`,
+        `http://localhost:8080/api/produccion-etapa/${produccionetapaSeleccionado.id_pro_eta}`,
         {
           method: "PUT",
           headers: {

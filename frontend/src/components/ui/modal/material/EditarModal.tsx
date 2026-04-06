@@ -123,7 +123,7 @@ export default function ModalEditarMaterial({
       }
 
       const res = await fetch(
-        `http://localhost:8000/api/materiales/${materialSeleccionado.id_mat}`,
+        `http://localhost:8080/api/materiales/${materialSeleccionado.id_mat}`,
         {
           method: "POST",
           headers: {
@@ -176,7 +176,7 @@ export default function ModalEditarMaterial({
   const existingImgUrl = materialSeleccionado.img_mat?.startsWith("http")
     ? materialSeleccionado.img_mat
     : materialSeleccionado.img_mat
-    ? `http://localhost:8000/storage/${materialSeleccionado.img_mat}`
+    ? `http://localhost:8080/storage/${materialSeleccionado.img_mat}`
     : null;
 
   return (

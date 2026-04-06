@@ -6,18 +6,8 @@ import {
   actualizarRol as actualizarRolService,
   eliminarRol as eliminarRolService,
   API_URL
-} from "../../services/Rol";
-
-interface Rol {
-  id_rol: number;
-  nom_rol: string;
-  permisos?: any[];
-  usuarios?: {
-    total: number;
-    activos: number;
-    inactivos: number;
-  };
-}
+} from "../../services/rolService";
+import { Rol } from "../../types/rol";
 
 export const useRoles = () => {
   const [roles, setRoles] = useState<Rol[]>([]);
@@ -41,12 +31,14 @@ export const useRoles = () => {
     setLoading(true);
     try {
       const data = await getRoles(currentPage, itemsPerPage, filters, sort || "");
-      setRoles(data.data || data);
-      setTotalPages(data.last_page || 1);
-      setTotalItems(data.total || (data.data ? data.data.length : 0));
+      const rolesArray = data.data || data.content || (Array.isArray(data) ? data : []);
+      setRoles(rolesArray);
+      setTotalPages(data.last_page || data.totalPages || 1);
+      setTotalItems(data.total || data.totalElements || rolesArray.length);
     } catch (error) {
       console.error("Error al cargar roles:", error);
       setError("Error al cargar roles");
+      setRoles([]);
     } finally {
       setLoading(false);
     }

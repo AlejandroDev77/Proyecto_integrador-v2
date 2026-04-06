@@ -271,7 +271,7 @@ const ModalEditarDevolucion: React.FC<Props> = ({
   const fetchVentas = useCallback(async (page = 1, search = "") => {
     setLoadingVenta(true);
     try {
-      const url = `http://localhost:8000/api/venta?page=${page}&per_page=6${
+      const url = `http://localhost:8080/api/venta?page=${page}&per_page=6${
         search ? `&search=${encodeURIComponent(search)}` : ""
       }`;
       const res = await fetch(url);
@@ -296,7 +296,7 @@ const ModalEditarDevolucion: React.FC<Props> = ({
   const fetchEmpleados = useCallback(async (page = 1, search = "") => {
     setLoadingEmp(true);
     try {
-      const url = `http://localhost:8000/api/empleados?page=${page}&per_page=6${
+      const url = `http://localhost:8080/api/empleados?page=${page}&per_page=6${
         search ? `&search=${encodeURIComponent(search)}` : ""
       }`;
       const res = await fetch(url);
@@ -345,7 +345,7 @@ const ModalEditarDevolucion: React.FC<Props> = ({
       });
       if (devolucionSeleccionado.id_ven) {
         fetch(
-          `http://localhost:8000/api/venta/${devolucionSeleccionado.id_ven}`
+          `http://localhost:8080/api/venta/${devolucionSeleccionado.id_ven}`
         )
           .then((r) => r.json())
           .then((v) => setSelectedVenta(v?.data ?? v))
@@ -353,7 +353,7 @@ const ModalEditarDevolucion: React.FC<Props> = ({
       }
       if (devolucionSeleccionado.id_emp) {
         fetch(
-          `http://localhost:8000/api/empleados/${devolucionSeleccionado.id_emp}`
+          `http://localhost:8080/api/empleados/${devolucionSeleccionado.id_emp}`
         )
           .then((r) => r.json())
           .then((e) => setSelectedEmpleado(e?.data ?? e))
@@ -390,7 +390,7 @@ const ModalEditarDevolucion: React.FC<Props> = ({
           })()
         : null;
       const res = await fetch(
-        `http://localhost:8000/api/devolucion/${devolucionSeleccionado.id_dev}`,
+        `http://localhost:8080/api/devolucion/${devolucionSeleccionado.id_dev}`,
         {
           method: "PUT",
           headers: {

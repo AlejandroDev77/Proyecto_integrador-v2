@@ -51,7 +51,7 @@ export function useCliente() {
       const cachedMissing = localStorage.getItem(missingKey) === "true";
 
       // Llamamos al endpoint combinado /api/usuarios/{id}/perfil
-      const resPerfil = await fetch(`http://localhost:8000/api/usuarios/${id_usu}/perfil`, {
+      const resPerfil = await fetch(`http://localhost:8080/api/usuarios/${id_usu}/perfil`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

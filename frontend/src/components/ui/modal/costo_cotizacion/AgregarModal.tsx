@@ -247,7 +247,7 @@ const ModalAgregarCostoCotizacion: React.FC<
     setLoadingCot(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/cotizacion?page=${page}&per_page=6${
+        `http://localhost:8080/api/cotizacion?page=${page}&per_page=6${
           search ? `&filter[cod_cot]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -313,7 +313,7 @@ const ModalAgregarCostoCotizacion: React.FC<
     if (!selectedCotizacion) return;
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/api/costo-cotizacion", {
+      const res = await fetch("http://localhost:8080/api/costo-cotizacion", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

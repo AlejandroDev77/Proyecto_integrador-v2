@@ -20,7 +20,7 @@ export const DetalleVentasAdvancedFilters: React.FC<
     if (mueblesList.length === 0) {
       const fetchMuebles = async () => {
         try {
-          const response = await axios.get("http://localhost:8000/api/muebles");
+          const response = await axios.get("http://localhost:8080/api/muebles");
           setMueblesList(response.data.data || response.data);
         } catch (error) {
           console.error("Error al cargar muebles:", error);

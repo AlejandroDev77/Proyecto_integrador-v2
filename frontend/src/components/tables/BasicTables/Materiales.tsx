@@ -71,7 +71,7 @@ export default function Materiales() {
 
     try {
       const res = await fetch(
-        `http://localhost:8000/api/materiales/${id_mat}`,
+        `http://localhost:8080/api/materiales/${id_mat}`,
         {
           method: "DELETE",
           headers,
@@ -90,7 +90,7 @@ export default function Materiales() {
   /* const descargarBackup = async () => {
     try {
       const response = await fetch(
-        `http://localhost:8000/api/materiales/exportar-sql`
+        `http://localhost:8080/api/materiales/exportar-sql`
       );
       if (!response.ok) throw new Error("Error al descargar el respaldo");
       const blob = await response.blob();

@@ -12,7 +12,7 @@ import {
   Image,
 } from "lucide-react";
 
-const API = "http://localhost:8000/api";
+const API = "http://localhost:8080/api";
 
 interface Evidencia {
   id_evi: number;
@@ -317,7 +317,7 @@ export default function ModalProduccionInforme({
                                   "http"
                                 )
                                   ? evi.archivo_evi
-                                  : `http://localhost:8000/storage/${evi.archivo_evi}`;
+                                  : `http://localhost:8080/storage/${evi.archivo_evi}`;
 
                                 return (
                                   <div

@@ -63,7 +63,7 @@ export default function detallesventas() {
 
     try {
       const res = await fetch(
-        `http://localhost:8000/api/detalle-venta/${id_det_ven}`,
+        `http://localhost:8080/api/detalle-venta/${id_det_ven}`,
         {
           method: "DELETE",
           headers,
@@ -84,7 +84,7 @@ export default function detallesventas() {
   /* const generarReporte = async () => {
     try {
       // Abrir el PDF directamente en una nueva pestaña del navegador
-      window.open(`http://localhost:8000/api/reporte-DetallesVenta`, "_blank");
+      window.open(`http://localhost:8080/api/reporte-DetallesVenta`, "_blank");
     } catch (error) {
       console.error("Error al generar el reporte:", error);
     }
@@ -92,7 +92,7 @@ export default function detallesventas() {
   /* const descargarBackup = async () => {
     try {
       const response = await fetch(
-        `http://localhost:8000/api/detalle-venta/exportar-sql`
+        `http://localhost:8080/api/detalle-venta/exportar-sql`
       );
       if (!response.ok) throw new Error("Error al descargar el respaldo");
       const blob = await response.blob();

@@ -68,7 +68,7 @@ export default function EvidenciasProduccion() {
 
     try {
       const res = await fetch(
-        `http://localhost:8000/api/evidencia-produccion/${id}`,
+        `http://localhost:8080/api/evidencia-produccion/${id}`,
         { method: "DELETE" }
       );
       if (!res.ok) throw new Error("Error");
@@ -216,7 +216,7 @@ export default function EvidenciasProduccion() {
                         href={
                           evi.archivo_evi.startsWith("http")
                             ? evi.archivo_evi
-                            : `http://localhost:8000/storage/${evi.archivo_evi}`
+                            : `http://localhost:8080/storage/${evi.archivo_evi}`
                         }
                         target="_blank"
                         rel="noopener noreferrer"

@@ -303,7 +303,7 @@ export default function ModalAgregarDetalleProduccion({
     setLoadingPro(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/produccion?page=${page}&per_page=8${
+        `http://localhost:8080/api/produccion?page=${page}&per_page=8${
           search ? `&search=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -324,7 +324,7 @@ export default function ModalAgregarDetalleProduccion({
     setLoadingMueble(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/mueble?page=${page}&per_page=8${
+        `http://localhost:8080/api/mueble?page=${page}&per_page=8${
           search ? `&filter[nom_mue]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -388,7 +388,7 @@ export default function ModalAgregarDetalleProduccion({
       }
     } catch {}
     try {
-      const res = await fetch("http://localhost:8000/api/detalle-produccion", {
+      const res = await fetch("http://localhost:8080/api/detalle-produccion", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

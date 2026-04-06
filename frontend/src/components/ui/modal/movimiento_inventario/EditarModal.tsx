@@ -340,7 +340,7 @@ export default function ModalEditarMovimientoInventario({
     setLoadingEmp(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/empleados?page=${page}&per_page=6${
+        `http://localhost:8080/api/empleados?page=${page}&per_page=6${
           search ? `&filter[nom_emp]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -361,7 +361,7 @@ export default function ModalEditarMovimientoInventario({
     setLoadingMat(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/materiales?page=${page}&per_page=6${
+        `http://localhost:8080/api/materiales?page=${page}&per_page=6${
           search ? `&filter[nom_mat]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -382,7 +382,7 @@ export default function ModalEditarMovimientoInventario({
     setLoadingMue(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/mueble?page=${page}&per_page=6${
+        `http://localhost:8080/api/mueble?page=${page}&per_page=6${
           search ? `&filter[nom_mue]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -472,7 +472,7 @@ export default function ModalEditarMovimientoInventario({
     } catch {}
     try {
       const res = await fetch(
-        `http://localhost:8000/api/movimiento-inventario/${movimientoSeleccionado.id_mov}`,
+        `http://localhost:8080/api/movimiento-inventario/${movimientoSeleccionado.id_mov}`,
         {
           method: "PUT",
           headers: {

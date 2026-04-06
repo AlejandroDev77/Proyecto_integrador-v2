@@ -59,7 +59,7 @@ export default function DetallesDevoluciones() {
 
     try {
       const res = await fetch(
-        `http://localhost:8000/api/detalle-produccion/${id_det_pro}`,
+        `http://localhost:8080/api/detalle-produccion/${id_det_pro}`,
         {
           method: "DELETE",
           headers,
@@ -80,7 +80,7 @@ export default function DetallesDevoluciones() {
   /* const descargarBackup = async () => {
     try {
       const response = await fetch(
-        `http://localhost:8000/api/detalle-produccion/exportar-sql`
+        `http://localhost:8080/api/detalle-produccion/exportar-sql`
       );
       if (!response.ok) throw new Error("Error al descargar el respaldo");
       const blob = await response.blob();

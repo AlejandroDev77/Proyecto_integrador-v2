@@ -517,7 +517,7 @@ export default function ModalAgregarDevolucion({
         per_page: "8",
       });
       if (search) params.append("filter[cod_ven]", search);
-      const res = await fetch(`http://localhost:8000/api/venta?${params}`);
+      const res = await fetch(`http://localhost:8080/api/venta?${params}`);
       const payload = await res.json();
       const items = payload?.data ?? payload;
       setVentas(Array.isArray(items) ? items : []);
@@ -546,7 +546,7 @@ export default function ModalAgregarDevolucion({
         });
         if (search) params.append("filter[nom_emp]", search);
         const res = await fetch(
-          `http://localhost:8000/api/empleados?${params}`
+          `http://localhost:8080/api/empleados?${params}`
         );
         const payload = await res.json();
         const items = payload?.data ?? payload;
@@ -577,7 +577,7 @@ export default function ModalAgregarDevolucion({
           per_page: "8",
         });
         if (search) params.append("filter[nom_mue]", search);
-        const res = await fetch(`http://localhost:8000/api/mueble?${params}`);
+        const res = await fetch(`http://localhost:8080/api/mueble?${params}`);
         const payload = await res.json();
         const items = payload?.data ?? payload;
         setMuebles(Array.isArray(items) ? items : []);
@@ -702,7 +702,7 @@ export default function ModalAgregarDevolucion({
         id_ven: selectedVenta.id_ven,
         id_emp: selectedEmpleado.id_emp,
       };
-      const res = await fetch("http://localhost:8000/api/devolucion", {
+      const res = await fetch("http://localhost:8080/api/devolucion", {
         method: "POST",
         headers,
         body: JSON.stringify(devolucionData),
@@ -719,14 +719,14 @@ export default function ModalAgregarDevolucion({
           precio_unitario: det.precio_unitario,
           subtotal: det.subtotal,
         };
-        await fetch("http://localhost:8000/api/detalle-devolucion", {
+        await fetch("http://localhost:8080/api/detalle-devolucion", {
           method: "POST",
           headers,
           body: JSON.stringify(detalleData),
         });
       }
 
-      const updatedRes = await fetch("http://localhost:8000/api/devolucion");
+      const updatedRes = await fetch("http://localhost:8080/api/devolucion");
       const updatedPayload: any = await updatedRes.json();
       const updatedItems = updatedPayload?.data ?? updatedPayload;
       setDevoluciones(Array.isArray(updatedItems) ? updatedItems : []);

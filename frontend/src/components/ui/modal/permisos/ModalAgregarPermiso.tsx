@@ -42,7 +42,7 @@ const ModalAgregarPermiso: React.FC<Props> = ({
     }
 
     try {
-      const res = await fetch("http://localhost:8000/api/permisos", {
+      const res = await fetch("http://localhost:8080/api/permisos", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

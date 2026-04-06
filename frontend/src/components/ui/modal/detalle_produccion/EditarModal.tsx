@@ -273,7 +273,7 @@ export default function ModalEditarDetalleProduccion({
     setLoadingProd(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/produccion?page=${page}&per_page=6${
+        `http://localhost:8080/api/produccion?page=${page}&per_page=6${
           search ? `&filter[cod_pro]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -294,7 +294,7 @@ export default function ModalEditarDetalleProduccion({
     setLoadingMueble(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/mueble?page=${page}&per_page=6${
+        `http://localhost:8080/api/mueble?page=${page}&per_page=6${
           search ? `&filter[nom_mue]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -368,7 +368,7 @@ export default function ModalEditarDetalleProduccion({
     } catch {}
     try {
       const res = await fetch(
-        `http://localhost:8000/api/detalle-produccion/${detalleproduccionSeleccionado.id_det_prod}`,
+        `http://localhost:8080/api/detalle-produccion/${detalleproduccionSeleccionado.id_det_prod}`,
         {
           method: "PUT",
           headers: {

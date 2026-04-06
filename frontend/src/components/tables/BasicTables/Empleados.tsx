@@ -64,7 +64,7 @@ export default function Empleados() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8000/api/empleados/${id_emp}`, {
+      const res = await fetch(`http://localhost:8080/api/empleados/${id_emp}`, {
         method: "DELETE",
         headers,
       });
@@ -81,7 +81,7 @@ export default function Empleados() {
   /* const descargarBackup = async () => {
     try {
       const response = await fetch(
-        `http://localhost:8000/api/empleados/exportar-sql`
+        `http://localhost:8080/api/empleados/exportar-sql`
       );
       if (!response.ok) throw new Error("Error al descargar el respaldo");
       const blob = await response.blob();

@@ -557,7 +557,7 @@ export default function ModalAgregarVenta({
           per_page: "8",
         });
         if (search) params.append("filter[nom_cli]", search);
-        const res = await fetch(`http://localhost:8000/api/clientes?${params}`);
+        const res = await fetch(`http://localhost:8080/api/clientes?${params}`);
         const payload = await res.json();
         const items = payload?.data ?? payload;
         setClientes(Array.isArray(items) ? items : []);
@@ -588,7 +588,7 @@ export default function ModalAgregarVenta({
         });
         if (search) params.append("filter[nom_emp]", search);
         const res = await fetch(
-          `http://localhost:8000/api/empleados?${params}`
+          `http://localhost:8080/api/empleados?${params}`
         );
         const payload = await res.json();
         const items = payload?.data ?? payload;
@@ -619,7 +619,7 @@ export default function ModalAgregarVenta({
           per_page: "8",
         });
         if (search) params.append("filter[nom_mue]", search);
-        const res = await fetch(`http://localhost:8000/api/mueble?${params}`);
+        const res = await fetch(`http://localhost:8080/api/mueble?${params}`);
         const payload = await res.json();
         const items = payload?.data ?? payload;
         setMuebles(Array.isArray(items) ? items : []);
@@ -774,7 +774,7 @@ export default function ModalAgregarVenta({
         id_emp: selectedEmpleado.id_emp,
       };
 
-      const res = await fetch("http://localhost:8000/api/venta", {
+      const res = await fetch("http://localhost:8080/api/venta", {
         method: "POST",
         headers: { ...headers, Accept: "application/json" },
         body: JSON.stringify(ventaData),
@@ -808,7 +808,7 @@ export default function ModalAgregarVenta({
           descuento: det.descuento,
           subtotal: det.subtotal,
         };
-        await fetch("http://localhost:8000/api/detalle-venta", {
+        await fetch("http://localhost:8080/api/detalle-venta", {
           method: "POST",
           headers: { ...headers, Accept: "application/json" },
           body: JSON.stringify(detalleData),
@@ -824,7 +824,7 @@ export default function ModalAgregarVenta({
           referencia_pag: pago.referencia_pag,
           monto: pago.monto,
         };
-        await fetch("http://localhost:8000/api/pago", {
+        await fetch("http://localhost:8080/api/pago", {
           method: "POST",
           headers: { ...headers, Accept: "application/json" },
           body: JSON.stringify(pagoData),
@@ -832,7 +832,7 @@ export default function ModalAgregarVenta({
       }
 
       // Refresh ventas
-      const updatedRes = await fetch("http://localhost:8000/api/venta");
+      const updatedRes = await fetch("http://localhost:8080/api/venta");
       const updatedPayload: any = await updatedRes.json();
       const updatedItems = updatedPayload?.data ?? updatedPayload;
       setVentas(Array.isArray(updatedItems) ? updatedItems : []);

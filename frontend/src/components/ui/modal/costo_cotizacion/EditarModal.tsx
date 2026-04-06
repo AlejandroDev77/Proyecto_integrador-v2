@@ -219,7 +219,7 @@ const ModalEditarCostoCotizacion: React.FC<ModalEditarCostoCotizacionProps> = ({
     setLoadingCot(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/cotizacion?page=${page}&per_page=6${
+        `http://localhost:8080/api/cotizacion?page=${page}&per_page=6${
           search ? `&filter[cod_cot]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -289,7 +289,7 @@ const ModalEditarCostoCotizacion: React.FC<ModalEditarCostoCotizacionProps> = ({
     setLoading(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/costo-cotizacion/${costoCotizacionSeleccionado.id_costo}`,
+        `http://localhost:8080/api/costo-cotizacion/${costoCotizacionSeleccionado.id_costo}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
