@@ -268,7 +268,7 @@ const ModalEditarCotizacion = ({
           per_page: "6",
         });
         if (search) params.append("filter[nom_cli]", search);
-        const res = await fetch(`http://localhost:8000/api/clientes?${params}`);
+        const res = await fetch(`http://localhost:8080/api/clientes?${params}`);
         const payload = await res.json();
         const items = payload?.data ?? payload;
         setClientes(Array.isArray(items) ? items : []);
@@ -299,7 +299,7 @@ const ModalEditarCotizacion = ({
         });
         if (search) params.append("filter[nom_emp]", search);
         const res = await fetch(
-          `http://localhost:8000/api/empleados?${params}`
+          `http://localhost:8080/api/empleados?${params}`
         );
         const payload = await res.json();
         const items = payload?.data ?? payload;
@@ -374,7 +374,7 @@ const ModalEditarCotizacion = ({
       };
 
       const res = await fetch(
-        `http://localhost:8000/api/cotizacion/${cotizacionSeleccionada.id_cot}`,
+        `http://localhost:8080/api/cotizacion/${cotizacionSeleccionada.id_cot}`,
         {
           method: "PUT",
           headers,
@@ -388,7 +388,7 @@ const ModalEditarCotizacion = ({
       await res.json();
 
       // Refrescar todas las cotizaciones desde la API para obtener relaciones correctas
-      const updatedRes = await fetch("http://localhost:8000/api/cotizacion");
+      const updatedRes = await fetch("http://localhost:8080/api/cotizacion");
       const updatedPayload: any = await updatedRes.json();
       const updatedItems = updatedPayload?.data ?? updatedPayload;
       setCotizaciones(Array.isArray(updatedItems) ? updatedItems : []);

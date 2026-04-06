@@ -12,7 +12,7 @@ import {
 import { Link } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 
-const API = "http://localhost:8000/api";
+const API = "http://localhost:8080/api";
 
 interface FavoritoItem {
   id_fav: number;

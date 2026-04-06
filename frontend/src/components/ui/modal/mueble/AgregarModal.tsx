@@ -273,7 +273,7 @@ export default function ModalAgregarMueble({
     setLoadingCat(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/categoria-mueble?page=${page}&per_page=6${
+        `http://localhost:8080/api/categoria-mueble?page=${page}&per_page=6${
           search ? `&filter[nom_cat]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -369,7 +369,7 @@ export default function ModalAgregarMueble({
       if (imgFile) formData.append("img_mue", imgFile);
       if (modelo3dFile) formData.append("modelo_3d", modelo3dFile);
 
-      const res = await fetch("http://localhost:8000/api/mueble", {
+      const res = await fetch("http://localhost:8080/api/mueble", {
         method: "POST",
         headers: {
           Accept: "application/json",

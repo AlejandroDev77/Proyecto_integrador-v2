@@ -122,7 +122,7 @@ interface EtapaProduccion {
   orden_secuencia?: number;
 }
 
-const API = "http://localhost:8000/api";
+const API = "http://localhost:8080/api";
 
 // Formatear fecha en español (DD/MM/YYYY)
 const formatDateES = (dateStr?: string): string => {
@@ -139,7 +139,7 @@ const formatDateES = (dateStr?: string): string => {
 const getImageUrl = (path?: string) => {
   if (!path) return null;
   if (path.startsWith("http")) return path;
-  return `http://localhost:8000/storage/${path}`;
+  return `http://localhost:8080/storage/${path}`;
 };
 
 function ProductImage({

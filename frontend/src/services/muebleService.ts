@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8000/api/mueble";
+const API_URL = "http://localhost:8080/api/mueble";
 
 export async function getMuebles(
   page: number = 1,

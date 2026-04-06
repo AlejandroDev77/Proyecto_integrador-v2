@@ -85,7 +85,7 @@ const ModalVerEvidencia: React.FC<ModalVerEvidenciaProps> = ({
     if (!e.archivo_evi) return null;
     return e.archivo_evi.startsWith("http")
       ? e.archivo_evi
-      : `http://localhost:8000/storage/${e.archivo_evi}`;
+      : `http://localhost:8080/storage/${e.archivo_evi}`;
   };
 
   const tipoIcon = () => {

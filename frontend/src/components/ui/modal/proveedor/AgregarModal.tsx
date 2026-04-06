@@ -76,7 +76,7 @@ export default function ModalAgregarProveedor({
     }
 
     try {
-      const res = await fetch("http://localhost:8000/api/proveedor", {
+      const res = await fetch("http://localhost:8080/api/proveedor", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

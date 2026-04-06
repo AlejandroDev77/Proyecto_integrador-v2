@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8000/api/etapa-produccion";
+const API_URL = "http://localhost:8080/api/etapa-produccion";
 
 export async function getEtapasProducciones(page: number = 1, perPage: number = 20, extraParams?: Record<string, any>) {
   const params = { page, per_page: perPage, ...extraParams };

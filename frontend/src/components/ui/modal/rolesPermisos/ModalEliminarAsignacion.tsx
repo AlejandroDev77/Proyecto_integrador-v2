@@ -31,7 +31,7 @@ const ModalEliminarAsignacion: React.FC<ModalEliminarAsignacionProps> = ({
     try {
       // Intentar con la ruta RolesPermisos primero
       let res = await fetch(
-        `http://localhost:8000/api/roles/${asignacionSeleccionada.id_rol}/permisos/${asignacionSeleccionada.id_permiso}`,
+        `http://localhost:8080/api/roles/${asignacionSeleccionada.id_rol}/permisos/${asignacionSeleccionada.id_permiso}`,
         {
           method: "DELETE",
           headers: {

@@ -64,7 +64,7 @@ export default function detallescompras() {
 
     try {
       const res = await fetch(
-        `http://localhost:8000/api/detalle-compra/${id_det_comp}`,
+        `http://localhost:8080/api/detalle-compra/${id_det_comp}`,
         {
           method: "DELETE",
           headers,
@@ -85,7 +85,7 @@ export default function detallescompras() {
   /* const descargarBackup = async () => {
     try {
       const response = await fetch(
-        `http://localhost:8000/api/detalle-compra/exportar-sql`
+        `http://localhost:8080/api/detalle-compra/exportar-sql`
       );
       if (!response.ok) throw new Error("Error al descargar el respaldo");
       const blob = await response.blob();

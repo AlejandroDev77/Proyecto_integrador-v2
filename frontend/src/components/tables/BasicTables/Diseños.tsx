@@ -59,7 +59,7 @@ export default function Diseños() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8000/api/diseño/${id_dis}`, {
+      const res = await fetch(`http://localhost:8080/api/diseño/${id_dis}`, {
         method: "DELETE",
         headers,
       });
@@ -76,7 +76,7 @@ export default function Diseños() {
   /* const descargarBackup = async () => {
     try {
       const response = await fetch(
-        `http://localhost:8000/api/diseño/exportar-sql`
+        `http://localhost:8080/api/diseño/exportar-sql`
       );
       if (!response.ok) throw new Error("Error al descargar el respaldo");
       const blob = await response.blob();
@@ -223,7 +223,7 @@ export default function Diseños() {
                         href={
                           diseño.archivo_3d.startsWith("http")
                             ? diseño.archivo_3d
-                            : `http://localhost:8000/storage/${diseño.archivo_3d.replace(
+                            : `http://localhost:8080/storage/${diseño.archivo_3d.replace(
                                 "public/",
                                 ""
                               )}`
@@ -244,7 +244,7 @@ export default function Diseños() {
                         src={
                           diseño.img_dis.startsWith("http")
                             ? diseño.img_dis
-                            : `http://localhost:8000/storage/${diseño.img_dis.replace(
+                            : `http://localhost:8080/storage/${diseño.img_dis.replace(
                                 "public/",
                                 ""
                               )}`

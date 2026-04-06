@@ -29,7 +29,7 @@ export async function getClientes(
     params.sort = sort;
   }
 
-  const response = await axios.get("http://localhost:8000/api/clientes", {
+  const response = await axios.get("http://localhost:8080/api/clientes", {
     params,
   });
   return response.data;

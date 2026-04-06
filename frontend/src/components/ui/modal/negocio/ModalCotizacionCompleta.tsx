@@ -76,7 +76,7 @@ interface Props {
   setShowModal: (show: boolean) => void;
 }
 
-const API = "http://localhost:8000/api";
+const API = "http://localhost:8080/api";
 
 const TIPOS_PROYECTO = [
   { value: "hogar", label: "Hogar", icon: Home },
@@ -120,7 +120,7 @@ const COLORES_COMUNES = [
 const getImageUrl = (path?: string) => {
   if (!path) return null;
   if (path.startsWith("http")) return path;
-  return `http://localhost:8000/storage/${path}`;
+  return `http://localhost:8080/storage/${path}`;
 };
 
 function ProductImage({

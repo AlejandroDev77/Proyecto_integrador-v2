@@ -3,10 +3,12 @@ import { EyeIcon } from "../../../../icons";
 import { User, Mail, Shield } from "lucide-react";
 import { BaseVerDatosModal, DetailItem, StatusBadge } from "../shared";
 
+import { Usuario } from "../../../../types/usuario";
+
 interface ModalVerUsuarioProps {
   showModal: boolean;
   setShowModal: (show: boolean) => void;
-  usuarioSeleccionado: any;
+  usuarioSeleccionado: Usuario | null;
 }
 
 const ModalVerUsuario: React.FC<ModalVerUsuarioProps> = ({

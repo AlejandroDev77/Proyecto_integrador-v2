@@ -309,7 +309,7 @@ export default function ModalAgregarDetalleDevolucion({
     setLoadingDev(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/devolucion?page=${page}&per_page=8${
+        `http://localhost:8080/api/devolucion?page=${page}&per_page=8${
           search ? `&search=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -330,7 +330,7 @@ export default function ModalAgregarDetalleDevolucion({
     setLoadingMueble(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/mueble?page=${page}&per_page=8${
+        `http://localhost:8080/api/mueble?page=${page}&per_page=8${
           search ? `&filter[nom_mue]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -406,7 +406,7 @@ export default function ModalAgregarDetalleDevolucion({
       }
     } catch {}
     try {
-      const res = await fetch("http://localhost:8000/api/detalle-devolucion", {
+      const res = await fetch("http://localhost:8080/api/detalle-devolucion", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

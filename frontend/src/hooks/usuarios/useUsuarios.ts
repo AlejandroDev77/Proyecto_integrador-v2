@@ -1,14 +1,6 @@
 import { useState, useEffect } from "react";
 import { getUsuarios, cambiarEstadoUsuario } from "../../services/usuarioService";
-
-interface Usuario {
-  cod_usu?: string;
-  id_usu: number;
-  nom_usu: string;
-  email_usu: string;
-  est_usu: boolean;
-  id_rol: number;
-}
+import { Usuario } from "../../types/usuario";
 
 export const useUsuarios = () => {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -32,9 +24,13 @@ export const useUsuarios = () => {
       try {
         // Filtros ya vienen con el formato correcto (sin filter[])
         const data = await getUsuarios(currentPage, itemsPerPage, filters, sort);
-        setUsuarios(data.data || data);
-        setTotalPages(data.last_page || 1);
-        setTotalItems(data.total || (data.data ? data.data.length : 0));
+        // Soporta formato Spring Boot (content) y Laravel (data)
+        const usuariosArray = data.content || data.data || (Array.isArray(data) ? data : []);
+        setUsuarios(usuariosArray);
+        
+        // Soporta paginación Spring Boot (totalPages, totalElements) y Laravel (last_page, total)
+        setTotalPages(data.totalPages || data.last_page || 1);
+        setTotalItems(data.totalElements || data.total || usuariosArray.length);
       } catch (error) {
         console.error("Error al cargar usuarios:", error);
       } finally {

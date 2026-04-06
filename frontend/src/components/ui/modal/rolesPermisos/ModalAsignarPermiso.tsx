@@ -270,7 +270,7 @@ const ModalAsignarPermiso: React.FC<ModalAsignarPermisoProps> = ({
     setLoadingPermisos(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/roles/${rolId}/permisos-disponibles`
+        `http://localhost:8080/api/roles/${rolId}/permisos-disponibles`
       );
       if (!res.ok) throw new Error("Error al cargar permisos");
 
@@ -357,7 +357,7 @@ const ModalAsignarPermiso: React.FC<ModalAsignarPermisoProps> = ({
       const permisosIds = permisosAsignados.map((p) => p.id_permiso);
 
       const res = await fetch(
-        `http://localhost:8000/api/roles/${selectedRol.id_rol}/permisos`,
+        `http://localhost:8080/api/roles/${selectedRol.id_rol}/permisos`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },

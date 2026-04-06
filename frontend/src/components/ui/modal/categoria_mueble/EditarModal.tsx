@@ -61,7 +61,7 @@ export default function ModalEditarCategoriaMueble({
 
     try {
       const res = await fetch(
-        `http://localhost:8000/api/categoria-mueble/${categoriaSeleccionada.id_cat}`,
+        `http://localhost:8080/api/categoria-mueble/${categoriaSeleccionada.id_cat}`,
         {
           method: "PUT",
           headers: {

@@ -66,7 +66,7 @@ interface Produccion {
   empleado?: { nom_emp: string; ap_pat_emp?: string };
 }
 
-const API = "http://localhost:8000/api";
+const API = "http://localhost:8080/api";
 
 const processes: IProcessCard[] = [
   {

@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:8000/api/costo-cotizacion";
+const API_URL = "http://localhost:8080/api/costo-cotizacion";
 
 export async function getCostosCotizacion(
   page = 1,

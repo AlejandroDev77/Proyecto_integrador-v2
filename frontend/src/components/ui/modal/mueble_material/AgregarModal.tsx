@@ -438,7 +438,7 @@ export default function ModalAgregarMuebleMaterial({
         });
         if (search) params.append("filter[nom_mue]", search);
 
-        const res = await fetch(`http://localhost:8000/api/mueble?${params}`);
+        const res = await fetch(`http://localhost:8080/api/mueble?${params}`);
         const payload = await res.json();
 
         const items = payload?.data ?? payload;
@@ -474,7 +474,7 @@ export default function ModalAgregarMuebleMaterial({
         if (search) params.append("filter[nom_mat]", search);
 
         const res = await fetch(
-          `http://localhost:8000/api/materiales?${params}`
+          `http://localhost:8080/api/materiales?${params}`
         );
         const payload = await res.json();
 
@@ -595,7 +595,7 @@ export default function ModalAgregarMuebleMaterial({
 
     try {
       for (const material of selectedMaterials) {
-        const res = await fetch("http://localhost:8000/api/mueble-material", {
+        const res = await fetch("http://localhost:8080/api/mueble-material", {
           method: "POST",
           headers,
           body: JSON.stringify({
@@ -610,7 +610,7 @@ export default function ModalAgregarMuebleMaterial({
 
       // Refrescar datos
       const updatedRes = await fetch(
-        "http://localhost:8000/api/mueble-material"
+        "http://localhost:8080/api/mueble-material"
       );
       const updatedPayload: any = await updatedRes.json();
       const updatedItems = updatedPayload?.data ?? updatedPayload;

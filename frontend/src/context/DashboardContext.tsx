@@ -181,7 +181,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       const response = await fetch(
-        `http://localhost:8000/api/dashboard/all?${params.toString()}`
+        `http://localhost:8080/api/dashboard/all?${params.toString()}`
       );
 
       if (!response.ok) {

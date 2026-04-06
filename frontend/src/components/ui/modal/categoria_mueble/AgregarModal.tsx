@@ -52,7 +52,7 @@ export default function ModalAgregarCategoriaMueble({
     }
 
     try {
-      const res = await fetch("http://localhost:8000/api/categoria-mueble", {
+      const res = await fetch("http://localhost:8080/api/categoria-mueble", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

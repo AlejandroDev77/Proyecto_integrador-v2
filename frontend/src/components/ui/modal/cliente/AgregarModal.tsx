@@ -66,7 +66,7 @@ export default function ModalAgregarCliente({
     if (showModal) {
       setValidationErrors(null);
       setGeneralError(null);
-      fetch("http://localhost:8000/api/usuarios-sin-relaciones")
+      fetch("http://localhost:8080/api/usuarios-sin-relaciones")
         .then((res) => res.json())
         .then((payload: any) => {
           const items = payload?.data ?? payload;
@@ -109,7 +109,7 @@ export default function ModalAgregarCliente({
     };
 
     try {
-      const res = await fetch("http://localhost:8000/api/clientes", {
+      const res = await fetch("http://localhost:8080/api/clientes", {
         method: "POST",
         headers,
         body: JSON.stringify({ ...form, id_usu: parseInt(form.id_usu) }),

@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8000/api/movimiento-inventario";
+const API_URL = "http://localhost:8080/api/movimiento-inventario";
 
 export async function getMovimientosInventarios(page: number = 1, perPage: number = 20, filters: Record<string, any> = {}, sort: string = "") {
   const params: any = { page, per_page: perPage };

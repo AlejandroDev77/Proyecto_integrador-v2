@@ -288,7 +288,7 @@ const ModalEditarEvidencia: React.FC<ModalEditarEvidenciaProps> = ({
     setLoadingEtapa(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/produccion-etapa?page=${page}&per_page=6${
+        `http://localhost:8080/api/produccion-etapa?page=${page}&per_page=6${
           search ? `&filter[nom_eta]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -310,7 +310,7 @@ const ModalEditarEvidencia: React.FC<ModalEditarEvidenciaProps> = ({
     setLoadingEmp(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/empleados?page=${page}&per_page=6${
+        `http://localhost:8080/api/empleados?page=${page}&per_page=6${
           search ? `&filter[nom_emp]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -403,7 +403,7 @@ const ModalEditarEvidencia: React.FC<ModalEditarEvidenciaProps> = ({
       if (archivo) fd.append("archivo", archivo);
 
       const res = await fetch(
-        `http://localhost:8000/api/evidencia-produccion/${evidenciaSeleccionado.id_evi}`,
+        `http://localhost:8080/api/evidencia-produccion/${evidenciaSeleccionado.id_evi}`,
         { method: "POST", body: fd }
       );
       if (!res.ok) throw new Error("Error al actualizar");

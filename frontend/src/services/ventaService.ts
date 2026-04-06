@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8000/api/venta";
+const API_URL = "http://localhost:8080/api/venta";
 
 export async function getVentas(
   page: number = 1,

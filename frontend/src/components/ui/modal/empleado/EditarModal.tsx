@@ -231,7 +231,7 @@ export default function ModalEditarEmpleado({
     setLoadingUsu(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/usuarios?page=${page}&per_page=6${
+        `http://localhost:8080/api/usuarios?page=${page}&per_page=6${
           search ? `&filter[nom_usu]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -305,7 +305,7 @@ export default function ModalEditarEmpleado({
     } catch {}
     try {
       const res = await fetch(
-        `http://localhost:8000/api/empleados/${empleadoSeleccionado.id_emp}`,
+        `http://localhost:8080/api/empleados/${empleadoSeleccionado.id_emp}`,
         {
           method: "PUT",
           headers: {

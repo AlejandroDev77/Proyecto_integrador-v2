@@ -63,7 +63,7 @@ export default function CostosCotizacion() {
 
     try {
       const res = await fetch(
-        `http://localhost:8000/api/costo-cotizacion/${id}`,
+        `http://localhost:8080/api/costo-cotizacion/${id}`,
         { method: "DELETE" }
       );
       if (!res.ok) throw new Error("Error");

@@ -430,7 +430,7 @@ export default function ModalAgregarProduccionEtapa({
         });
         if (search) params.append("filter[cod_pro]", search);
         const res = await fetch(
-          `http://localhost:8000/api/produccion?${params}`
+          `http://localhost:8080/api/produccion?${params}`
         );
         const payload = await res.json();
         const items = payload?.data ?? payload;
@@ -458,7 +458,7 @@ export default function ModalAgregarProduccionEtapa({
       const params = new URLSearchParams();
       if (search) params.append("filter[nom_eta]", search);
       const res = await fetch(
-        `http://localhost:8000/api/etapa-produccion?${params}`
+        `http://localhost:8080/api/etapa-produccion?${params}`
       );
       const payload = await res.json();
       const items = payload?.data ?? payload;
@@ -480,7 +480,7 @@ export default function ModalAgregarProduccionEtapa({
         });
         if (search) params.append("filter[nom_emp]", search);
         const res = await fetch(
-          `http://localhost:8000/api/empleados?${params}`
+          `http://localhost:8080/api/empleados?${params}`
         );
         const payload = await res.json();
         const items = payload?.data ?? payload;
@@ -564,7 +564,7 @@ export default function ModalAgregarProduccionEtapa({
         id_eta: selectedEtapa.id_eta,
         id_emp: selectedEmpleado.id_emp,
       };
-      const res = await fetch("http://localhost:8000/api/produccion-etapa", {
+      const res = await fetch("http://localhost:8080/api/produccion-etapa", {
         method: "POST",
         headers,
         body: JSON.stringify(produccionEtapaData),
@@ -572,7 +572,7 @@ export default function ModalAgregarProduccionEtapa({
       if (!res.ok) throw new Error("Error al crear la etapa de producción");
 
       const updatedRes = await fetch(
-        "http://localhost:8000/api/produccion-etapa"
+        "http://localhost:8080/api/produccion-etapa"
       );
       const updatedPayload: any = await updatedRes.json();
       const updatedItems = updatedPayload?.data ?? updatedPayload;

@@ -369,7 +369,7 @@ export default function ModalAgregarDetalleCotizacion({
     setLoadingCot(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/cotizacion?page=${page}&per_page=8${
+        `http://localhost:8080/api/cotizacion?page=${page}&per_page=8${
           search ? `&filter[search]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -391,7 +391,7 @@ export default function ModalAgregarDetalleCotizacion({
     setLoadingMueble(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/mueble?page=${page}&per_page=8${
+        `http://localhost:8080/api/mueble?page=${page}&per_page=8${
           search ? `&filter[nom_mue]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -500,7 +500,7 @@ export default function ModalAgregarDetalleCotizacion({
         payload.img_referencia = customMueble.img_referencia;
       }
 
-      const res = await fetch("http://localhost:8000/api/detalle-cotizacion", {
+      const res = await fetch("http://localhost:8080/api/detalle-cotizacion", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

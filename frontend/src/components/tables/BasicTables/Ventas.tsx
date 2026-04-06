@@ -66,7 +66,7 @@ export default function ventas() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8000/api/venta/${id_ven}`, {
+      const res = await fetch(`http://localhost:8080/api/venta/${id_ven}`, {
         method: "DELETE",
         headers,
       });
@@ -82,7 +82,7 @@ export default function ventas() {
   const generarReporte = async () => {
     try {
       const response = await fetch(
-        `http://localhost:8000/api/reporte-Ventas`,
+        `http://localhost:8080/api/reporte-Ventas`,
         {
           method: "GET",
           headers: {
@@ -108,7 +108,7 @@ export default function ventas() {
   /* const descargarBackup = async () => {
     try {
       const response = await fetch(
-        `http://localhost:8000/api/venta/exportar-sql`
+        `http://localhost:8080/api/venta/exportar-sql`
       );
       if (!response.ok) throw new Error("Error al descargar el respaldo");
       const blob = await response.blob();

@@ -138,7 +138,7 @@ export default function SolicitarCotizacion() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:8000/api/mueble?per_page=100")
+      .get("http://localhost:8080/api/mueble?per_page=100")
       .then((res) => {
         const data = res.data.data.filter((m: any) => m.est_mue === true);
         setMuebles(data);

@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8000/api/roles-permisos";
+const API_URL = "http://localhost:8080/api/roles-permisos";
 
 export async function RolesPermisos(
   page: number = 1,

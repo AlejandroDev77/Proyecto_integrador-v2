@@ -8,6 +8,7 @@ import SortableTableHeader from "../../ui/SortableTableHeader";
 import TableActionButtons from "../../ui/button/TableActionButtons";
 import Button from "../../ui/button/Button";
 import { Plus } from "lucide-react";
+import axiosClient from "../../../api/axios";
 import {
   Table,
   TableBody,
@@ -56,7 +57,7 @@ export default function Usuarios() {
   /* const descargarBackup = async () => {
     try {
       const response = await fetch(
-        `http://localhost:8000/api/usuarios/exportar-sql`
+        `http://localhost:8080/api/usuarios/exportar-sql`
       );
       if (!response.ok) throw new Error("Error al descargar el respaldo");
       const blob = await response.blob();
@@ -74,9 +75,10 @@ export default function Usuarios() {
   }; */
   const descargarBackupCompleto = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/api/backup`);
-      if (!response.ok) throw new Error("Error al descargar el respaldo");
-      const blob = await response.blob();
+      const response = await axiosClient.get("/api/backup", {
+        responseType: "blob",
+      });
+      const blob = response.data;
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
