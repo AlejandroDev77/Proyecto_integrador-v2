@@ -29,11 +29,11 @@ public class Permiso {
         this.id = id;
     }
 
-    public String getNombre() {
+    public String getNomPermiso() {
         return nombre;
     }
 
-    public void setNombre(String nombre) {
+    public void setNomPermiso(String nombre) {
         this.nombre = nombre;
     }
 

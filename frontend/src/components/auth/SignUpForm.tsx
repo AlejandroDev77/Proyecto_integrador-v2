@@ -20,9 +20,9 @@ export default function SignUpForm() {
   } = useSignUp();
 
   return (
-    <div className="w-full max-w-md mx-auto animate-fade-in-up pb-8">
+    <div className="w-full animate-fade-in-up pb-8">
       <div className="mb-8">
-        <div className="mb-6 flex justify-start">
+        <div className="mb-8 flex justify-start">
           <Link
             to="/"
             className="inline-flex items-center text-sm font-medium text-gray-500 transition-colors hover:text-orange-500 dark:text-gray-400 dark:hover:text-orange-400 group"
@@ -32,16 +32,16 @@ export default function SignUpForm() {
           </Link>
         </div>
         
-        <div className="text-center pt-2">
+        <div className="pt-2">
           <img
             src="/images/logo/BOSQUEJO_PROT_2-removebg-preview.png"
             alt="Bosquejo Logo"
-            className="h-28 mx-auto mb-6 object-contain drop-shadow-md hover:scale-105 transition-transform duration-300"
+            className="h-20 mb-6 object-contain drop-shadow-md hover:scale-105 transition-transform duration-300"
           />
-          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-2">
+          <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-3">
             Crea tu cuenta
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 text-sm">
+          <p className="text-gray-600 dark:text-gray-400 text-base">
             Únete a Bosquejo y diseña tu espacio hoy mismo.
           </p>
         </div>

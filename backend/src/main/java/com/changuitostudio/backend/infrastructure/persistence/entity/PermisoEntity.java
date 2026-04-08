@@ -2,9 +2,7 @@ package com.changuitostudio.backend.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
 
-/**
- * Entidad JPA â€” Mapea a la tabla 'permisos' en PostgreSQL.
- */
+
 @Entity
 @Table(name = "permisos")
 public class PermisoEntity {

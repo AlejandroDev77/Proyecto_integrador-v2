@@ -1,11 +1,11 @@
 package com.changuitostudio.backend.application.gateway;
 
-import com.changuitostudio.backend.domain.model.Usuario;
+//import com.changuitostudio.backend.domain.model.Usuario;
 
 import java.util.Optional;
 
 /**
- * Puerto de salida: GestiÃ³n de tokens de verificaciÃ³n.
+ * Puerto de salida: para gestión de tokens jwt
  */
 public interface TokenRepository {
 

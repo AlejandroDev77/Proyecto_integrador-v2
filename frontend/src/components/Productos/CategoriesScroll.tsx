@@ -80,6 +80,7 @@ export default function CategoriesScroll({
           <div className="flex gap-4 py-2">
             {/* "Todos" button */}
             <button
+              key="todos-category"
               className={`
                 flex-none flex items-center justify-center px-6 py-3 rounded-xl text-sm font-semibold
                 min-w-[100px] transition-all

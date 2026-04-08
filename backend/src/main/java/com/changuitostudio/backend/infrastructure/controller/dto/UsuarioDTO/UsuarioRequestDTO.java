@@ -12,19 +12,19 @@ import jakarta.validation.constraints.NotNull;
  */
 public class UsuarioRequestDTO {
 
-    @NotBlank(message = "El nombre usuario no puede estar vacÃ­o")
+    @NotBlank(message = "El nombre usuario no puede estar vacio")
     @JsonProperty("nom_usu")
     private String nomUsu;
 
-    @NotBlank(message = "El email no puede estar vacÃ­o")
-    @Email(message = "El email debe ser vÃ¡lido")
+    @NotBlank(message = "El email no puede estar vacio")
+    @Email(message = "El email debe ser valido")
     @JsonProperty("email_usu")
     private String emailUsu;
 
     @JsonProperty("pas_usu")
     private String pasUsu;
 
-    @NotNull(message = "El ID del rol no puede estar vacÃ­o")
+    @NotNull(message = "El ID del rol no puede estar vacio")
     @JsonProperty("id_rol")
     private Long idRol;
 
@@ -46,7 +46,7 @@ public class UsuarioRequestDTO {
         this.codUsu = codUsu;
     }
 
-    // â”€â”€ Getters & Setters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    
 
     public String getNomUsu() {
         return nomUsu;

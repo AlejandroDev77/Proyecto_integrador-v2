@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import Swal from "sweetalert2";
+import React from "react";
 import { Shield, X, Save, AlertCircle } from "lucide-react";
 import { useRoles } from "../../../../hooks/Roles/useRoles";
 
@@ -14,39 +13,29 @@ const ModalAgregarRol: React.FC<Props> = ({
   setShowModal,
   onSuccess,
 }) => {
-  const { crearRol, loadingAction } = useRoles();
-  const [nombre, setNombre] = useState("");
-  const [errorMsg, setErrorMsg] = useState<string>("");
+  const { 
+    addForm, 
+    updateAddForm, 
+    addFormError, 
+    setAddFormError,
+    handleGuardarAddForm, 
+    loadingAction 
+  } = useRoles();
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setAddFormError("");
+    updateAddForm(e.target.name, e.target.value);
+  };
 
   const handleSubmit = async () => {
-    if (!nombre.trim()) {
-      setErrorMsg("El nombre del rol es requerido.");
-      return;
-    }
-
-    setErrorMsg("");
-    try {
-      await crearRol({ nom_rol: nombre.trim() });
-      Swal.fire({
-        icon: "success",
-        title: "¡Rol creado!",
-        showConfirmButton: false,
-        timer: 2000,
-        timerProgressBar: true,
-      });
-      handleClose();
-      onSuccess?.();
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.message || "Error al agregar";
-      setErrorMsg(errorMsg);
-      console.error("Error al crear rol:", err);
-    }
+    await handleGuardarAddForm(onSuccess);
   };
 
   const handleClose = () => {
     setShowModal(false);
-    setNombre("");
-    setErrorMsg("");
+    setAddFormError("");
   };
 
   if (!showModal) return null;
@@ -68,10 +57,10 @@ const ModalAgregarRol: React.FC<Props> = ({
         </div>
 
         <div className="p-6">
-          {errorMsg && (
+          {addFormError && (
             <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 rounded-xl flex items-center gap-2 text-red-600">
               <AlertCircle className="w-5 h-5" />
-              <span className="text-sm">{errorMsg}</span>
+              <span className="text-sm">{addFormError}</span>
             </div>
           )}
 
@@ -82,8 +71,9 @@ const ModalAgregarRol: React.FC<Props> = ({
             </label>
             <input
               type="text"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
+              name="nom_rol"
+              value={addForm.nom_rol}
+              onChange={handleChange}
               placeholder="Ej: Moderador"
               disabled={loadingAction}
               className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-rose-500 disabled:opacity-50"

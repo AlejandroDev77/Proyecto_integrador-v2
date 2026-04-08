@@ -1,6 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
-import axios from "axios";
-import { jwtDecode } from "jwt-decode";
+import { useState, useEffect } from "react";
 import {
   Home,
   Sofa,
@@ -8,7 +6,6 @@ import {
   ChefHat,
   Briefcase,
   Baby,
-  Sparkles,
   ArrowLeft,
   Box,
 } from "lucide-react";
@@ -19,22 +16,16 @@ import FiltersMenu from "../../components/Productos/FiltersMenu";
 import QuickViewModal from "../../components/Productos/QuickViewModal";
 import FooterSimple from "../../components/Productos/FooterSimple";
 import RoomViewer from "../../components/Productos/RoomViewer";
-
-// Category images mapping
-const CATEGORY_IMAGES: Record<string, string> = {
-  Mesas: "/images/Mesa de Comedor.jpg",
-  Sillas: "/images/Silla Ejecutiva.jpg",
-  Sofás: "/images/Sofá 3 Plazas.jpg",
-  Camas: "/images/Cama Matrimonial.jpg",
-  Escritorios: "/images/Escritorio Ejecutivo.jpg",
-  Estantes: "/images/Estantería Modular.jpg",
-  "Muebles TV": "/images/Mueble TV Moderno.jpg",
-  Cocina: "/images/Isla de Cocina.jpg",
-  Baño: "/images/Mueble de Baño.jpg",
-  Jardín: "/images/Juego de Jardín.jpg",
-  Infantil: "/images/Cuna Infantil.jpg",
-  Oficina: "/images/Recepción Ejecutiva.jpg",
-};
+import {
+  useFetchCategories,
+  useFetchProducts,
+  useUserId,
+  useFavorites,
+  useMapProductsToVM,
+  useProductFilters,
+  CATEGORY_IMAGES,
+} from "../../hooks/useProducts";
+import { ProductViewModel, FilterState } from "../../services/products/types";
 
 // Estancias data - for the room planner feature
 const ESTANCIAS_DATA = [
@@ -66,237 +57,53 @@ const ESTANCIAS_DATA = [
   { id: 6, name: "Comedor", image: "/images/Mesa de Comedor.jpg", icon: Home },
 ];
 
-type Product = {
-  id: number;
-  title: string;
-  img: string;
-  category: string;
-  price: string;
-  desc?: string;
-  cod: string;
-  stock?: number;
-  modelo_3d?: string;
-  dimensiones?: string;
-};
-
-type Category = {
-  id: number;
-  name: string;
-  image: string;
-};
-
-type PaginationData = {
-  current_page: number;
-  last_page: number;
-  per_page: number;
-  total: number;
-};
-
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [pagination, setPagination] = useState<PaginationData>({
-    current_page: 1,
-    last_page: 1,
-    per_page: 20,
-    total: 0,
-  });
+  // Hooks personalizados
+  const userId = useUserId();
+  const { categories } = useFetchCategories();
+  const {
+    products: rawProducts,
+    pagination,
+    fetchProducts,
+  } = useFetchProducts();
+  const { favoriteIds, toggleFavorite } = useFavorites(userId);
+
+  // Mapeo de productos a ViewModel
+  const productsVM = useMapProductsToVM(rawProducts);
+
+  // Estados locales
   const [activeCategory, setActiveCategory] = useState<string>("Todos");
   const [query, setQuery] = useState<string>("");
-  const [quickView, setQuickView] = useState<Product | null>(null);
-  const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>(
-    {}
-  );
+  const [quickView, setQuickView] = useState<ProductViewModel | null>(null);
+  const [activeFilters, setActiveFilters] = useState<FilterState>({});
   const [showFilterMenu, setShowFilterMenu] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"categorias" | "estancias">(
     "categorias"
   );
-  const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
   const [activeEstancia, setActiveEstancia] = useState<number | null>(null);
 
-  // Get user ID from token
-  const getUserId = () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (token) {
-        const decoded: any = jwtDecode(token);
-        return decoded.id_usu;
-      }
-    } catch {
-      return null;
-    }
-    return null;
-  };
+  // Obtener categorías de categoriesFromAPI
+  const categoryViewModels = categories.map((c) => ({
+    id: c.id_cat,
+    name: c.nom_cat,
+    image: CATEGORY_IMAGES[c.nom_cat] || "/images/Sofá 3 Plazas.avif",
+  }));
 
-  const userId = getUserId();
-
-  // Fetch categories from API
-  const fetchCategories = async () => {
-    try {
-      const res = await axios.get("http://localhost:8080/api/categoria");
-      const cats = (res.data.data || res.data)
-        .filter((c: any) => c.est_cat)
-        .map((c: any) => ({
-          id: c.id_cat,
-          name: c.nom_cat,
-          image: CATEGORY_IMAGES[c.nom_cat] || "/images/no-image.png",
-        }));
-      setCategories(cats);
-    } catch (e) {
-      console.error("Error fetching categories:", e);
-    }
-  };
-
-  const fetchProducts = (page: number = 1) => {
-    axios
-      .get(`http://localhost:8080/api/mueble?page=${page}`)
-      .then((res) => {
-        const muebles = res.data.data
-          .filter((m: any) => m.est_mue === true)
-          .map((m: any) => ({
-            id: m.id_mue,
-            cod: m.cod_mue,
-            title: m.nom_mue,
-            img: m.img_mue
-              ? m.img_mue.replace("public", "")
-              : "/images/no-image.png",
-            category: m.categoria?.nom_cat || "Sin categoría",
-            price: `Bs. ${m.precio_venta}`,
-            desc: m.desc_mue,
-            stock: m.stock,
-            modelo_3d: m.modelo_3d,
-            dimensiones: m.dimensiones,
-          }));
-        setProducts(muebles);
-        setPagination({
-          current_page: res.data.current_page,
-          last_page: res.data.last_page,
-          per_page: res.data.per_page,
-          total: res.data.total,
-        });
-      })
-      .catch(() => {
-        setProducts([]);
-      });
-  };
-
+  // Cargar productos iniciales
   useEffect(() => {
     fetchProducts(1);
-    fetchCategories();
-    fetchFavoriteIds();
-  }, []);
+  }, [fetchProducts]);
 
-  const fetchFavoriteIds = async () => {
-    if (!userId) return;
-    try {
-      const res = await fetch(
-        `http://localhost:8080/api/cliente/favoritos/ids`,
-        {
-          headers: { "X-USER-ID": userId.toString() },
-        }
-      );
-      const ids = await res.json();
-      setFavoriteIds(Array.isArray(ids) ? ids : []);
-    } catch (e) {
-      console.error("Error loading favorites:", e);
-    }
-  };
+  // Filtrar productos
+  const filtered = useProductFilters(
+    productsVM,
+    activeCategory,
+    query,
+    activeFilters
+  );
 
-  const toggleFavorite = async (productId: number, isFav: boolean) => {
-    if (!userId) return;
-    try {
-      await fetch(`http://localhost:8080/api/cliente/favoritos/toggle`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-USER-ID": userId.toString(),
-        },
-        body: JSON.stringify({ id_mue: productId }),
-      });
-      if (isFav) {
-        setFavoriteIds((prev) => [...prev, productId]);
-      } else {
-        setFavoriteIds((prev) => prev.filter((id) => id !== productId));
-      }
-    } catch (e) {
-      console.error("Error toggling favorite:", e);
-    }
-  };
-
-  // Filter products
-  const filtered = useMemo(() => {
-    let items = [...products];
-
-    // By category from scroll
-    if (activeCategory !== "Todos") {
-      items = items.filter((p) => p.category === activeCategory);
-    }
-
-    // By search query
-    if (query.trim()) {
-      const q = query.toLowerCase();
-      items = items.filter(
-        (p) =>
-          p.title.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q) ||
-          p.cod?.toLowerCase().includes(q) ||
-          p.desc?.toLowerCase().includes(q)
-      );
-    }
-
-    // Apply filters
-    Object.entries(activeFilters).forEach(([filterKey, values]) => {
-      if (!values || values.length === 0) return;
-
-      switch (filterKey) {
-        case "Ordenar":
-          if (values.includes("Precio: menor a mayor")) {
-            items.sort((a, b) => {
-              const priceA = parseInt(a.price.replace(/\D/g, "")) || 0;
-              const priceB = parseInt(b.price.replace(/\D/g, "")) || 0;
-              return priceA - priceB;
-            });
-          } else if (values.includes("Precio: mayor a menor")) {
-            items.sort((a, b) => {
-              const priceA = parseInt(a.price.replace(/\D/g, "")) || 0;
-              const priceB = parseInt(b.price.replace(/\D/g, "")) || 0;
-              return priceB - priceA;
-            });
-          } else if (values.includes("Alfabético: A-Z")) {
-            items.sort((a, b) => a.title.localeCompare(b.title, "es"));
-          } else if (values.includes("Alfabético: Z-A")) {
-            items.sort((a, b) => b.title.localeCompare(a.title, "es"));
-          }
-          break;
-
-        case "Precio":
-          items = items.filter((item) => {
-            const price = parseInt(item.price.replace(/\D/g, "")) || 0;
-            return values.some((range) => {
-              if (range === "Menos de Bs. 500") return price < 500;
-              if (range === "Bs. 500 - 1.000")
-                return price >= 500 && price <= 1000;
-              if (range === "Bs. 1.000 - 2.000")
-                return price >= 1000 && price <= 2000;
-              if (range === "Bs. 2.000 - 5.000")
-                return price >= 2000 && price <= 5000;
-              if (range === "Más de Bs. 5.000") return price > 5000;
-              return true;
-            });
-          });
-          break;
-
-        case "Categoría":
-          items = items.filter((p) => values.includes(p.category));
-          break;
-      }
-    });
-
-    return items;
-  }, [products, activeCategory, query, activeFilters]);
-
-  // Category names for filters
-  const categoryNames = categories.map((c) => c.name);
+  // Nombres de categorías para filtros
+  const categoryNames = categoryViewModels.map((c) => c.name);
 
   return (
     <div className="min-h-screen bg-[#fcfbf8]">
@@ -304,7 +111,7 @@ export default function ProductsPage() {
 
       <main className="max-w-[1800px] mx-auto px-2 md:px-4 lg:px-6 pt-8 pb-20">
         <CategoriesScroll
-          categories={categories}
+          categories={categoryViewModels}
           estancias={ESTANCIAS_DATA}
           activeCategory={activeCategory}
           setActiveCategory={setActiveCategory}
@@ -350,7 +157,9 @@ export default function ProductsPage() {
                     p={p}
                     onQuickView={(prod) => setQuickView(prod)}
                     isFavorite={favoriteIds.includes(p.id)}
-                    onToggleFavorite={toggleFavorite}
+                    onToggleFavorite={(productId, isFav) =>
+                      toggleFavorite(productId, isFav)
+                    }
                   />
                 ))}
               </div>

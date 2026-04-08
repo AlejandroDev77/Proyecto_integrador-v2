@@ -1,9 +1,9 @@
 package com.changuitostudio.backend.application.gateway;
 
-import java.util.Map;
+//import java.util.Map;
 
 /**
- * Puerto de salida: AutenticaciÃ³n con Google OAuth2.
+ * Puerto de salida: con Google OAuth2.
  */
 public interface GoogleAuthProvider {
 

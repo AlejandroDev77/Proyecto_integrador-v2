@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 import axiosClient from "../../api/axios";
 import { 
   getRoles, 
@@ -25,6 +26,10 @@ export const useRoles = () => {
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState<Record<string, any>>({});
   const [sort, setSort] = useState<string | null>(null);
+  const [addForm, setAddForm] = useState({ nom_rol: "" });
+  const [addFormError, setAddFormError] = useState<string>("");
+  const [editForm, setEditForm] = useState({ nom_rol: "" });
+  const [editFormError, setEditFormError] = useState<string>("");
 
   // Cargar roles con paginación y filtros
   const fetchRoles = async () => {
@@ -47,6 +52,129 @@ export const useRoles = () => {
   useEffect(() => {
     fetchRoles();
   }, [currentPage, itemsPerPage, filters, sort]);
+
+  // Sincronizar formulario de edición con rol seleccionado
+  useEffect(() => {
+    if (selectedRol) {
+      setEditForm({
+        nom_rol: selectedRol.nom_rol || "",
+      });
+    } else {
+      setEditForm({ nom_rol: "" });
+    }
+  }, [selectedRol]);
+
+  // Validar formulario de crear
+  const validateAddForm = (): string | null => {
+    if (!addForm.nom_rol.trim()) {
+      return "El nombre del rol es requerido.";
+    }
+    return null;
+  };
+
+  // Guardar nuevo rol con validación y manejo de errores
+  const handleGuardarAddForm = async (onSuccess?: () => void) => {
+    const validationError = validateAddForm();
+    if (validationError) {
+      setAddFormError(validationError);
+      return;
+    }
+
+    setAddFormError("");
+    setLoadingAction(true);
+
+    try {
+      const response = await crearRolService(addForm.nom_rol.trim());
+      setRoles([...roles, response]);
+      setShowModalAgregar(false);
+      clearAddForm();
+      setAddFormError("");
+      
+      Swal.fire({
+        icon: "success",
+        title: "¡Rol creado!",
+        showConfirmButton: false,
+        timer: 1500,
+      });
+      
+      onSuccess?.();
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || "Error al crear rol";
+      setAddFormError(errorMsg);
+      console.error("Error al crear rol:", err);
+    } finally {
+      setLoadingAction(false);
+    }
+  };
+
+  // Validar formulario de edición
+  const validateEditForm = (): string | null => {
+    if (!editForm.nom_rol.trim()) {
+      return "El nombre del rol es requerido.";
+    }
+    return null;
+  };
+
+  // Guardar rol con validación y manejo de errores
+  const handleGuardarEditForm = async (onSuccess?: () => void) => {
+    if (!selectedRol) return;
+
+    const validationError = validateEditForm();
+    if (validationError) {
+      setEditFormError(validationError);
+      return;
+    }
+
+    setEditFormError("");
+    setLoadingAction(true);
+
+    try {
+      const response = await actualizarRolService(
+        selectedRol.id_rol,
+        editForm.nom_rol.trim()
+      );
+      setRoles(roles.map((r) => (r.id_rol === selectedRol.id_rol ? response : r)));
+      setShowModalEditar(false);
+      clearEditForm();
+      setEditFormError("");
+      
+      Swal.fire({
+        icon: "success",
+        title: "¡Rol actualizado!",
+        showConfirmButton: false,
+        timer: 1500,
+      });
+      
+      onSuccess?.();
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || "Error al actualizar rol";
+      setEditFormError(errorMsg);
+      console.error("Error al actualizar rol:", err);
+    } finally {
+      setLoadingAction(false);
+    }
+  };
+
+  // Actualizar campo del formulario de crear
+  const updateAddForm = (field: string, value: string) => {
+    setAddForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // Limpiar formulario de crear
+  const clearAddForm = () => {
+    setAddForm({ nom_rol: "" });
+  };
+
+  // Actualizar campo del formulario de edición
+  const updateEditForm = (field: string, value: string) => {
+    setEditForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // Limpiar formulario de edición
+  const clearEditForm = () => {
+    setEditForm({ nom_rol: "" });
+    setSelectedRol(null);
+  };
 
   // Crear rol
   const crearRol = async (datos: Omit<Rol, "id_rol">) => {
@@ -168,5 +296,19 @@ export const useRoles = () => {
     setFilters,
     sort,
     setSort,
+    addForm,
+    updateAddForm,
+    clearAddForm,
+    addFormError,
+    setAddFormError,
+    validateAddForm,
+    handleGuardarAddForm,
+    editForm,
+    updateEditForm,
+    clearEditForm,
+    editFormError,
+    setEditFormError,
+    validateEditForm,
+    handleGuardarEditForm,
   };
 };

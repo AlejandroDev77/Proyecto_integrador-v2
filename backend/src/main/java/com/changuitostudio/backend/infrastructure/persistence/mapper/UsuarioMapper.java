@@ -6,15 +6,11 @@ import com.changuitostudio.backend.infrastructure.persistence.entity.UsuarioEnti
 
 import org.springframework.stereotype.Component;
 
-/**
- * Mapper â€” Convierte entre Domain Model (Usuario) y JPA Entity (UsuarioEntity).
- */
+
 @Component
 public class UsuarioMapper {
 
-    /**
-     * Domain Model â†’ JPA Entity
-     */
+  
     public UsuarioEntity toEntity(Usuario domain) {
         UsuarioEntity entity = new UsuarioEntity();
         entity.setIdUsu(domain.getIdUsu());
@@ -26,7 +22,7 @@ public class UsuarioMapper {
         entity.setSecret2fa(domain.getSecret2fa());
         entity.setIs2faEnabled(domain.getIs2faEnabled());
 
-        // Setear relaciÃ³n de rol
+       
         if (domain.getIdRol() != null) {
             RolEntity rol = new RolEntity();
             rol.setIdRol(domain.getIdRol());
@@ -36,9 +32,7 @@ public class UsuarioMapper {
         return entity;
     }
 
-    /**
-     * JPA Entity â†’ Domain Model
-     */
+   
     public Usuario toDomain(UsuarioEntity entity) {
         return new Usuario(
                 entity.getIdUsu(),

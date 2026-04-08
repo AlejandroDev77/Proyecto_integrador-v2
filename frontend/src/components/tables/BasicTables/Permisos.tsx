@@ -101,7 +101,7 @@ export default function Permisos() {
                 >
                   <SortableTableHeader
                     label="Nombre"
-                    sortField="nombre"
+                    sortField="nom_permiso"
                     currentSort={currentSort}
                     onSort={handleSort}
                   />
@@ -127,9 +127,9 @@ export default function Permisos() {
             </TableHeader>
             <TableBody className="divide-y divide-gray-100 dark:divide-white/5">
               {paginatedData.map((permiso) => (
-                <TableRow key={permiso.id_permiso}>
+                <TableRow key={permiso.id}>
                   <TableCell className={`px-5 py-4 text-start ${textColor}`}>
-                    <span className="font-medium">{permiso.nombre}</span>
+                    <span className="font-medium">{permiso.nom_permiso}</span>
                   </TableCell>
                   <TableCell className={`px-5 py-4 text-start ${textColor}`}>
                     <span className="text-sm text-gray-600 dark:text-gray-400">

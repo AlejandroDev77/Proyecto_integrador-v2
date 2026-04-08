@@ -117,7 +117,7 @@ public class RolesController {
         var permisosDTO = r.getPermisos() != null
                 ? r.getPermisos().stream()
                         .map(p -> new RolDTO.PermisoConPivotDTO(
-                                p.getId(), p.getNombre(), p.getDescripcion(), r.getId()))
+                                p.getId(), p.getNomPermiso(), p.getDescripcion(), r.getId()))
                         .toList()
                 : null;
         return new RolDTO(r.getId(), r.getNomRol(), permisosDTO);

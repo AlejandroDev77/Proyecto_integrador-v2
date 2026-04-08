@@ -35,6 +35,12 @@ public class SecurityConfig {
                                 "/api/forgot-password", "/api/reset-password")
                         .permitAll()
 
+                        // Endpoints públicos de ecommerce
+                        .requestMatchers(HttpMethod.GET, "/api/categoria", "/api/categoria/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/mueble", "/api/mueble/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/cliente/favoritos", "/api/cliente/favoritos/ids").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/cliente/favoritos/toggle").permitAll()
+
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

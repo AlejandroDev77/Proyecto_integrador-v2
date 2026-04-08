@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { jwtDecode } from "jwt-decode";
+import { useState } from "react";
 import {
   Heart,
   Package,
@@ -11,104 +10,29 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
-
-const API = "http://localhost:8080/api";
-
-interface FavoritoItem {
-  id_fav: number;
-  id_mue: number;
-  mueble: {
-    id_mue: number;
-    nom_mue: string;
-    cod_mue: string;
-    desc_mue?: string;
-    img_mue?: string;
-    precio_venta: number;
-    stock: number;
-    modelo_3d?: string;
-    categoria?: string;
-  } | null;
-  created_at: string;
-}
-
-// Get user ID from token
-const getUserId = () => {
-  try {
-    const token = localStorage.getItem("token");
-    if (token) {
-      const decoded: any = jwtDecode(token);
-      return decoded.id_usu;
-    }
-  } catch {
-    return null;
-  }
-  return null;
-};
+import { useFavorites } from "../../hooks/useFavoritos";
+import { FavoritoItem } from "../../services/favoritos/types";
 
 export default function MisFavoritos() {
-  const [favoritos, setFavoritos] = useState<FavoritoItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [removingId, setRemovingId] = useState<number | null>(null);
+  const { favoritos, loading, error, removingId, handleRemove } = useFavorites();
   const { addItem, setIsOpen } = useCart();
+  const [addingToCart, setAddingToCart] = useState<number | null>(null);
 
-  const userId = getUserId();
-
-  useEffect(() => {
-    fetchFavoritos();
-  }, []);
-
-  const fetchFavoritos = async () => {
-    if (!userId) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const res = await fetch(`${API}/cliente/favoritos`, {
-        headers: {
-          "X-USER-ID": userId.toString(),
-        },
-      });
-      const data = await res.json();
-      setFavoritos(Array.isArray(data) ? data : []);
-    } catch (e) {
-      setError("Error al cargar favoritos");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRemove = async (id_mue: number) => {
-    if (!userId) return;
-
-    setRemovingId(id_mue);
-    try {
-      await fetch(`${API}/cliente/favoritos/toggle`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-USER-ID": userId.toString(),
-        },
-        body: JSON.stringify({ id_mue }),
-      });
-      setFavoritos((prev) => prev.filter((f) => f.id_mue !== id_mue));
-    } catch (e) {
-      console.error("Error removing favorite:", e);
-    } finally {
-      setRemovingId(null);
-    }
-  };
-
-  const handleAddToCart = (mueble: FavoritoItem["mueble"]) => {
+  const handleAddToCart = async (mueble: FavoritoItem["mueble"]) => {
     if (!mueble) return;
-    addItem({
-      id_mue: mueble.id_mue,
-      nom_mue: mueble.nom_mue,
-      img_mue: mueble.img_mue,
-      precio_venta: mueble.precio_venta,
-    });
-    setIsOpen(true);
+    
+    setAddingToCart(mueble.id_mue);
+    try {
+      addItem({
+        id_mue: mueble.id_mue,
+        nom_mue: mueble.nom_mue,
+        img_mue: mueble.img_mue,
+        precio_venta: mueble.precio_venta,
+      });
+      setIsOpen(true);
+    } finally {
+      setAddingToCart(null);
+    }
   };
 
   if (loading) {
@@ -247,11 +171,17 @@ export default function MisFavoritos() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleAddToCart(m)}
-                      disabled={m.stock <= 0}
+                      disabled={m.stock <= 0 || addingToCart === m.id_mue}
                       className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-[#a67c52] text-white text-sm font-medium rounded-lg hover:bg-[#8b6914] disabled:bg-gray-300 disabled:cursor-not-allowed transition"
                     >
-                      <ShoppingCart className="w-4 h-4" />
-                      Añadir
+                      {addingToCart === m.id_mue ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <>
+                          <ShoppingCart className="w-4 h-4" />
+                          Añadir
+                        </>
+                      )}
                     </button>
                     <Link
                       to={`/products?view=${m.id_mue}`}

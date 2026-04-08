@@ -14,10 +14,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * Filtro JWT â€” Intercepta cada request, extrae el Bearer token,
- * lo valida y establece la autenticaciÃ³n en el SecurityContext.
- */
+
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
