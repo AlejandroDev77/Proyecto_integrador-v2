@@ -97,7 +97,7 @@ export const useFetchProducts = () => {
     setLoading(true);
     try {
       const response = await fetchProductsFromAPI(page);
-      // response es ApiPagedResponse<Product> con estructura: { data, current_page, last_page, per_page, total }
+   
       const productsArray = Array.isArray(response.data) ? response.data : [];
       // Filtrar solo activos
       const activeProducts = productsArray.filter((p) => p.est_mue !== false);
@@ -110,7 +110,7 @@ export const useFetchProducts = () => {
       });
       setError(null);
     } catch (err) {
-      setError("Error loading products");
+      setError("Error en cargar productos");
       console.error(err);
       setProducts([]);
     } finally {
@@ -141,7 +141,7 @@ export const useFavorites = (userId: number | null) => {
         const ids = await fetchFavoriteIdsFromAPI(userId);
         setFavoriteIds(ids);
       } catch (error) {
-        console.error("Error loading favorites:", error);
+        console.error("Error en cargar favoritos:", error);
       } finally {
         setLoading(false);
       }
@@ -165,7 +165,7 @@ export const useFavorites = (userId: number | null) => {
         }
         return success;
       } catch (error) {
-        console.error("Error toggling favorite:", error);
+        console.error("Error en favoritos:", error);
         return false;
       }
     },

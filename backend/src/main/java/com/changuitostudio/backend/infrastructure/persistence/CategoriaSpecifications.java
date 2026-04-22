@@ -5,9 +5,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.util.Map;
 
-/**
- * Especificaciones JPA para construir querys dinámicamente con filtros
- */
+
 public class CategoriaSpecifications {
 
     private CategoriaSpecifications() {

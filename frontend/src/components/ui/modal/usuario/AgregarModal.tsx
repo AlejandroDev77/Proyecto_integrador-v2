@@ -23,13 +23,13 @@ function StepIndicator({ currentStep, steps }: { currentStep: number; steps: { l
                 index + 1 < currentStep
                   ? "bg-green-500 text-white"
                   : index + 1 === currentStep
-                    ? "bg-violet-600 text-white shadow-lg"
+                    ? "bg-orange-600 text-white shadow-lg"
                     : "bg-gray-200 dark:bg-gray-700 text-gray-500"
               }`}
             >
               {index + 1 < currentStep ? <Check className="w-5 h-5" /> : step.icon}
             </div>
-            <span className={`mt-1 text-xs font-medium hidden sm:block ${index + 1 === currentStep ? "text-violet-600" : "text-gray-500"}`}>
+            <span className={`mt-1 text-xs font-medium hidden sm:block ${index + 1 === currentStep ? "text-orange-600" : "text-gray-500"}`}>
               {step.label}
             </span>
           </div>
@@ -51,7 +51,7 @@ function SearchInput({ value, onChange, placeholder }: { value: string; onChange
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-violet-500 text-sm"
+        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-orange-500 text-sm"
       />
     </div>
   );
@@ -85,18 +85,18 @@ function RolCard({ rol, isSelected, onSelect }: { rol: Rol; isSelected: boolean;
     <div
       onClick={onSelect}
       className={`cursor-pointer rounded-xl border-2 p-4 transition-all hover:shadow-md ${
-        isSelected ? "border-violet-500 bg-violet-50 dark:bg-violet-900/20 shadow-md" : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+        isSelected ? "border-orange-500 bg-orange-50 dark:bg-orange-900/20 shadow-md" : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
       }`}
     >
       <div className="flex items-center gap-3">
-        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isSelected ? "bg-violet-500 text-white" : "bg-gray-200 dark:bg-gray-700"}`}>
+        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isSelected ? "bg-orange-500 text-white" : "bg-gray-200 dark:bg-gray-700"}`}>
           <Shield className="w-6 h-6" />
         </div>
         <div className="flex-1">
           <h4 className="font-semibold text-gray-900 dark:text-white">{rol.nom_rol}</h4>
           {rol.desc_rol && <p className="text-sm text-gray-500 truncate">{rol.desc_rol}</p>}
         </div>
-        {isSelected && <Check className="w-6 h-6 text-violet-500" />}
+        {isSelected && <Check className="w-6 h-6 text-orange-500" />}
       </div>
     </div>
   );
@@ -137,7 +137,7 @@ export default function ModalAgregarUsuario({ showModal, setShowModal, setUsuari
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[95vh] overflow-hidden flex flex-col">
-        <div className="bg-linear-to-r from-violet-500 to-fuchsia-500 px-6 py-4 flex items-center justify-between">
+        <div className="bg-linear-to-r from-orange-500 to-orange-500 px-6 py-4 flex items-center justify-between">
           <h2 className="text-xl font-bold text-white flex items-center gap-3">
             <UserPlus className="w-6 h-6" />
             Nuevo Usuario
@@ -154,13 +154,13 @@ export default function ModalAgregarUsuario({ showModal, setShowModal, setUsuari
           {step === 1 && (
             <div className="space-y-4">
               <h3 className="font-semibold flex items-center gap-2">
-                <Shield className="w-5 h-5 text-violet-600" />
+                <Shield className="w-5 h-5 text-orange-600" />
                 Seleccionar Rol
               </h3>
               <SearchInput value={rolSearch} onChange={setRolSearch} placeholder="Buscar rol..." />
               {loadingRol ? (
                 <div className="flex justify-center py-12">
-                  <div className="w-10 h-10 border-4 border-violet-600 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-10 h-10 border-4 border-orange-600 border-t-transparent rounded-full animate-spin" />
                 </div>
               ) : (
                 <>
@@ -196,13 +196,13 @@ export default function ModalAgregarUsuario({ showModal, setShowModal, setUsuari
                 />
               )}
               <h3 className="font-semibold flex items-center gap-2">
-                <Settings className="w-5 h-5 text-violet-600" />
+                <Settings className="w-5 h-5 text-orange-600" />
                 Datos del Usuario
               </h3>
               <div className="space-y-4">
                 <div>
                   <label className="flex items-center gap-2 text-sm font-medium mb-2">
-                    <UserPlus className="w-4 h-4 text-violet-500" />
+                    <UserPlus className="w-4 h-4 text-orange-500" />
                     Nombre *
                   </label>
                   <input
@@ -210,12 +210,12 @@ export default function ModalAgregarUsuario({ showModal, setShowModal, setUsuari
                     value={form.nom_usu}
                     onChange={(e) => setForm({ ...form, nom_usu: e.target.value })}
                     placeholder="Nombre de usuario"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-violet-500"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-orange-500"
                   />
                 </div>
                 <div>
                   <label className="flex items-center gap-2 text-sm font-medium mb-2">
-                    <Mail className="w-4 h-4 text-violet-500" />
+                    <Mail className="w-4 h-4 text-orange-500" />
                     Email *
                   </label>
                   <input
@@ -223,12 +223,12 @@ export default function ModalAgregarUsuario({ showModal, setShowModal, setUsuari
                     value={form.email_usu}
                     onChange={(e) => setForm({ ...form, email_usu: e.target.value })}
                     placeholder="correo@ejemplo.com"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-violet-500"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-orange-500"
                   />
                 </div>
                 <div>
                   <label className="flex items-center gap-2 text-sm font-medium mb-2">
-                    <CheckCircle className="w-4 h-4 text-violet-500" />
+                    <CheckCircle className="w-4 h-4 text-orange-500" />
                     Estado
                   </label>
                   <div className="flex gap-4">
@@ -263,12 +263,12 @@ export default function ModalAgregarUsuario({ showModal, setShowModal, setUsuari
                 Confirmar Usuario
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-violet-50 dark:bg-violet-900/20 rounded-xl border border-violet-200">
+                <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-xl border border-orange-200">
                   <div className="flex items-center gap-3 mb-2">
-                    <Shield className="w-6 h-6 text-violet-600" />
+                    <Shield className="w-6 h-6 text-orange-600" />
                     <span className="font-semibold">Rol</span>
                   </div>
-                  <p className="text-lg font-bold text-violet-600">{selectedRol?.nom_rol}</p>
+                  <p className="text-lg font-bold text-orange-600">{selectedRol?.nom_rol}</p>
                 </div>
                 <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border">
                   <div className="flex items-center gap-3 mb-2">
@@ -306,7 +306,7 @@ export default function ModalAgregarUsuario({ showModal, setShowModal, setUsuari
             <button
               onClick={() => setStep(step + 1)}
               disabled={!canGoNext()}
-              className="flex items-center gap-2 px-5 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:bg-gray-400 text-white rounded-xl font-semibold"
+              className="flex items-center gap-2 px-5 py-2.5 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 text-white rounded-xl font-semibold"
             >
               Siguiente
               <ChevronRight className="w-5 h-5" />

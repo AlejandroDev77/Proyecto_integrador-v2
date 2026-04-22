@@ -130,7 +130,7 @@ public class AuthController {
         }
     }
 
-    // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    
 
     private ResponseEntity<?> buildLoginResponse(LoginUseCase.LoginResult result) {
         Map<String, Object> response = new LinkedHashMap<>();

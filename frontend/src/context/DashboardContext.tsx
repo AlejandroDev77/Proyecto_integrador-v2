@@ -5,6 +5,7 @@ import {
   useState,
   useCallback,
 } from "react";
+import axiosClient from "../api/axios";
 
 interface DashboardData {
   metrics: {
@@ -180,20 +181,15 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({
         params.append("end_date", filters.endDate);
       }
 
-      const response = await fetch(
-        `http://localhost:8080/api/dashboard/all?${params.toString()}`
+      const { data } = await axiosClient.get(
+        `/api/dashboard/all?${params.toString()}`
       );
 
-      if (!response.ok) {
-        throw new Error("Error al obtener los datos del dashboard");
-      }
-
-      const dashboardData = await response.json();
-      setData(dashboardData);
+      setData(data);
       setError(null);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error fetching dashboard data:", err);
-      setError(err instanceof Error ? err.message : "Error desconocido");
+      setError(err.response?.data?.message || err.message || "Error desconocido");
     } finally {
       setLoading(false);
     }

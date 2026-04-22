@@ -40,6 +40,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/mueble", "/api/mueble/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/cliente/favoritos", "/api/cliente/favoritos/ids").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/cliente/favoritos/toggle").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/permisos").permitAll()
+                        .requestMatchers("/error").permitAll()
 
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().authenticated())

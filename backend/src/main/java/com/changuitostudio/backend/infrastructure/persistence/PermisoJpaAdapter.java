@@ -21,9 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * ✅ Adaptador de salida – Implementa el puerto PermisoRepository con JPA.
- */
+
 @Component
 public class PermisoJpaAdapter implements PermisoRepository {
 

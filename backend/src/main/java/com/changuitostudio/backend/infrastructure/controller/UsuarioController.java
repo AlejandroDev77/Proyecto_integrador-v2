@@ -16,10 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Controller REST para gestiÃ³n de usuarios.
- * Solo inyecta el Use Case ManageUsuarioUseCase.
- */
+
 @RestController
 @RequestMapping("/api/usuarios")
 @CrossOrigin(origins = "*")

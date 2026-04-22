@@ -18,10 +18,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * Controller REST para gestión de muebles.
- * Solo inyecta el Use Case ManageMuebleUseCase.
- */
+
 @RestController
 @RequestMapping("/api/mueble")
 public class MuebleController {

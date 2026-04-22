@@ -15,9 +15,7 @@ public interface TokenRepository {
 
     void eliminarToken(String token);
 
-    /**
-     * Datos del token (sin acoplamiento a entidades JPA).
-     */
+   
     record TokenData(
             String token,
             Long usuarioId,
