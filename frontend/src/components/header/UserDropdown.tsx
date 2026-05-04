@@ -120,7 +120,7 @@ export default function UserDropdown() {
                   fill=""
                 />
               </svg>
-              Account settings
+              configuraciones
             </DropdownItem>
           </li>
           {/* <li>
@@ -174,7 +174,7 @@ export default function UserDropdown() {
               fill=""
             />
           </svg>
-          Sign out
+          cerrar session
         </Link>
       </Dropdown>
     </div>

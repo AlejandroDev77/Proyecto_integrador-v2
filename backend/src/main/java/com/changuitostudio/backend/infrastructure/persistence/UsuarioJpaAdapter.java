@@ -21,10 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Adaptador de salida â€” Implementa el puerto UsuarioRepository con JPA.
- * La traducciÃ³n de filtros a Specification ocurre AQUÃ, no en la capa de aplicaciÃ³n.
- */
+
 @Component
 public class UsuarioJpaAdapter implements UsuarioRepository {
 

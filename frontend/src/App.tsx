@@ -68,6 +68,7 @@ import MiCarrito from "./pages/ClientPortal/MiCarrito";
 import MisProducciones from "./pages/ClientPortal/MisProducciones";
 
 import Home from "./pages/Dashboard/Home";
+import Chatbot from "./components/ui/chatbot/Chatbot";
 
 import { GoogleOAuthProvider } from "@react-oauth/google"; // autenticacion con google
 
@@ -79,6 +80,7 @@ export default function App() {
           <Router>
             <ScrollToTop />
             <CartDrawer />
+            <Chatbot />
             <Routes>
               {/* Rutas publicas */}
               <Route path="/products" element={<Products />} />

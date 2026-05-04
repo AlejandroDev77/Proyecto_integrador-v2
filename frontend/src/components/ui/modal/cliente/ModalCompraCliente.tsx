@@ -26,7 +26,7 @@ interface Props {
   onSuccess: () => void;
 }
 
-const API = "http://localhost:8080/api";
+const API = "http://localhost:8000/api";
 
 interface ClienteInfo {
   id_cli: number;

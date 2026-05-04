@@ -6,9 +6,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
 
-/**
- * Adaptador de salida â€” Implementa EmailSender usando Spring Mail (SMTP).
- */
+
 @Component
 public class SmtpEmailSender implements EmailSender {
 

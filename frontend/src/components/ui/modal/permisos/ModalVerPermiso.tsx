@@ -4,8 +4,8 @@ import { Key, Hash, FileText } from "lucide-react";
 import { BaseVerDatosModal, DetailItem } from "../shared";
 
 interface Permiso {
-  id_permiso: number;
-  nombre: string;
+  id: number;
+  nom_permiso: string;
   descripcion?: string;
 }
 
@@ -33,12 +33,12 @@ const ModalVerPermiso: React.FC<ModalVerPermisoProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <DetailItem
             label="ID"
-            value={String(permisoSeleccionado.id_permiso)}
+            value={String(permisoSeleccionado.id)}
             icon={<Hash className="w-5 h-5 text-blue-600" />}
           />
           <DetailItem
             label="Nombre"
-            value={permisoSeleccionado.nombre}
+            value={permisoSeleccionado.nom_permiso}
             icon={<Key className="w-5 h-5 text-indigo-600" />}
           />
           <DetailItem

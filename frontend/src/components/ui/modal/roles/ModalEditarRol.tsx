@@ -1,13 +1,7 @@
-import React, { useState, useEffect } from "react";
-import Swal from "sweetalert2";
+import React from "react";
 import { Shield, X, Save, AlertCircle } from "lucide-react";
 import { useRoles } from "../../../../hooks/Roles/useRoles";
-
-interface Rol {
-  id_rol: number;
-  cod_rol?: string;
-  nom_rol: string;
-}
+import { Rol } from "../../../../types/rol";
 
 interface Props {
   showModal: boolean;
@@ -22,37 +16,29 @@ const ModalEditarRol: React.FC<Props> = ({
   rolSeleccionado,
   onSuccess,
 }) => {
-  const { actualizarRol, loadingAction } = useRoles();
-  const [nombre, setNombre] = useState("");
-  const [errorMsg, setErrorMsg] = useState<string>("");
+  const { 
+    editForm, 
+    updateEditForm, 
+    editFormError, 
+    setEditFormError,
+    handleGuardarEditForm, 
+    loadingAction 
+  } = useRoles();
 
-  useEffect(() => {
-    if (rolSeleccionado) setNombre(rolSeleccionado.nom_rol || "");
-  }, [rolSeleccionado]);
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setEditFormError("");
+    updateEditForm(e.target.name, e.target.value);
+  };
 
   const handleSubmit = async () => {
-    if (!rolSeleccionado) return;
-    if (!nombre.trim()) {
-      setErrorMsg("El nombre es requerido.");
-      return;
-    }
+    await handleGuardarEditForm(onSuccess);
+  };
 
-    setErrorMsg("");
-    try {
-      await actualizarRol(rolSeleccionado.id_rol, { nom_rol: nombre.trim() });
-      Swal.fire({
-        icon: "success",
-        title: "¡Rol actualizado!",
-        showConfirmButton: false,
-        timer: 1500,
-      });
-      setShowModal(false);
-      onSuccess?.();
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.message || "Error al editar";
-      setErrorMsg(errorMsg);
-      console.error("Error al actualizar rol:", err);
-    }
+  const handleClose = () => {
+    setShowModal(false);
+    setEditFormError("");
   };
 
   if (!showModal || !rolSeleccionado) return null;
@@ -65,25 +51,20 @@ const ModalEditarRol: React.FC<Props> = ({
             <Shield className="w-6 h-6" />
             Editar Rol
           </h2>
-          <div className="flex items-center gap-2">
-            <span className="text-white/80 text-sm bg-white/20 px-3 py-1 rounded-lg">
-              {rolSeleccionado.cod_rol}
-            </span>
-            <button
-              onClick={() => setShowModal(false)}
-              disabled={loadingAction}
-              className="text-white/80 hover:text-white hover:bg-white/20 p-2 rounded-lg disabled:opacity-50"
-            >
-              <X className="w-6 h-6" />
-            </button>
-          </div>
+          <button
+            onClick={handleClose}
+            disabled={loadingAction}
+            className="text-white/80 hover:text-white hover:bg-white/20 p-2 rounded-lg disabled:opacity-50"
+          >
+            <X className="w-6 h-6" />
+          </button>
         </div>
 
         <div className="p-6">
-          {errorMsg && (
+          {editFormError && (
             <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 rounded-xl flex items-center gap-2 text-red-600">
               <AlertCircle className="w-5 h-5" />
-              <span className="text-sm">{errorMsg}</span>
+              <span className="text-sm">{editFormError}</span>
             </div>
           )}
 
@@ -94,8 +75,9 @@ const ModalEditarRol: React.FC<Props> = ({
             </label>
             <input
               type="text"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
+              name="nom_rol"
+              value={editForm.nom_rol}
+              onChange={handleChange}
               disabled={loadingAction}
               className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-rose-500 disabled:opacity-50"
             />

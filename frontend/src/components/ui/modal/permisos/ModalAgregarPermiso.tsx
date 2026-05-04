@@ -1,7 +1,6 @@
-import React, { useState } from "react";
-import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
+import React from "react";
 import { Key, X, Save, AlertCircle, FileText } from "lucide-react";
+import { usePermisos } from "../../../../hooks/permisos/usePermisos";
 
 interface Props {
   showModal: boolean;
@@ -14,72 +13,29 @@ const ModalAgregarPermiso: React.FC<Props> = ({
   setShowModal,
   onSuccess,
 }) => {
-  const [form, setForm] = useState({ nombre: "", descripcion: "" });
-  const [errorMsg, setErrorMsg] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { 
+    addForm, 
+    updateAddForm, 
+    addFormError, 
+    setAddFormError,
+    handleGuardarAddForm, 
+    loadingAction 
+  } = usePermisos();
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => setForm({ ...form, [e.target.name]: e.target.value });
+  ) => {
+    setAddFormError("");
+    updateAddForm(e.target.name, e.target.value);
+  };
 
   const handleSubmit = async () => {
-    if (!form.nombre.trim()) {
-      setErrorMsg("El nombre del permiso es requerido.");
-      return;
-    }
-    setIsSubmitting(true);
-    setErrorMsg("");
-
-    let idUsuarioLocal = null;
-    try {
-      const token = localStorage.getItem("token");
-      if (token) {
-        const p: any = jwtDecode(token);
-        idUsuarioLocal = p.id_usu || null;
-      }
-    } catch {
-      idUsuarioLocal = null;
-    }
-
-    try {
-      const res = await fetch("http://localhost:8080/api/permisos", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(idUsuarioLocal ? { "X-USER-ID": idUsuarioLocal } : {}),
-        },
-        body: JSON.stringify({
-          nombre: form.nombre.trim(),
-          descripcion: form.descripcion.trim(),
-        }),
-      });
-
-      if (!res.ok) {
-        const e = await res.json();
-        setErrorMsg(e.message || e.error || "Error");
-        return;
-      }
-      Swal.fire({
-        icon: "success",
-        title: "¡Permiso creado!",
-        showConfirmButton: false,
-        timer: 2000,
-        timerProgressBar: true,
-      });
-      handleClose();
-      onSuccess?.();
-    } catch (err) {
-      setErrorMsg("Error al agregar");
-      console.error(err);
-    } finally {
-      setIsSubmitting(false);
-    }
+    await handleGuardarAddForm(onSuccess);
   };
 
   const handleClose = () => {
     setShowModal(false);
-    setForm({ nombre: "", descripcion: "" });
-    setErrorMsg("");
+    setAddFormError("");
   };
 
   if (!showModal) return null;
@@ -87,7 +43,7 @@ const ModalAgregarPermiso: React.FC<Props> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden flex flex-col">
-        <div className="bg-gradient-to-r from-emerald-500 to-teal-500 px-6 py-4 flex items-center justify-between">
+        <div className="bg-linear-to-r from-emerald-500 to-teal-500 px-6 py-4 flex items-center justify-between">
           <h2 className="text-xl font-bold text-white flex items-center gap-3">
             <Key className="w-6 h-6" />
             Nuevo Permiso
@@ -101,10 +57,10 @@ const ModalAgregarPermiso: React.FC<Props> = ({
         </div>
 
         <div className="p-6">
-          {errorMsg && (
+          {addFormError && (
             <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 rounded-xl flex items-center gap-2 text-red-600">
               <AlertCircle className="w-5 h-5" />
-              <span className="text-sm">{errorMsg}</span>
+              <span className="text-sm">{addFormError}</span>
             </div>
           )}
 
@@ -116,8 +72,8 @@ const ModalAgregarPermiso: React.FC<Props> = ({
               </label>
               <input
                 type="text"
-                name="nombre"
-                value={form.nombre}
+                name="nom_permiso"
+                value={addForm.nom_permiso}
                 onChange={handleChange}
                 placeholder="ej: ver_usuarios"
                 className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
@@ -130,7 +86,7 @@ const ModalAgregarPermiso: React.FC<Props> = ({
               </label>
               <textarea
                 name="descripcion"
-                value={form.descripcion}
+                value={addForm.descripcion}
                 onChange={handleChange}
                 rows={3}
                 placeholder="Descripción del permiso..."
@@ -149,10 +105,10 @@ const ModalAgregarPermiso: React.FC<Props> = ({
           </button>
           <button
             onClick={handleSubmit}
-            disabled={isSubmitting}
+            disabled={loadingAction}
             className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white rounded-xl font-semibold shadow-lg shadow-emerald-600/30"
           >
-            {isSubmitting ? (
+            {loadingAction ? (
               <>
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 Guardando...

@@ -2,11 +2,6 @@ package com.changuitostudio.backend.application.dto;
 
 import java.util.List;
 
-/**
- * Resultado paginado propio de la capa de aplicación.
- * Reemplaza org.springframework.data.domain.Page para evitar
- * que la capa de aplicación dependa de Spring Data.
- */
 public class PageResult<T> {
 
     private final List<T> content;

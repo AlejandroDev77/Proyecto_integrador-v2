@@ -6,19 +6,13 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.util.Map;
 
-/**
- * Specifications dinÃ¡micas para filtrar usuarios.
- * Replica los filtros de Spatie QueryBuilder del backend Laravel.
- */
+
 public class UsuarioSpecifications {
 
     private UsuarioSpecifications() {
     }
 
-    /**
-     * Construye una Specification a partir del mapa de filtros del frontend.
-     * Soporta: search, cod_usu, nom_usu, email_usu, nom_rol, est_usu, id_rol
-     */
+   
     public static Specification<UsuarioEntity> fromFilters(Map<String, String> filters) {
         Specification<UsuarioEntity> spec = (root, query, cb) -> cb.conjunction();
 

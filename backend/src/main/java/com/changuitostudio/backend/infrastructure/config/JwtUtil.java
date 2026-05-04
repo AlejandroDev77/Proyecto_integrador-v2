@@ -12,9 +12,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-/**
- * ImplementaciÃ³n de JwtProvider usando la librerÃ­a jjwt.
- */
+
 @Component
 public class JwtUtil implements JwtProvider {
 
