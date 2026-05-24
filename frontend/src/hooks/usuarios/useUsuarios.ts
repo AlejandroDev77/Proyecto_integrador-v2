@@ -24,13 +24,11 @@ export const useUsuarios = () => {
       try {
         // Filtros ya vienen con el formato correcto (sin filter[])
         const data = await getUsuarios(currentPage, itemsPerPage, filters, sort);
-        // Soporta formato Spring Boot (content) y Laravel (data)
-        const usuariosArray = data.content || data.data || (Array.isArray(data) ? data : []);
-        setUsuarios(usuariosArray);
-        
-        // Soporta paginación Spring Boot (totalPages, totalElements) y Laravel (last_page, total)
-        setTotalPages(data.totalPages || data.last_page || 1);
-        setTotalItems(data.totalElements || data.total || usuariosArray.length);
+        const realData = data.data && data.success !== undefined ? data.data : data;
+        const itemsArray = realData.content || realData.data || (Array.isArray(realData) ? realData : []);
+        setUsuarios(itemsArray);
+        setTotalPages(realData.totalPages || realData.total_pages || realData.last_page || 1);
+        setTotalItems(realData.totalElements || realData.total_elements || realData.total || itemsArray.length);
       } catch (error) {
         console.error("Error al cargar usuarios:", error);
       } finally {

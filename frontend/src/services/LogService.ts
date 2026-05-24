@@ -1,8 +1,8 @@
-import axios from "axios";
+import axiosClient from "../api/axios";
 
-const API_URL = "http://localhost:8080/api/logs";
+const API_URL = "/api/logs";
 
 export async function getLogs(page: number = 1, perPage: number = 20) {
-  const response = await axios.get(API_URL, { params: { page, per_page: perPage } });
+  const response = await axiosClient.get(API_URL, { params: { page, per_page: perPage } });
   return response.data;
 }

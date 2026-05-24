@@ -37,7 +37,7 @@ interface Detalle {
 }
 
 interface Cotizacion {
-  id_cot: number;
+  id: number;
   cod_cot: string;
   fec_cot: string;
   est_cot: string;
@@ -84,11 +84,11 @@ export default function ModalGestionCotizacion({
   // Fetch cotizacion with details when modal opens
   useEffect(() => {
     const fetchCotizacionDetalle = async () => {
-      if (!cotizacion?.id_cot || !showModal) return;
+      if (!cotizacion?.id || !showModal) return;
 
       setLoading(true);
       try {
-        const res = await fetch(`${API}/cotizacion/${cotizacion.id_cot}`);
+        const res = await fetch(`${API}/cotizaciones/${cotizacion.id}`);
         const data = await res.json();
 
         // Handle both direct response and wrapped response
@@ -113,7 +113,7 @@ export default function ModalGestionCotizacion({
     if (showModal && cotizacion) {
       fetchCotizacionDetalle();
     }
-  }, [cotizacion?.id_cot, showModal]);
+  }, [cotizacion?.id, showModal]);
 
   if (!showModal || !cotizacion) return null;
 
@@ -151,7 +151,7 @@ export default function ModalGestionCotizacion({
     setIsSubmitting(true);
     try {
       const res = await fetch(
-        `${API}/negocio/cotizacion/${cotizacion.id_cot}/aprobar`,
+        `${API}/negocio/cotizacion/${cotizacion.id}/aprobar`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -200,7 +200,7 @@ export default function ModalGestionCotizacion({
     setIsSubmitting(true);
     try {
       const res = await fetch(
-        `${API}/negocio/cotizacion/${cotizacion.id_cot}/rechazar`,
+        `${API}/negocio/cotizacion/${cotizacion.id}/rechazar`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

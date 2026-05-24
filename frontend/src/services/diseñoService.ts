@@ -1,6 +1,6 @@
-import axios from "axios";
+import axiosClient from "../api/axios";
 
-const API_URL = "http://localhost:8080/api/diseño";
+const API_URL = "/api/disenos";
 
 export async function getDiseño(
   page: number = 1,
@@ -21,6 +21,6 @@ export async function getDiseño(
 
   if (sort) params.sort = sort;
 
-  const response = await axios.get(API_URL, { params });
+  const response = await axiosClient.get(API_URL, { params });
   return response.data;
 }

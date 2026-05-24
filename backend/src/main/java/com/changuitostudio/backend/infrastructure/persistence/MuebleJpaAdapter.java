@@ -26,14 +26,12 @@ import java.util.Optional;
 public class MuebleJpaAdapter implements MuebleRepository {
 
     private final MuebleJpaRepository jpaRepository;
-    private final MuebleMapper mapper;
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    public MuebleJpaAdapter(MuebleJpaRepository jpaRepository, MuebleMapper mapper) {
+    public MuebleJpaAdapter(MuebleJpaRepository jpaRepository) {
         this.jpaRepository = jpaRepository;
-        this.mapper = mapper;
     }
 
     @Override
@@ -44,7 +42,7 @@ public class MuebleJpaAdapter implements MuebleRepository {
         Page<MuebleEntity> resultado = jpaRepository.findAll(spec, pageable);
 
         return new PageResult<>(
-                resultado.getContent().stream().map(mapper::toDomain).toList(),
+                resultado.getContent().stream().map(MuebleMapper::toDomain).toList(),
                 page,
                 size,
                 resultado.getTotalElements()
@@ -53,24 +51,36 @@ public class MuebleJpaAdapter implements MuebleRepository {
 
     @Override
     public Optional<Mueble> buscarPorId(Long id) {
-        return jpaRepository.findById(id).map(mapper::toDomain);
+        return jpaRepository.findById(id).map(MuebleMapper::toDomain);
     }
 
     @Override
     @Transactional
     public Mueble guardar(Mueble mueble) {
-        MuebleEntity entity = mapper.toEntity(mueble);
+        MuebleEntity entity = MuebleMapper.toEntity(mueble);
         MuebleEntity saved = jpaRepository.saveAndFlush(entity);
 
         entityManager.detach(saved);
         saved = jpaRepository.findById(saved.getIdMue()).orElse(saved);
 
-        return mapper.toDomain(saved);
+        return MuebleMapper.toDomain(saved);
     }
 
     @Override
     public void eliminarPorId(Long id) {
         jpaRepository.deleteById(id);
+    }
+
+    // ✨ Métodos para módulo de negocio
+
+    @Override
+    public Optional<Mueble> findById(Long id) {
+        return buscarPorId(id);
+    }
+
+    @Override
+    public Mueble save(Mueble mueble) {
+        return guardar(mueble);
     }
 
     private Pageable buildPageable(int page, int size, String sort) {

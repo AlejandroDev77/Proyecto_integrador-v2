@@ -2,6 +2,7 @@ package com.changuitostudio.backend.infrastructure.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
 
 import com.changuitostudio.backend.application.gateway.*;
 import com.changuitostudio.backend.application.interactor.*;
@@ -10,6 +11,11 @@ import com.changuitostudio.backend.infrastructure.security.SpringBCryptPasswordE
 
 @Configuration
 public class BeanConfig {
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
 
     @Bean
     public PasswordEncoderGateway passwordEncoderGateway() {

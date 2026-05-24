@@ -24,14 +24,12 @@ import java.util.Optional;
 public class CategoriaJpaAdapter implements CategoriaRepository {
 
     private final CategoriaJpaRepository jpaRepository;
-    private final CategoriaMapper mapper;
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    public CategoriaJpaAdapter(CategoriaJpaRepository jpaRepository, CategoriaMapper mapper) {
+    public CategoriaJpaAdapter(CategoriaJpaRepository jpaRepository) {
         this.jpaRepository = jpaRepository;
-        this.mapper = mapper;
     }
 
     @Override
@@ -42,7 +40,7 @@ public class CategoriaJpaAdapter implements CategoriaRepository {
         Page<CategoriaEntity> resultado = jpaRepository.findAll(spec, pageable);
 
         return new PageResult<>(
-                resultado.getContent().stream().map(mapper::toDomain).toList(),
+                resultado.getContent().stream().map(CategoriaMapper::toDomain).toList(),
                 page,
                 size,
                 resultado.getTotalElements()
@@ -51,19 +49,19 @@ public class CategoriaJpaAdapter implements CategoriaRepository {
 
     @Override
     public Optional<Categoria> buscarPorId(Long id) {
-        return jpaRepository.findById(id).map(mapper::toDomain);
+        return jpaRepository.findById(id).map(CategoriaMapper::toDomain);
     }
 
     @Override
     @Transactional
     public Categoria guardar(Categoria categoria) {
-        CategoriaEntity entity = mapper.toEntity(categoria);
+        CategoriaEntity entity = CategoriaMapper.toEntity(categoria);
         CategoriaEntity saved = jpaRepository.saveAndFlush(entity);
 
         entityManager.detach(saved);
         saved = jpaRepository.findById(saved.getIdCat()).orElse(saved);
 
-        return mapper.toDomain(saved);
+        return CategoriaMapper.toDomain(saved);
     }
 
     @Override

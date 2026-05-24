@@ -314,7 +314,7 @@ export default function ProduccionEtapa() {
                       : "Sin fecha"}
                   </TableCell>
                   <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {produccionetapa.etapa?.nom_eta || "Sin etapa"}
+                    {produccionetapa.etapa_produccion?.nom_eta || "Sin etapa"}
                   </TableCell>
 
                   <TableCell className="px-4 py-3 text-start text-sm">

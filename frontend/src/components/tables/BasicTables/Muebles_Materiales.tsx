@@ -165,7 +165,7 @@ export default function MueblesMateriales() {
                 >
                   <SortableTableHeader
                     label="Codigo"
-                    sortField="mueble_material.cod_mue_mat"
+                    sortField="mueble_material.codigo_mat"
                     currentSort={currentSort}
                     onSort={handleSort}
                   />
@@ -176,7 +176,7 @@ export default function MueblesMateriales() {
                 >
                   <SortableTableHeader
                     label="Mueble"
-                    sortField="muebles.nom_mue"
+                    sortField="muebles.nombre"
                     currentSort={currentSort}
                     onSort={handleSort}
                   />
@@ -293,14 +293,14 @@ export default function MueblesMateriales() {
               {paginatedData.map((mueblematerial) => (
                 <TableRow key={mueblematerial.id_mue_mat}>
                   <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {mueblematerial.cod_mue_mat || "Sin Codigo"}
+                    {mueblematerial.codigo_mat || "Sin Codigo"}
                   </TableCell>
                   <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {mueblematerial.mueble?.nom_mue}
+                    {mueblematerial.mueble?.nombre}
                   </TableCell>
                   <TableCell className={`px-5 py-4 ${textColor}`}>
                     <img
-                      src={mueblematerial.mueble?.img_mue}
+                      src={mueblematerial.mueble?.imagen}
                       alt="Imagen Mueble"
                       className="w-16 h-16 object-cover"
                     />

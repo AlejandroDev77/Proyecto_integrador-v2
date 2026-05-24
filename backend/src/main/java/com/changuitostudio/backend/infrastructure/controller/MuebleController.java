@@ -20,7 +20,7 @@ import java.util.Map;
 
 
 @RestController
-@RequestMapping("/api/mueble")
+@RequestMapping({"/api/muebles", "/api/mueble"})
 public class MuebleController {
 
     private final ManageMuebleUseCase manageMuebleUseCase;
@@ -123,7 +123,7 @@ public class MuebleController {
 
     private MuebleResponseDTO toResponseDTO(Mueble mueble) {
         MuebleResponseDTO dto = new MuebleResponseDTO();
-        dto.setId_mue(mueble.getId());
+        dto.setId(mueble.getId());
         dto.setCod_mue(mueble.getCodigo());
         dto.setNom_mue(mueble.getNombre());
         dto.setImg_mue(mueble.getImagen());

@@ -1,0 +1,15 @@
+package com.changuitostudio.backend.application.usecase;
+
+import com.changuitostudio.backend.application.dto.PageResult;
+import com.changuitostudio.backend.domain.model.DetalleVenta;
+
+import java.util.Map;
+import java.util.Optional;
+
+public interface ManageDetalleVentaUseCase {
+    PageResult<DetalleVenta> listar(int page, int perPage, Map<String, String> filters, String sort);
+    Optional<DetalleVenta> obtenerPorId(Long id);
+    DetalleVenta crear(DetalleVenta detalleventa);
+    DetalleVenta actualizar(Long id, DetalleVenta detalleventa);
+    void eliminar(Long id);
+}

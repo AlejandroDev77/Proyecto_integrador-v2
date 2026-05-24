@@ -27,18 +27,18 @@ interface Evidencia {
 }
 
 interface ProduccionEtapa {
-  id_pro_eta: number;
+  id: number;
   cod_pro_eta: string;
   fec_ini: string;
   fec_fin: string;
   est_eta: string;
-  etapa: { nom_eta: string };
+  etapaProduccion: { nom_eta: string };
   empleado?: { nom_emp: string };
   evidencias: Evidencia[];
 }
 
 interface Produccion {
-  id_pro: number;
+  id: number;
   cod_pro: string;
   fec_ini: string;
   fec_fin_estimada: string;
@@ -47,7 +47,7 @@ interface Produccion {
   notas?: string;
   cotizacion?: { cod_cot: string; cliente?: { nom_cli: string } };
   venta?: { cod_ven: string; cliente?: { nom_cli: string } };
-  empleado?: { id_emp: number; nom_emp: string; ap_pat_emp?: string };
+  empleado?: { id: number; nom_emp: string; ap_pat_emp?: string };
   produccion_etapas: ProduccionEtapa[];
   etapas_total: number;
   etapas_completadas: number;
@@ -89,31 +89,39 @@ export default function ModalProduccionDetalle({
     if (!produccionId) return;
     setLoading(true);
     try {
-      const res = await fetch(`${API}/produccion/${produccionId}`);
-      const data = await res.json();
-      // Normalizar campos: Laravel puede enviar camelCase o snake_case
+      const [pRes, eRes] = await Promise.all([
+        fetch(`${API}/producciones/${produccionId}`),
+        fetch(`${API}/produccion-etapas?filter[produccion.id]=${produccionId}&per_page=100`),
+      ]);
+      
+      const pData = await pRes.json();
+      const eData = await eRes.json();
+
+      if (!pData.success) throw new Error(pData.message);
+
+      const mainData = pData.data;
+      const stagesList = eData?.data?.content || eData?.data || [];
+
+      // Normalizar
       const normalizedData = {
-        ...data,
-        produccion_etapas:
-          data.produccion_etapas || data.produccionEtapas || [],
-        etapas_total:
-          data.etapas_total ??
-          (data.produccion_etapas || data.produccionEtapas || []).length,
-        etapas_completadas:
-          data.etapas_completadas ??
-          (data.produccion_etapas || data.produccionEtapas || []).filter(
-            (e: ProduccionEtapa) => e.est_eta === "Completado"
-          ).length,
-        progreso: data.progreso ?? 0,
+        ...mainData,
+        produccion_etapas: stagesList,
+        etapas_total: stagesList.length,
+        etapas_completadas: stagesList.filter(
+          (e: ProduccionEtapa) => e.est_eta === "Completado"
+        ).length,
+        progreso: 0,
       };
-      if (normalizedData.etapas_total > 0 && normalizedData.progreso === 0) {
+
+      if (normalizedData.etapas_total > 0) {
         normalizedData.progreso = Math.round(
           (normalizedData.etapas_completadas / normalizedData.etapas_total) *
             100
         );
       }
       setProduccion(normalizedData);
-    } catch {
+    } catch (e: any) {
+      console.error("Error fetching production:", e);
       setProduccion(null);
     } finally {
       setLoading(false);
@@ -128,7 +136,7 @@ export default function ModalProduccionDetalle({
   }, [showModal, produccionId, fetchProduccion]);
 
   const handleChangeEstado = async (
-    id_pro_eta: number,
+    id: number,
     nuevoEstado: string,
     evidenciasCount: number = 0
   ) => {
@@ -144,7 +152,7 @@ export default function ModalProduccionDetalle({
     }
 
     try {
-      const res = await fetch(`${API}/produccion-etapa/${id_pro_eta}`, {
+      const res = await fetch(`${API}/produccion-etapas/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ est_eta: nuevoEstado }),
@@ -165,7 +173,7 @@ export default function ModalProduccionDetalle({
   };
 
   const handleUploadEvidencia = async (
-    id_pro_eta: number,
+    id: number,
     file: File,
     descripcion: string,
     tipo: string = "foto"
@@ -175,16 +183,16 @@ export default function ModalProduccionDetalle({
       return;
     }
 
-    setUploadingEtapa(id_pro_eta);
+    setUploadingEtapa(id);
     const formData = new FormData();
-    formData.append("id_pro_eta", String(id_pro_eta));
+    formData.append("id_pro_eta", String(id));
     formData.append("archivo", file);
     formData.append("descripcion", descripcion || "Evidencia del proceso");
     formData.append("tipo_evi", tipo);
-    formData.append("id_emp", String(produccion.empleado?.id_emp || 1));
+    formData.append("id_emp", String(produccion.empleado?.id || 1));
 
     try {
-      const res = await fetch(`${API}/evidencia-produccion`, {
+      const res = await fetch(`${API}/evidencias-produccion`, {
         method: "POST",
         body: formData,
       });
@@ -207,7 +215,7 @@ export default function ModalProduccionDetalle({
     }
   };
 
-  const showUploadDialog = (id_pro_eta: number, etapaNombre: string) => {
+  const showUploadDialog = (id: number, etapaNombre: string) => {
     Swal.fire({
       title: `Subir Evidencia`,
       html: `
@@ -341,7 +349,7 @@ export default function ModalProduccionDetalle({
     }).then((r) => {
       if (r.isConfirmed && r.value) {
         handleUploadEvidencia(
-          id_pro_eta,
+          id,
           r.value.file,
           r.value.descripcion,
           r.value.tipo
@@ -461,16 +469,14 @@ export default function ModalProduccionDetalle({
                 <div className="space-y-2">
                   {produccion.produccion_etapas?.map((etapa, idx) => (
                     <div
-                      key={etapa.id_pro_eta}
+                      key={etapa.id}
                       className="border rounded-xl overflow-hidden"
                     >
                       <div
                         className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900/50"
                         onClick={() =>
                           setExpandedEtapa(
-                            expandedEtapa === etapa.id_pro_eta
-                              ? null
-                              : etapa.id_pro_eta
+                            expandedEtapa === etapa.id ? null : etapa.id
                           )
                         }
                       >
@@ -491,9 +497,9 @@ export default function ModalProduccionDetalle({
                             )}
                           </div>
                           <div>
-                            <p className="font-medium">
-                              {etapa.etapa?.nom_eta}
-                            </p>
+                            <span className="font-medium text-sm">
+                            {etapa.etapaProduccion?.nom_eta}
+                          </span>
                             <p className="text-xs text-gray-500">
                               {etapa.fec_ini} → {etapa.fec_fin}
                               {etapa.evidencias?.length > 0 && (
@@ -512,7 +518,7 @@ export default function ModalProduccionDetalle({
                           >
                             {etapa.est_eta}
                           </span>
-                          {expandedEtapa === etapa.id_pro_eta ? (
+                          {expandedEtapa === etapa.id ? (
                             <ChevronUp className="w-4 h-4" />
                           ) : (
                             <ChevronDown className="w-4 h-4" />
@@ -520,7 +526,7 @@ export default function ModalProduccionDetalle({
                         </div>
                       </div>
 
-                      {expandedEtapa === etapa.id_pro_eta && (
+                      {expandedEtapa === etapa.id && (
                         <div className="p-3 pt-0 border-t bg-gray-50 dark:bg-gray-900/30">
                           <div className="flex gap-2 flex-wrap mb-3">
                             {etapa.est_eta === "Pendiente" && (
@@ -528,7 +534,7 @@ export default function ModalProduccionDetalle({
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleChangeEstado(
-                                    etapa.id_pro_eta,
+                                    etapa.id,
                                     "En Proceso"
                                   );
                                 }}
@@ -542,7 +548,7 @@ export default function ModalProduccionDetalle({
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleChangeEstado(
-                                    etapa.id_pro_eta,
+                                    etapa.id,
                                     "Completado",
                                     etapa.evidencias?.length || 0
                                   );
@@ -556,14 +562,14 @@ export default function ModalProduccionDetalle({
                               onClick={(e) => {
                                 e.stopPropagation();
                                 showUploadDialog(
-                                  etapa.id_pro_eta,
-                                  etapa.etapa?.nom_eta || "Etapa"
+                                  etapa.id,
+                                  etapa.etapaProduccion?.nom_eta || "Etapa"
                                 );
                               }}
-                              disabled={uploadingEtapa === etapa.id_pro_eta}
+                              disabled={uploadingEtapa === etapa.id}
                               className="px-3 py-1.5 bg-cyan-100 text-cyan-700 rounded-lg text-sm flex items-center gap-1 disabled:opacity-50"
                             >
-                              {uploadingEtapa === etapa.id_pro_eta ? (
+                              {uploadingEtapa === etapa.id ? (
                                 <Loader2 className="w-3 h-3 animate-spin" />
                               ) : (
                                 <Camera className="w-3 h-3" />

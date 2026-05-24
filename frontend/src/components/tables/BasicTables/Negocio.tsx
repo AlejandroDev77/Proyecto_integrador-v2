@@ -41,7 +41,7 @@ interface IProcessCard {
 }
 
 interface Cotizacion {
-  id_cot: number;
+  id: number;
   cod_cot: string;
   fec_cot: string;
   est_cot: string;
@@ -55,7 +55,7 @@ interface Cotizacion {
 }
 
 interface Produccion {
-  id_pro: number;
+  id: number;
   cod_pro: string;
   fec_ini: string;
   fec_fin_estimada: string;
@@ -237,11 +237,14 @@ export default function Negocio() {
     setLoadingCot(true);
     try {
       const res = await fetch(
-        `${API}/cotizacion?per_page=20&sort=-fec_cot&filter[est_cot]=Pendiente`
+        `${API}/cotizaciones?per_page=20&sort=-fec_cot&filter[est_cot]=Pendiente`
       );
       const data = await res.json();
-      setCotizacionesPendientes(data?.data || []);
-    } catch {
+      // Handle PageResult structure: data.data is the PageResult object, data.data.content is the array
+      const content = data?.data?.content || data?.data || [];
+      setCotizacionesPendientes(Array.isArray(content) ? content : []);
+    } catch (error) {
+      console.error("Error fetching cotizaciones:", error);
       setCotizacionesPendientes([]);
     } finally {
       setLoadingCot(false);
@@ -253,23 +256,29 @@ export default function Negocio() {
     try {
       const [resPendiente, resEnProceso, resCompletado] = await Promise.all([
         fetch(
-          `${API}/produccion?per_page=15&sort=-fec_ini&filter[est_pro]=Pendiente`
+          `${API}/producciones?per_page=15&sort=-fec_ini&filter[est_pro]=Pendiente`
         ),
         fetch(
-          `${API}/produccion?per_page=15&sort=-fec_ini&filter[est_pro]=En Proceso`
+          `${API}/producciones?per_page=15&sort=-fec_ini&filter[est_pro]=En Proceso`
         ),
         fetch(
-          `${API}/produccion?per_page=10&sort=-fec_fin&filter[est_pro]=Completado`
+          `${API}/producciones?per_page=10&sort=-fec_fin&filter[est_pro]=Completado`
         ),
       ]);
       const dataPendiente = await resPendiente.json();
       const dataEnProceso = await resEnProceso.json();
       const dataCompletado = await resCompletado.json();
 
-      setProdPendientes(dataPendiente?.data || []);
-      setProdEnProceso(dataEnProceso?.data || []);
-      setProdCompletados(dataCompletado?.data || []);
-    } catch {
+      // Handle PageResult structure for each response
+      const listPendiente = dataPendiente?.data?.content || dataPendiente?.data || [];
+      const listEnProceso = dataEnProceso?.data?.content || dataEnProceso?.data || [];
+      const listCompletado = dataCompletado?.data?.content || dataCompletado?.data || [];
+
+      setProdPendientes(Array.isArray(listPendiente) ? listPendiente : []);
+      setProdEnProceso(Array.isArray(listEnProceso) ? listEnProceso : []);
+      setProdCompletados(Array.isArray(listCompletado) ? listCompletado : []);
+    } catch (error) {
+      console.error("Error fetching producciones:", error);
       setProdPendientes([]);
       setProdEnProceso([]);
       setProdCompletados([]);
@@ -363,7 +372,7 @@ export default function Negocio() {
               ) : (
                 cotizacionesPendientes.map((cot) => (
                   <div
-                    key={cot.id_cot}
+                    key={cot.id}
                     className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border border-orange-100 dark:border-gray-700 hover:border-orange-300 transition-colors"
                   >
                     <div className="flex items-center gap-3">
@@ -492,9 +501,9 @@ export default function Negocio() {
                     ) : (
                       prodPendientes.map((prod) => (
                         <div
-                          key={prod.id_pro}
+                          key={prod.id}
                           onClick={() => {
-                            setSelectedProduccionId(prod.id_pro);
+                            setSelectedProduccionId(prod.id);
                             setShowDetalleModal(true);
                           }}
                           className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/10 rounded-lg border border-yellow-200 dark:border-yellow-900/30 cursor-pointer hover:bg-yellow-100 dark:hover:bg-yellow-900/20 transition-colors"
@@ -514,7 +523,7 @@ export default function Negocio() {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setSelectedInformeId(prod.id_pro);
+                                setSelectedInformeId(prod.id);
                                 setShowInformeModal(true);
                               }}
                               className="p-2 hover:bg-yellow-200 rounded-lg"
@@ -567,9 +576,9 @@ export default function Negocio() {
                     ) : (
                       prodEnProceso.map((prod) => (
                         <div
-                          key={prod.id_pro}
+                          key={prod.id}
                           onClick={() => {
-                            setSelectedProduccionId(prod.id_pro);
+                            setSelectedProduccionId(prod.id);
                             setShowDetalleModal(true);
                           }}
                           className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/10 rounded-lg border border-blue-200 dark:border-blue-900/30 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/20 transition-colors"
@@ -589,7 +598,7 @@ export default function Negocio() {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setSelectedInformeId(prod.id_pro);
+                                setSelectedInformeId(prod.id);
                                 setShowInformeModal(true);
                               }}
                               className="p-2 hover:bg-blue-200 rounded-lg"
@@ -642,9 +651,9 @@ export default function Negocio() {
                     ) : (
                       prodCompletados.map((prod) => (
                         <div
-                          key={prod.id_pro}
+                          key={prod.id}
                           onClick={() => {
-                            setSelectedProduccionId(prod.id_pro);
+                            setSelectedProduccionId(prod.id);
                             setShowDetalleModal(true);
                           }}
                           className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/10 rounded-lg border border-green-200 dark:border-green-900/30 cursor-pointer hover:bg-green-100 dark:hover:bg-green-900/20 transition-colors"
@@ -662,7 +671,7 @@ export default function Negocio() {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setSelectedInformeId(prod.id_pro);
+                                setSelectedInformeId(prod.id);
                                 setShowInformeModal(true);
                               }}
                               className="p-2 hover:bg-green-200 rounded-lg"

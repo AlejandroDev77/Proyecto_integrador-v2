@@ -1,6 +1,6 @@
-import axios from "axios";
+import axiosClient from "../api/axios";
 
-const API_URL = "http://localhost:8080/api/mueble";
+const API_URL = "/api/muebles";
 
 export async function getMuebles(
   page: number = 1,
@@ -36,11 +36,11 @@ export async function getMuebles(
     params.sort = sort;
   }
 
-  const response = await axios.get(API_URL, { params });
+  const response = await axiosClient.get(API_URL, { params });
   return response.data;
 }
 
 export const cambiarEstadoMueble = async (id: number, nuevoEstado: boolean) => {
   const estadoNumerico = nuevoEstado ? 1 : 0;
-  await axios.put(`${API_URL}/${id}/estado`, { est_mue: estadoNumerico });
+  await axiosClient.put(`${API_URL}/${id}/estado`, { est_mue: estadoNumerico });
 };

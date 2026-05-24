@@ -260,7 +260,7 @@ export default function ModalAgregarEmpleado({
     setLoadingUsu(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/usuarios-sin-relaciones?page=${page}&per_page=6${
+        `http://localhost:8080/api/usuarios?filter[sin_relaciones]=true&page=${page}&per_page=6${
           search ? `&filter[nom_usu]=${encodeURIComponent(search)}` : ""
         }`
       );

@@ -15,4 +15,8 @@ public interface MuebleRepository {
     Mueble guardar(Mueble mueble);
 
     void eliminarPorId(Long id);
+    
+    // Métodos para módulo de negocio
+    Optional<Mueble> findById(Long id);
+    Mueble save(Mueble mueble);
 }

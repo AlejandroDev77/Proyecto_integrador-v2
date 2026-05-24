@@ -100,7 +100,7 @@ export default function RoomViewer({ initialConfig, roomName, onBack }: RoomView
     ];
 
     axios
-      .get("http://localhost:8080/api/mueble")
+      .get("http://localhost:8080/api/muebles")
       .then((res) => {
         const apiMuebles = (res.data.data || res.data)
           .filter((m: any) => m.est_mue && m.modelo_3d)

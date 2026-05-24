@@ -4,7 +4,7 @@ import com.changuitostudio.backend.infrastructure.controller.dto.CategoriaDTO.Ca
 
 public class MuebleResponseDTO {
 
-    private Long id_mue;
+    private Long id;
     private String cod_mue;
     private String nom_mue;
     private String img_mue;
@@ -18,12 +18,20 @@ public class MuebleResponseDTO {
     public MuebleResponseDTO() {
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public Long getId_mue() {
-        return id_mue;
+        return id;
     }
 
     public void setId_mue(Long id_mue) {
-        this.id_mue = id_mue;
+        this.id = id_mue;
     }
 
     public String getCod_mue() {

@@ -17,4 +17,11 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*");
     }
+
+    @Override
+    public void addResourceHandlers(org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry registry) {
+        String storagePath = new java.io.File("storage").getAbsolutePath();
+        registry.addResourceHandler("/storage/**")
+                .addResourceLocations("file:" + storagePath + "/");
+    }
 }

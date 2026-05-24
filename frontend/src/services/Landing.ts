@@ -1,15 +1,11 @@
-import axios from "axios";
-
-const API = axios.create({
-  baseURL: "http://localhost:8080/api",
-});
+import axiosClient from "../api/axios";
 
 export const getMuebles = async () => {
-  const res = await API.get("/mueble");
+  const res = await axiosClient.get("/api/muebles");
   // API returns paginated response, data is in res.data.data
   return res.data.data || res.data;
 };
 
 export const sendContacto = async (data: any) => {
-  return await API.post("/contacto", data);
+  return await axiosClient.post("/api/contacto", data);
 };
