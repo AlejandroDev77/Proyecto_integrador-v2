@@ -4,26 +4,19 @@
  * Maneja todas las llamadas HTTP al backend
  */
 
-import axios from "axios";
+import axiosClient from "../../api/axios";
 import {
   Product,
   Category,
   ApiPagedResponse,
 } from "./types";
 
-const API_BASE_URL = "http://localhost:8080/api";
-
-// Helper: obtener header auth si existe
-const getAuthHeader = (): Record<string, string> => {
-  const token = localStorage.getItem("token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
+const API_BASE_URL = "/api";
 
 // Categorías - PÚBLICO
 export const fetchCategoriesFromAPI = async (): Promise<Category[]> => {
   try {
-    const res = await axios.get(`${API_BASE_URL}/categoria`);
-    // El backend retorna solo array o con 'data'
+    const res = await axiosClient.get(`${API_BASE_URL}/categorias`);
     return (res.data.data || res.data) as Category[];
   } catch (error) {
     console.error("Error fetching categories:", error);
@@ -39,21 +32,16 @@ export const fetchProductsFromAPI = async (
   sort?: string
 ): Promise<ApiPagedResponse<Product>> => {
   try {
-    let url = `${API_BASE_URL}/mueble?page=${page}&per_page=${perPage}`;
+    const params: any = { page, per_page: perPage };
 
-    if (sort) {
-      url += `&sort=${sort}`;
-    }
-
+    if (sort) params.sort = sort;
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
-        if (value) {
-          url += `&filter[${key}]=${encodeURIComponent(value)}`;
-        }
+        if (value) params[`filter[${key}]`] = value;
       });
     }
 
-    const res = await axios.get(url);
+    const res = await axiosClient.get(`${API_BASE_URL}/muebles`, { params });
     return res.data as ApiPagedResponse<Product>;
   } catch (error) {
     console.error("Error fetching products:", error);
@@ -66,19 +54,11 @@ export const fetchFavoriteIdsFromAPI = async (
   userId: number
 ): Promise<number[]> => {
   try {
-    if (!userId) {
-      console.warn("No userId provided to fetch favorites");
-      return [];
-    }
-    const headers = getAuthHeader();
-    const res = await fetch(`${API_BASE_URL}/cliente/favoritos/ids?id_usu=${userId}`, {
-      headers: Object.keys(headers).length > 0 ? headers : undefined,
+    if (!userId) return [];
+    const res = await axiosClient.get(`${API_BASE_URL}/cliente/favoritos/ids`, {
+      params: { id_usu: userId }
     });
-    if (!res.ok) {
-      console.warn("Favorites endpoint not available:", res.status);
-      return [];
-    }
-    const data = await res.json();
+    const data = res.data;
     return Array.isArray(data) ? data : data.data || [];
   } catch (error) {
     console.error("Error loading favorites:", error);
@@ -92,36 +72,12 @@ export const toggleFavoriteAPI = async (
   productId: number
 ): Promise<boolean> => {
   try {
-    // Validar que ambos parámetros sean válidos números enteros
-    if (!userId || !productId) {
-      console.error("Invalid parameters:", { userId, productId });
-      return false;
-    }
+    if (!userId || !productId) return false;
 
-    if (!Number.isInteger(userId) || !Number.isInteger(productId)) {
-      console.error("Parameters must be integers:", { userId, productId, userIdType: typeof userId, productIdType: typeof productId });
-      return false;
-    }
-
-    const authHeaders = getAuthHeader();
-    const payload = { id_usu: userId, id_mue: productId };
-    
-    console.log("Toggling favorite:", payload);
-    
-    const res = await fetch(`${API_BASE_URL}/cliente/favoritos/toggle`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...authHeaders,
-      } as Record<string, string>,
-      body: JSON.stringify(payload),
+    await axiosClient.post(`${API_BASE_URL}/cliente/favoritos/toggle`, {
+      id_usu: userId,
+      id_mue: productId
     });
-
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => ({}));
-      console.error("Toggle favorite failed:", res.status, errorData);
-      return false;
-    }
 
     return true;
   } catch (error) {

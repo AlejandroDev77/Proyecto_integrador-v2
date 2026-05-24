@@ -28,6 +28,14 @@ public class CategoriaResponseDTO {
         this.id = id;
     }
 
+    public Long getId_cat() {
+        return id;
+    }
+
+    public void setId_cat(Long id_cat) {
+        this.id = id_cat;
+    }
+
     public String getNom_cat() {
         return nom_cat;
     }

@@ -81,7 +81,7 @@ public class ChatController {
 
         // Llamada al webhook de n8n (Apunta a la IP de tu Máquina Virtual en
         // producción)
-        String n8nWebhookUrl = "http://192.168.100.36:5678/webhook/chat-ia";
+        String n8nWebhookUrl = "http://100.94.160.54:5678/webhook/chat-ia";
 
         try {
             // Se hace la petición POST a n8n

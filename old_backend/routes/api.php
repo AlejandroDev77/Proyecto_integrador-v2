@@ -193,33 +193,6 @@ Route::post('/produccion-etapa', [ProduccionEtapaController::class, 'store']);
 
 
 
-//Reportes
-
-Route::get('/reporte-Usuarios', [UsuarioController::class, 'reporteUsuarios']);
-
-// Rutas para reportes
-Route::get('/reporte-Clientes', [ClienteController::class, 'reporteClientes']);
-Route::get('/reporte-Empleados', [EmpleadoController::class, 'reporteEmpleados']);
-Route::get('/reporte-Materiales', [MaterialController::class, 'reporteMateriales']);
-Route::get('/reporte-Proveedores', [ProveedorController::class, 'reporteProveedores']);
-Route::get('/reporte-Muebles', [MuebleController::class, 'reporteMuebles']);
-Route::get('/reporte-Categorias', [CategoriaMuebleController::class, 'reporteCategorias']);
-Route::get('/reporte-ComprasMateriales', [CompraMaterialController::class, 'reporteComprasMateriales']);
-Route::get('/reporte-DetallesCompra', [DetalleCompraController::class, 'reporteDetallesCompra']);
-Route::get('/reporte-DetallesVenta', [DetalleVentaController::class, 'reporteDetallesVenta']);
-Route::get('/reporte-MuebleMateriales', [MuebleMaterialController::class, 'reporteMuebleMateriales']);
-Route::get('/reporte-Ventas', [VentaController::class, 'reporteVentas']);
-Route::get('/reporte-Cotizaciones', [CotizacionController::class, 'reporteCotizaciones']);
-Route::get('/reporte-DetalleCotizaciones', [DetalleCotizacionController::class, 'reporteDetallesCotizaciones']);
-Route::get('/reporte-Devoluciones', [DevolucionController::class, 'reporteDevoluciones']);
-Route::get('/reporte-DetalleDevoluciones', [DetalleDevolucionController::class, 'reporteDetallesDevoluciones']);
-Route::get('/reporte-Producciones', [ProduccionController::class, 'reporteProducciones']);
-Route::get('/reporte-DetalleProducciones', [DetalleProduccionController::class, 'reporteDetallesProducciones']);
-Route::get('/reporte-Diseños', [DiseñoController::class, 'reporteDiseños']);
-Route::get('/reporte-Pagos', [PagoController::class, 'reportePagos']);
-Route::get('/reporte-MovimientosInventario', [MovimientoInventarioController::class, 'reporteMovimientosInventarios']);
-Route::get('/reporte-ProduccionEtapa', [ProduccionEtapaController::class, 'reporteProduccionEtapa']);
-Route::get('/reporte-EtapaProduccion', [EtapaProduccionController::class, 'reporteEtapasProducciones']);
 
 
 

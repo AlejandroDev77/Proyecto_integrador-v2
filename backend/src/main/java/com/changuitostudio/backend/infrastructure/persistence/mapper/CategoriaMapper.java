@@ -8,8 +8,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class CategoriaMapper {
 
-    
-    public Categoria toDomain(CategoriaEntity entity) {
+    public static Categoria toDomain(CategoriaEntity entity) {
         if (entity == null) {
             return null;
         }
@@ -21,7 +20,7 @@ public class CategoriaMapper {
     }
 
    
-    public CategoriaEntity toEntity(Categoria domain) {
+    public static CategoriaEntity toEntity(Categoria domain) {
         if (domain == null) {
             return null;
         }

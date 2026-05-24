@@ -18,6 +18,8 @@ import {
   Loader2,
 } from "lucide-react";
 import type { CartItem } from "../../../../context/CartContext";
+import AnimatedCreditCard from "../../../payment/AnimatedCreditCard";
+import QrScannerSimulator from "../../../payment/QrScannerSimulator";
 
 interface Props {
   showModal: boolean;
@@ -26,7 +28,7 @@ interface Props {
   onSuccess: () => void;
 }
 
-const API = "http://localhost:8000/api";
+const API = "http://localhost:8080/api";
 
 interface ClienteInfo {
   id_cli: number;
@@ -36,7 +38,7 @@ interface ClienteInfo {
   dir_cli: string;
 }
 
-type PaymentMethod = "efectivo" | "transferencia" | "qr";
+type PaymentMethod = "efectivo" | "transferencia" | "qr" | "tarjeta";
 
 const paymentMethods = [
   {
@@ -46,12 +48,18 @@ const paymentMethods = [
     color: "green",
   },
   {
-    id: "transferencia" as PaymentMethod,
-    label: "Transferencia",
+    id: "tarjeta" as PaymentMethod,
+    label: "Tarjeta",
     icon: CreditCard,
     color: "blue",
   },
   { id: "qr" as PaymentMethod, label: "QR", icon: Smartphone, color: "purple" },
+  {
+    id: "transferencia" as PaymentMethod,
+    label: "Transferencia",
+    icon: Calendar,
+    color: "amber",
+  },
 ];
 
 export default function ModalCompraCliente({
@@ -94,7 +102,7 @@ export default function ModalCompraCliente({
         return;
       }
 
-      // Llamar al endpoint público para obtener cliente por id_usu
+      // Llamar al endpoint para obtener cliente por id_usu
       const res = await fetch(`${API}/cliente/por-usuario/${idUsu}`);
 
       if (res.ok) {
@@ -336,26 +344,26 @@ export default function ModalCompraCliente({
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                   Selecciona cómo deseas pagar:
                 </label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-4 gap-2">
                   {paymentMethods.map((pm) => (
                     <button
                       key={pm.id}
                       onClick={() => setPaymentMethod(pm.id)}
-                      className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition ${
+                      className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition ${
                         paymentMethod === pm.id
                           ? `border-${pm.color}-500 bg-${pm.color}-50 dark:bg-${pm.color}-900/20`
                           : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
                       }`}
                     >
                       <pm.icon
-                        className={`w-6 h-6 ${
+                        className={`w-5 h-5 ${
                           paymentMethod === pm.id
                             ? `text-${pm.color}-500`
                             : "text-gray-400"
                         }`}
                       />
                       <span
-                        className={`text-sm font-medium ${
+                        className={`text-xs font-medium ${
                           paymentMethod === pm.id
                             ? `text-${pm.color}-700 dark:text-${pm.color}-300`
                             : "text-gray-600"
@@ -368,6 +376,42 @@ export default function ModalCompraCliente({
                 </div>
               </div>
 
+              {/* Dynamic Payment Content */}
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                {paymentMethod === "tarjeta" && (
+                  <AnimatedCreditCard />
+                )}
+
+                {paymentMethod === "qr" && (
+                  <QrScannerSimulator 
+                    totalAmount={total} 
+                    onScanSuccess={() => {
+                      handleSubmit();
+                    }}
+                  />
+                )}
+
+                {(paymentMethod === "efectivo" || paymentMethod === "transferencia") && (
+                  <div className="p-8 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-dashed border-gray-300 dark:border-gray-600 text-center">
+                    {paymentMethod === "efectivo" ? (
+                      <>
+                        <Banknote className="w-12 h-12 text-green-500 mx-auto mb-4" />
+                        <p className="text-gray-600 dark:text-gray-300">
+                          Pagarás en efectivo al momento de recibir tus productos.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <Calendar className="w-12 h-12 text-amber-500 mx-auto mb-4" />
+                        <p className="text-gray-600 dark:text-gray-300">
+                          Realiza la transferencia y adjunta tu comprobante luego de confirmar.
+                        </p>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+
               {/* Delivery Address */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -378,18 +422,18 @@ export default function ModalCompraCliente({
                   value={direccion}
                   onChange={(e) => setDireccion(e.target.value)}
                   placeholder="Ingresa la dirección completa de entrega..."
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-800 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  rows={3}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-800 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                  rows={2}
                 />
               </div>
 
               {/* Order Summary */}
               <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
-                <div className="flex items-center justify-between text-lg">
+                <div className="flex items-center justify-between">
                   <span className="font-medium text-gray-700 dark:text-gray-300">
                     Total a pagar:
                   </span>
-                  <span className="text-2xl font-bold text-green-600">
+                  <span className="text-xl font-bold text-green-600">
                     Bs. {total.toLocaleString()}
                   </span>
                 </div>

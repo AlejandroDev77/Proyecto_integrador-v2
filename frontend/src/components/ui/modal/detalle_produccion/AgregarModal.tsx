@@ -18,16 +18,9 @@ import {
   Hash,
   Tag,
 } from "lucide-react";
+import { DetalleProduccion } from "../../../../hooks/detalles_producciones/useDetalles_Producciones";
 
-interface DetalleProduccion {
-  id_det_pro: number;
-  cantidad: number;
-  est_det_pro: string;
-  id_pro: number;
-  id_mue: number;
-  produccion?: { fec_ini: string; fec_fin: string };
-  mueble?: { nom_mue: string };
-}
+
 interface Produccion {
   id_pro: number;
   fec_ini: string;
@@ -411,7 +404,7 @@ export default function ModalAgregarDetalleProduccion({
             fec_ini: selectedProduccion.fec_ini,
             fec_fin: selectedProduccion.fec_fin,
           },
-          mueble: { nom_mue: selectedMueble.nom_mue },
+          mueble: { nombre: selectedMueble.nom_mue },
         },
       ]);
       Swal.fire({
@@ -433,7 +426,7 @@ export default function ModalAgregarDetalleProduccion({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden flex flex-col">
-        <div className="bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-4 flex items-center justify-between">
+        <div className="bg-linear-to-r from-sky-500 to-cyan-500 px-6 py-4 flex items-center justify-between">
           <h2 className="text-xl font-bold text-white flex items-center gap-3">
             <Factory className="w-6 h-6" />
             Agregar Detalle de Producción

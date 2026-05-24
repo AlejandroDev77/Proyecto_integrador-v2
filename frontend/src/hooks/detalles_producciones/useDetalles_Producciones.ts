@@ -1,22 +1,22 @@
 import { useState, useEffect } from "react";
 import { getDetallesProducciones } from "../../services/detalle_produccionService";
 
-interface DetalleProduccion {
+export interface DetalleProduccion {
     id_det_pro: number;
     cod_det_pro?: string;
     cantidad: number;
     est_det_pro: string;
     id_pro: number;
     produccion?: {
+        cod_pro?: string;
+        est_pro?: string;
         fec_ini: string;
         fec_fin: string;
     };
     id_mue: number;
     mueble?: {
-        nom_mue: string;
+        nombre: string;
     };
-
-   
 }
 
 export function useDetallesProducciones() {
@@ -49,9 +49,11 @@ export function useDetallesProducciones() {
         }
 
         const data = await getDetallesProducciones(currentPage, itemsPerPage, params);
-        setDetallesProducciones(data.data || data);
-        setTotalPages(data.last_page || 1);
-        setTotalItems(data.total || (data.data ? data.data.length : 0));
+        const realData = data.data && data.success !== undefined ? data.data : data;
+        const itemsArray = realData.content || realData.data || (Array.isArray(realData) ? realData : []);
+        setDetallesProducciones(itemsArray);
+        setTotalPages(realData.totalPages || realData.total_pages || realData.last_page || 1);
+        setTotalItems(realData.totalElements || realData.total_elements || realData.total || itemsArray.length);
       } catch (err) {
         console.error(err);
       } finally {
@@ -63,7 +65,7 @@ export function useDetallesProducciones() {
   }, [currentPage, itemsPerPage, filters, sort]);
 
   const filtered = detallesproducciones.filter((c) =>
-    `${c.cantidad} ${c.est_det_pro} ${c.id_pro} ${c.produccion?.fec_ini} ${c.produccion?.fec_fin} ${c.id_mue} ${c.mueble?.nom_mue}`
+    `${c.cantidad} ${c.est_det_pro} ${c.id_pro} ${c.produccion?.fec_ini} ${c.produccion?.fec_fin} ${c.id_mue} ${c.mueble?.nombre}`
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
   );

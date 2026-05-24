@@ -2,19 +2,9 @@ import React from "react";
 import { EyeIcon } from "../../../../icons";
 import { Hash, CircleDot, Calendar, Armchair } from "lucide-react";
 import { BaseVerDatosModal, DetailItem } from "../shared";
+import { DetalleProduccion } from "../../../../hooks/detalles_producciones/useDetalles_Producciones";
 
-interface DetalleProduccion {
-  id_det_pro: number;
-  cantidad: number;
-  est_det_pro: string;
-  produccion?: {
-    fec_ini: string;
-    fec_fin: string;
-  };
-  mueble?: {
-    nom_mue: string;
-  };
-}
+
 
 interface ModalVerDetalleProduccionProps {
   showModal: boolean;
@@ -73,7 +63,7 @@ const ModalVerDetalleProduccion: React.FC<ModalVerDetalleProduccionProps> = ({
           <DetailItem
             label="Mueble"
             value={
-              detalleproduccionSeleccionado.mueble?.nom_mue || "Sin mueble"
+              detalleproduccionSeleccionado.mueble?.nombre || "Sin mueble"
             }
             icon={<Armchair className="w-5 h-5 text-orange-600" />}
           />

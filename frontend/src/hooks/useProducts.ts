@@ -181,10 +181,10 @@ export const useFavorites = (userId: number | null) => {
 };
 
 // Hook: Mapear productos BD a ViewModel
-export const useMapProductsToVM = (products: Product[]): ProductViewModel[] => {
+export const useMapProductsToVM = (products: any[]): ProductViewModel[] => {
   return useMemo(() => {
-    return products.map((m) => ({
-      id: m.id_mue,
+    return products.map((m: any) => ({
+      id: m.id_mue || m.id,
       cod: m.cod_mue,
       title: m.nom_mue,
       img: m.img_mue ? m.img_mue.replace("public", "") : "/images/grid-image/sofa.jpg",

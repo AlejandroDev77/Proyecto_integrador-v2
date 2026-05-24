@@ -2,21 +2,9 @@ import React from "react";
 import { EyeIcon } from "../../../../icons";
 import { Hash, DollarSign, Calculator, Calendar, Package } from "lucide-react";
 import { BaseVerDatosModal, DetailItem } from "../shared";
+import { DetalleCompra } from "../../../../hooks/detalles_compras/useDetallesCompras";
 
-interface DetalleCompra {
-  id_det_comp: number;
-  cantidad: number;
-  precio_unitario: number;
-  subtotal: number;
-  id_comp: number;
-  compramaterial?: {
-    fec_comp: string;
-  };
-  id_mat: number;
-  material?: {
-    nom_mat: string;
-  };
-}
+
 
 interface ModalVerDetalleCompraProps {
   showModal: boolean;
@@ -60,9 +48,9 @@ const ModalVerDetalleCompra: React.FC<ModalVerDetalleCompraProps> = ({
           <DetailItem
             label="Fecha de Compra"
             value={
-              detalleSeleccionado.compramaterial
+              detalleSeleccionado.compra
                 ? new Date(
-                    detalleSeleccionado.compramaterial.fec_comp
+                    detalleSeleccionado.compra.fec_comp
                   ).toLocaleDateString()
                 : "No disponible"
             }

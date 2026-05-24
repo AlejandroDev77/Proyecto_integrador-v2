@@ -20,7 +20,7 @@ import java.util.Map;
  * Solo inyecta el Use Case ManageCategoriaUseCase.
  */
 @RestController
-@RequestMapping("/api/categoria")
+@RequestMapping({"/api/categorias", "/api/categoria-mueble"})
 public class CategoriaController {
 
     private final ManageCategoriaUseCase manageCategoriaUseCase;

@@ -21,14 +21,14 @@ import {
 } from "lucide-react";
 
 interface Empleado {
-  id_emp: number;
+  id: number;
   nom_emp: string;
   ap_pat_emp: string;
   img_emp?: string;
 }
 
 interface Venta {
-  id_ven: number;
+  id: number;
   cod_ven: string;
   fec_ven: string;
   total_ven: number;
@@ -54,7 +54,7 @@ interface DetalleVenta {
 }
 
 interface Cotizacion {
-  id_cot: number;
+  id: number;
   cod_cot: string;
   fec_cot: string;
   fec_vencimiento?: string;
@@ -114,7 +114,7 @@ interface PaginationInfo {
 }
 
 interface EtapaProduccion {
-  id_eta: number;
+  id: number;
   cod_eta?: string;
   nom_eta: string;
   desc_eta?: string;
@@ -392,16 +392,20 @@ export default function ModalProduccionCompleta({
     setLoadingOrigen(true);
     try {
       const res = await fetch(
-        `${API}/venta?page=${page}&per_page=6${
+        `${API}/ventas?page=${page}&per_page=6${
           search ? `&filter[cod_ven]=${encodeURIComponent(search)}` : ""
         }&filter[sin_produccion]=true`
       );
       const p = await res.json();
-      setVentas(p?.data || []);
+      // data.data is PageResult, data.data.content is the array
+      const content = p?.data?.content || p?.data || [];
+      setVentas(Array.isArray(content) ? content : []);
+      
+      const pageInfo = p?.data || {};
       setOrigenPag({
-        currentPage: p.current_page || 1,
-        lastPage: p.last_page || 1,
-        total: p.total || 0,
+        currentPage: pageInfo.page || 1,
+        lastPage: pageInfo.totalPages || 1,
+        total: pageInfo.totalElements || 0,
       });
     } catch {
       setVentas([]);
@@ -414,16 +418,19 @@ export default function ModalProduccionCompleta({
     setLoadingOrigen(true);
     try {
       const res = await fetch(
-        `${API}/cotizacion?page=${page}&per_page=6${
+        `${API}/cotizaciones?page=${page}&per_page=6${
           search ? `&filter[cod_cot]=${encodeURIComponent(search)}` : ""
         }&filter[est_cot]=Aprobado&filter[sin_produccion]=true`
       );
       const p = await res.json();
-      setCotizaciones(p?.data || []);
+      const content = p?.data?.content || p?.data || [];
+      setCotizaciones(Array.isArray(content) ? content : []);
+      
+      const pageInfo = p?.data || {};
       setOrigenPag({
-        currentPage: p.current_page || 1,
-        lastPage: p.last_page || 1,
-        total: p.total || 0,
+        currentPage: pageInfo.page || 1,
+        lastPage: pageInfo.totalPages || 1,
+        total: pageInfo.totalElements || 0,
       });
     } catch {
       setCotizaciones([]);
@@ -441,11 +448,14 @@ export default function ModalProduccionCompleta({
         }`
       );
       const p = await res.json();
-      setEmpleados(p?.data || []);
+      const content = p?.data?.content || p?.data || [];
+      setEmpleados(Array.isArray(content) ? content : []);
+      
+      const pageInfo = p?.data || {};
       setEmpPag({
-        currentPage: p.current_page || 1,
-        lastPage: p.last_page || 1,
-        total: p.total || 0,
+        currentPage: pageInfo.page || 1,
+        lastPage: pageInfo.totalPages || 1,
+        total: pageInfo.totalElements || 0,
       });
     } catch {
       setEmpleados([]);
@@ -458,13 +468,13 @@ export default function ModalProduccionCompleta({
     setLoadingEtapas(true);
     try {
       const res = await fetch(
-        `${API}/etapa-produccion?per_page=50&sort=orden_secuencia`
+        `${API}/etapas-produccion?per_page=50&sort=orden_secuencia`
       );
       const p = await res.json();
-      setEtapasDisponibles(p?.data || []);
-      // Seleccionar todas las etapas por defecto
-      const ids = (p?.data || []).map((e: EtapaProduccion) => e.id_eta);
-      setEtapasSeleccionadas(ids);
+      const stages = p?.data?.content || p?.data || [];
+      setEtapasDisponibles(stages);
+      // Por defecto ninguna seleccionada, el usuario elegirá manualmente
+      setEtapasSeleccionadas([]);
     } catch {
       setEtapasDisponibles([]);
     } finally {
@@ -472,10 +482,10 @@ export default function ModalProduccionCompleta({
     }
   }, []);
 
-  const fetchDetallesVenta = useCallback(async (id_ven: number) => {
+  const fetchDetallesVenta = useCallback(async (id: number) => {
     setLoadingDetalles(true);
     try {
-      const res = await fetch(`${API}/venta/${id_ven}`);
+      const res = await fetch(`${API}/ventas/${id}`);
       const data = await res.json();
       // Guardar detalles originales de venta
       setVentaDetalles(data?.detalles || []);
@@ -512,10 +522,10 @@ export default function ModalProduccionCompleta({
     }
   }, []);
 
-  const fetchDetallesCotizacion = useCallback(async (id_cot: number) => {
+  const fetchDetallesCotizacion = useCallback(async (id: number) => {
     setLoadingDetalles(true);
     try {
-      const res = await fetch(`${API}/cotizacion/${id_cot}`);
+      const res = await fetch(`${API}/cotizaciones/${id}`);
       const data = await res.json();
       // Guardar detalles originales de cotización
       setCotizacionDetalles(data?.detalles || []);
@@ -585,14 +595,14 @@ export default function ModalProduccionCompleta({
   }, [origen, fetchVentas, fetchCotizaciones]);
 
   useEffect(() => {
-    if (selectedVenta) {
-      fetchDetallesVenta(selectedVenta.id_ven);
+    if (selectedVenta?.id) {
+      fetchDetallesVenta(selectedVenta.id);
     }
   }, [selectedVenta, fetchDetallesVenta]);
 
   useEffect(() => {
-    if (selectedCotizacion) {
-      fetchDetallesCotizacion(selectedCotizacion.id_cot);
+    if (selectedCotizacion?.id) {
+      fetchDetallesCotizacion(selectedCotizacion.id);
     }
   }, [selectedCotizacion, fetchDetallesCotizacion]);
 
@@ -653,9 +663,9 @@ export default function ModalProduccionCompleta({
           fec_ini: fechaIni,
           fec_fin_estimada: fechaFinEstimada,
           prioridad: prioridad,
-          id_ven: origen === "venta" ? selectedVenta?.id_ven : null,
-          id_cot: origen === "cotizacion" ? selectedCotizacion?.id_cot : null,
-          id_emp: selectedEmpleado.id_emp,
+          id_ven: origen === "venta" ? selectedVenta?.id : null,
+          id_cot: origen === "cotizacion" ? selectedCotizacion?.id : null,
+          id_emp: selectedEmpleado.id,
           notas: notas || null,
         },
         detalles: detalles.map((d) => ({
@@ -776,10 +786,10 @@ export default function ModalProduccionCompleta({
                       ventas.length > 0 ? (
                         ventas.map((v) => (
                           <div
-                            key={v.id_ven}
+                            key={v.id}
                             onClick={() => setSelectedVenta(v)}
                             className={`cursor-pointer rounded-xl border-2 p-4 transition-all hover:shadow-md ${
-                              selectedVenta?.id_ven === v.id_ven
+                              selectedVenta?.id === v.id
                                 ? "border-cyan-500 bg-cyan-50 dark:bg-cyan-900/20 shadow-md"
                                 : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
                             }`}
@@ -787,7 +797,7 @@ export default function ModalProduccionCompleta({
                             <div className="flex items-center gap-3">
                               <div
                                 className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                                  selectedVenta?.id_ven === v.id_ven
+                                  selectedVenta?.id === v.id
                                     ? "bg-cyan-500 text-white"
                                     : "bg-gray-200 dark:bg-gray-700"
                                 }`}
@@ -805,7 +815,7 @@ export default function ModalProduccionCompleta({
                                   Bs. {Number(v.total_ven || 0).toFixed(2)}
                                 </p>
                               </div>
-                              {selectedVenta?.id_ven === v.id_ven && (
+                              {selectedVenta?.id === v.id && (
                                 <Check className="w-6 h-6 text-cyan-500" />
                               )}
                             </div>
@@ -820,10 +830,10 @@ export default function ModalProduccionCompleta({
                     ) : cotizaciones.length > 0 ? (
                       cotizaciones.map((c) => (
                         <div
-                          key={c.id_cot}
+                          key={c.id}
                           onClick={() => setSelectedCotizacion(c)}
                           className={`cursor-pointer rounded-xl border-2 p-4 transition-all hover:shadow-md ${
-                            selectedCotizacion?.id_cot === c.id_cot
+                            selectedCotizacion?.id === c.id
                               ? "border-cyan-500 bg-cyan-50 dark:bg-cyan-900/20 shadow-md"
                               : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
                           }`}
@@ -831,7 +841,7 @@ export default function ModalProduccionCompleta({
                           <div className="flex items-center gap-3">
                             <div
                               className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                                selectedCotizacion?.id_cot === c.id_cot
+                                selectedCotizacion?.id === c.id
                                   ? "bg-cyan-500 text-white"
                                   : "bg-gray-200 dark:bg-gray-700"
                               }`}
@@ -849,7 +859,7 @@ export default function ModalProduccionCompleta({
                                 Bs. {Number(c.total_cot || 0).toFixed(2)}
                               </p>
                             </div>
-                            {selectedCotizacion?.id_cot === c.id_cot && (
+                            {selectedCotizacion?.id === c.id && (
                               <Check className="w-6 h-6 text-cyan-500" />
                             )}
                           </div>
@@ -932,9 +942,9 @@ export default function ModalProduccionCompleta({
                     {empleados.length > 0 ? (
                       empleados.map((e) => (
                         <EmpleadoCard
-                          key={e.id_emp}
+                          key={e.id}
                           empleado={e}
-                          isSelected={selectedEmpleado?.id_emp === e.id_emp}
+                          isSelected={selectedEmpleado?.id === e.id}
                           onSelect={() => setSelectedEmpleado(e)}
                         />
                       ))
@@ -1045,7 +1055,7 @@ export default function ModalProduccionCompleta({
                 <button
                   onClick={() =>
                     setEtapasSeleccionadas(
-                      etapasDisponibles.map((e) => e.id_eta)
+                      etapasDisponibles.map((e) => e.id)
                     )
                   }
                   className="px-3 py-1.5 text-sm bg-cyan-100 text-cyan-700 rounded-lg hover:bg-cyan-200"
@@ -1073,22 +1083,22 @@ export default function ModalProduccionCompleta({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[350px] overflow-y-auto">
                   {etapasDisponibles.map((etapa) => {
                     const isSelected = etapasSeleccionadas.includes(
-                      etapa.id_eta
+                      etapa.id
                     );
                     return (
                       <div
-                        key={etapa.id_eta}
+                        key={etapa.id}
                         onClick={() => {
                           if (isSelected) {
                             setEtapasSeleccionadas(
                               etapasSeleccionadas.filter(
-                                (id) => id !== etapa.id_eta
+                                (id) => id !== etapa.id
                               )
                             );
                           } else {
                             setEtapasSeleccionadas([
                               ...etapasSeleccionadas,
-                              etapa.id_eta,
+                              etapa.id,
                             ]);
                           }
                         }}
@@ -1549,14 +1559,14 @@ export default function ModalProduccionCompleta({
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {etapasDisponibles
-                    .filter((e) => etapasSeleccionadas.includes(e.id_eta))
+                    .filter((e) => etapasSeleccionadas.includes(e.id))
                     .sort(
                       (a, b) =>
                         (a.orden_secuencia || 0) - (b.orden_secuencia || 0)
                     )
                     .map((etapa) => (
                       <span
-                        key={etapa.id_eta}
+                        key={etapa.id}
                         className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-medium"
                       >
                         <Check className="w-3 h-3" />

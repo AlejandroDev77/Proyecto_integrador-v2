@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 public class UsuarioMapper {
 
   
-    public UsuarioEntity toEntity(Usuario domain) {
+    public static UsuarioEntity toEntity(Usuario domain) {
         UsuarioEntity entity = new UsuarioEntity();
         entity.setIdUsu(domain.getIdUsu());
         entity.setNomUsu(domain.getNomUsu());
@@ -33,7 +33,7 @@ public class UsuarioMapper {
     }
 
    
-    public Usuario toDomain(UsuarioEntity entity) {
+    public static Usuario toDomain(UsuarioEntity entity) {
         return new Usuario(
                 entity.getIdUsu(),
                 entity.getNomUsu(),

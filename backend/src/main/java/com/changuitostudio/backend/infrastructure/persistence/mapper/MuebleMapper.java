@@ -18,8 +18,7 @@ public class MuebleMapper {
         this.categoriaMapper = categoriaMapper;
     }
 
-    
-    public Mueble toDomain(MuebleEntity entity) {
+    public static Mueble toDomain(MuebleEntity entity) {
         if (entity == null) {
             return null;
         }
@@ -27,7 +26,7 @@ public class MuebleMapper {
         // Manejo seguro de categoría que podría no existir
         Categoria categoria = null;
         try {
-            categoria = categoriaMapper.toDomain(entity.getCategoria());
+            categoria = CategoriaMapper.toDomain(entity.getCategoria());
         } catch (ObjectNotFoundException e) {
             // Si la categoría no existe, continuar sin ella (null)
             categoria = null;
@@ -48,7 +47,7 @@ public class MuebleMapper {
     }
 
     
-    public MuebleEntity toEntity(Mueble domain) {
+    public static MuebleEntity toEntity(Mueble domain) {
         if (domain == null) {
             return null;
         }
@@ -64,7 +63,7 @@ public class MuebleMapper {
         entity.setDimensiones(domain.getDimensiones());
         
         if (domain.getCategoria() != null) {
-            entity.setCategoria(categoriaMapper.toEntity(domain.getCategoria()));
+            entity.setCategoria(CategoriaMapper.toEntity(domain.getCategoria()));
         }
         
         return entity;

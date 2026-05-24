@@ -86,8 +86,8 @@ export default function ProductsPage() {
   const [customConfig, setCustomConfig] = useState<CustomRoomConfig | null>(null);
 
   // Obtener categorías de categoriesFromAPI
-  const categoryViewModels = categories.map((c) => ({
-    id: c.id_cat,
+  const categoryViewModels = categories.map((c: any) => ({
+    id: c.id_cat || c.id,
     name: c.nom_cat,
     image: CATEGORY_IMAGES[c.nom_cat] || "/images/Sofá 3 Plazas.avif",
   }));

@@ -58,6 +58,7 @@ import Movimientos_Inventarios from "./pages/Tables/Movimientos_Inventarios";
 import Negocio from "./pages/Tables/Negocio";
 import CostosCotizacion from "./pages/Tables/CostosCotizacion";
 import EvidenciasProduccion from "./pages/Tables/EvidenciasProduccion";
+import GeneracionIA from "./pages/IA/GeneracionIA";
 
 // Client Portal Pages
 import MisCotizaciones from "./pages/ClientPortal/MisCotizaciones";
@@ -68,6 +69,7 @@ import MiCarrito from "./pages/ClientPortal/MiCarrito";
 import MisProducciones from "./pages/ClientPortal/MisProducciones";
 
 import Home from "./pages/Dashboard/Home";
+import MobilePaymentSimulation from "./pages/payment/MobilePaymentSimulation";
 import Chatbot from "./components/ui/chatbot/Chatbot";
 
 import { GoogleOAuthProvider } from "@react-oauth/google"; // autenticacion con google
@@ -85,6 +87,7 @@ export default function App() {
               {/* Rutas publicas */}
               <Route path="/products" element={<Products />} />
               <Route path="/" element={<Landing />} />
+              <Route path="/pago-movil/:id" element={<MobilePaymentSimulation />} />
 
               {/* Rutas protegidas */}
               <Route element={<ProtectedRoute />}>
@@ -200,6 +203,7 @@ export default function App() {
                     path="/evidencias-produccion"
                     element={<EvidenciasProduccion />}
                   />
+                  <Route path="/generacion-ia" element={<GeneracionIA />} />
                   <Route
                     path="/logs"
                     element={

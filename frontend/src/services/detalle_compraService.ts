@@ -1,6 +1,6 @@
-import axios from "axios";
+import axiosClient from "../api/axios";
 
-const API_URL = "http://localhost:8080/api/detalle-compra";
+const API_URL = "/api/detalle-compras";
 
 export async function getDetallesCompras(
   page: number = 1,
@@ -36,6 +36,6 @@ export async function getDetallesCompras(
     params.sort = sort;
   }
 
-  const response = await axios.get(API_URL, { params });
+  const response = await axiosClient.get(API_URL, { params });
   return response.data;
 }

@@ -1,6 +1,6 @@
-import axios from "axios";
+import axiosClient from "../api/axios";
 
-const API_URL = "http://localhost:8080/api/mueble-material";
+const API_URL = "/api/mueble-materiales";
 
 export async function getMueblesMateriales(page: number = 1, perPage: number = 20, filters: Record<string, any> = {}, sort: string = "") {
   const params: any = { page, per_page: perPage };
@@ -19,6 +19,6 @@ export async function getMueblesMateriales(page: number = 1, perPage: number = 2
     params.sort = sort;
   }
   
-  const response = await axios.get(API_URL, { params });
+  const response = await axiosClient.get(API_URL, { params });
   return response.data;
 }

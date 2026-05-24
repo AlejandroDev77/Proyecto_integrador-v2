@@ -1,4 +1,4 @@
-import axios from "axios";
+import axiosClient from "../api/axios";
 
 export async function getEmpleados(
   page: number = 1,
@@ -32,7 +32,7 @@ export async function getEmpleados(
     params.sort = sort;
   }
 
-  const response = await axios.get("http://localhost:8080/api/empleados", {
+  const response = await axiosClient.get("/api/empleados", {
     params,
   });
   return response.data;

@@ -257,7 +257,7 @@ export default function DetallesDevoluciones() {
                   </TableCell>
 
                   <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {detalledevolucion.mueble?.nom_mue}
+                    {detalledevolucion.mueble?.nombre}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-start text-sm">
                     <TableActionButtons

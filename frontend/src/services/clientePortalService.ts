@@ -1,6 +1,6 @@
-import axios from "axios";
+import axiosClient from "../api/axios";
 
-const API_URL = "http://localhost:8080/api/cliente";
+const API_URL = "/api/clientes";
 
 // Get auth headers from localStorage
 function getAuthHeaders() {
@@ -12,7 +12,7 @@ function getAuthHeaders() {
  * Get current client data for authenticated user
  */
 export async function getClienteActual() {
-  const response = await axios.get(`${API_URL}/me`, {
+  const response = await axiosClient.get(`${API_URL}/me`, {
     headers: getAuthHeaders(),
   });
   return response.data;
@@ -25,7 +25,7 @@ export async function getMisCotizaciones(
   page: number = 1,
   perPage: number = 10
 ) {
-  const response = await axios.get(`${API_URL}/cotizaciones`, {
+  const response = await axiosClient.get(`${API_URL}/cotizaciones`, {
     headers: getAuthHeaders(),
     params: { page, per_page: perPage },
   });
@@ -36,7 +36,7 @@ export async function getMisCotizaciones(
  * Get single quotation details
  */
 export async function getCotizacionDetalle(id: number) {
-  const response = await axios.get(`${API_URL}/cotizaciones/${id}`, {
+  const response = await axiosClient.get(`${API_URL}/cotizaciones/${id}`, {
     headers: getAuthHeaders(),
   });
   return response.data;
@@ -61,7 +61,7 @@ export interface SolicitudCotizacion {
 }
 
 export async function solicitarCotizacion(data: SolicitudCotizacion) {
-  const response = await axios.post(`${API_URL}/cotizaciones/solicitar`, data, {
+  const response = await axiosClient.post(`${API_URL}/cotizaciones/solicitar`, data, {
     headers: getAuthHeaders(),
   });
   return response.data;
@@ -71,7 +71,7 @@ export async function solicitarCotizacion(data: SolicitudCotizacion) {
  * Cancel a pending quotation
  */
 export async function cancelarCotizacion(id: number) {
-  const response = await axios.post(
+  const response = await axiosClient.post(
     `${API_URL}/cotizaciones/${id}/cancelar`,
     {},
     {
@@ -85,7 +85,7 @@ export async function cancelarCotizacion(id: number) {
  * Get client's orders
  */
 export async function getMisPedidos(page: number = 1, perPage: number = 10) {
-  const response = await axios.get(`${API_URL}/pedidos`, {
+  const response = await axiosClient.get(`${API_URL}/pedidos`, {
     headers: getAuthHeaders(),
     params: { page, per_page: perPage },
   });
@@ -96,7 +96,7 @@ export async function getMisPedidos(page: number = 1, perPage: number = 10) {
  * Get single order details
  */
 export async function getPedidoDetalle(id: number) {
-  const response = await axios.get(`${API_URL}/pedidos/${id}`, {
+  const response = await axiosClient.get(`${API_URL}/pedidos/${id}`, {
     headers: getAuthHeaders(),
   });
   return response.data;
@@ -109,7 +109,7 @@ export async function getMisProducciones(
   page: number = 1,
   perPage: number = 10
 ) {
-  const response = await axios.get(`${API_URL}/producciones`, {
+  const response = await axiosClient.get(`${API_URL}/producciones`, {
     headers: getAuthHeaders(),
     params: { page, per_page: perPage },
   });
@@ -120,7 +120,7 @@ export async function getMisProducciones(
  * Get single production details with stages and evidence
  */
 export async function getProduccionDetalle(id: number) {
-  const response = await axios.get(`${API_URL}/producciones/${id}`, {
+  const response = await axiosClient.get(`${API_URL}/producciones/${id}`, {
     headers: getAuthHeaders(),
   });
   return response.data;

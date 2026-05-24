@@ -1,48 +1,34 @@
-const API_URL = "http://localhost:8080/api/costo-cotizacion";
+import axiosClient from "../api/axios";
+
+const API_URL = "/api/costo-cotizaciones";
 
 export async function getCostosCotizacion(
   page = 1,
   perPage = 20,
   params: Record<string, any> = {}
 ) {
-  const searchParams = new URLSearchParams({
-    page: String(page),
-    per_page: String(perPage),
-    ...params,
+  const response = await axiosClient.get(API_URL, {
+    params: { page, per_page: perPage, ...params },
   });
-  const response = await fetch(`${API_URL}?${searchParams.toString()}`);
-  if (!response.ok) throw new Error("Error al obtener costos de cotización");
-  return response.json();
+  return response.data;
 }
 
 export async function getCostoCotizacion(id: number) {
-  const response = await fetch(`${API_URL}/${id}`);
-  if (!response.ok) throw new Error("Error al obtener costo");
-  return response.json();
+  const response = await axiosClient.get(`${API_URL}/${id}`);
+  return response.data;
 }
 
 export async function createCostoCotizacion(data: any) {
-  const response = await fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  if (!response.ok) throw new Error("Error al crear costo");
-  return response.json();
+  const response = await axiosClient.post(API_URL, data);
+  return response.data;
 }
 
 export async function updateCostoCotizacion(id: number, data: any) {
-  const response = await fetch(`${API_URL}/${id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  if (!response.ok) throw new Error("Error al actualizar costo");
-  return response.json();
+  const response = await axiosClient.put(`${API_URL}/${id}`, data);
+  return response.data;
 }
 
 export async function deleteCostoCotizacion(id: number) {
-  const response = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-  if (!response.ok) throw new Error("Error al eliminar costo");
-  return response.json();
+  const response = await axiosClient.delete(`${API_URL}/${id}`);
+  return response.data;
 }

@@ -48,10 +48,11 @@ export const useRolesPermisos = () => {
       }
 
       const response = await axios.get(`${API_URL}?${params.toString()}`);
-      const data = response.data;
-      setRolesPermisos(data.data || data);
-      setTotalPages(data.last_page || 1);
-      setTotalItems(data.total || (data.data ? data.data.length : 0));
+        const realData = response.data && response.success !== undefined ? response.data : response;
+        const itemsArray = realData.content || realData.data || (Array.isArray(realData) ? realData : []);
+        setRolesPermisos(itemsArray);
+        setTotalPages(realData.totalPages || realData.total_pages || realData.last_page || 1);
+        setTotalItems(realData.totalElements || realData.total_elements || realData.total || itemsArray.length);
       setError(null);
     } catch (err) {
       console.error("Error al cargar roles-permisos:", err);

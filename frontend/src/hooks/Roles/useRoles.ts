@@ -36,10 +36,11 @@ export const useRoles = () => {
     setLoading(true);
     try {
       const data = await getRoles(currentPage, itemsPerPage, filters, sort || "");
-      const rolesArray = data.data || data.content || (Array.isArray(data) ? data : []);
-      setRoles(rolesArray);
-      setTotalPages(data.last_page || data.totalPages || 1);
-      setTotalItems(data.total || data.totalElements || rolesArray.length);
+        const realData = data.data && data.success !== undefined ? data.data : data;
+        const itemsArray = realData.content || realData.data || (Array.isArray(realData) ? realData : []);
+        setRoles(itemsArray);
+        setTotalPages(realData.totalPages || realData.total_pages || realData.last_page || 1);
+        setTotalItems(realData.totalElements || realData.total_elements || realData.total || itemsArray.length);
     } catch (error) {
       console.error("Error al cargar roles:", error);
       setError("Error al cargar roles");

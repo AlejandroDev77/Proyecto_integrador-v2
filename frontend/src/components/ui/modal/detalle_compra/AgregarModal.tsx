@@ -19,17 +19,9 @@ import {
   Hash,
   DollarSign,
 } from "lucide-react";
+import { DetalleCompra } from "../../../../hooks/detalles_compras/useDetallesCompras";
 
-interface DetalleCompra {
-  id_det_comp: number;
-  cantidad: number;
-  precio_unitario: number;
-  subtotal: number;
-  id_comp: number;
-  id_mat: number;
-  compramaterial?: { fec_comp: string };
-  material?: { nom_mat: string };
-}
+
 interface CompraMaterial {
   id_comp: number;
   fec_comp: string;
@@ -440,7 +432,7 @@ export default function ModalAgregarDetalleCompra({
         ...prev,
         {
           ...data,
-          compramaterial: { fec_comp: selectedCompra.fec_comp },
+          compra: { fec_comp: selectedCompra.fec_comp },
           material: { nom_mat: selectedMaterial.nom_mat },
         },
       ]);

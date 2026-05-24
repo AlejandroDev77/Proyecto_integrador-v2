@@ -18,16 +18,9 @@ import {
   CheckCircle,
   Save,
 } from "lucide-react";
+import { DetalleProduccion } from "../../../../hooks/detalles_producciones/useDetalles_Producciones";
 
-interface DetalleProduccion {
-  id_det_prod: number;
-  cantidad: number;
-  estado: string;
-  id_pro: number;
-  id_mue: number;
-  produccion?: { cod_pro: string; est_pro: string };
-  mueble?: { nom_mue: string };
-}
+
 interface Produccion {
   id_pro: number;
   cod_pro?: string;
@@ -246,7 +239,7 @@ export default function ModalEditarDetalleProduccion({
 }: Props) {
   const [activeTab, setActiveTab] = useState<TabType>("datos");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [form, setForm] = useState({ cantidad: 1, estado: "Pendiente" });
+  const [form, setForm] = useState({ cantidad: 1, est_det_pro: "Pendiente" });
   const [selectedProduccion, setSelectedProduccion] =
     useState<Produccion | null>(null);
   const [selectedMueble, setSelectedMueble] = useState<Mueble | null>(null);
@@ -331,7 +324,7 @@ export default function ModalEditarDetalleProduccion({
     if (detalleproduccionSeleccionado) {
       setForm({
         cantidad: detalleproduccionSeleccionado.cantidad,
-        estado: detalleproduccionSeleccionado.estado || "Pendiente",
+        est_det_pro: detalleproduccionSeleccionado.est_det_pro || "Pendiente",
       });
       setSelectedProduccion({
         id_pro: detalleproduccionSeleccionado.id_pro,
@@ -341,7 +334,7 @@ export default function ModalEditarDetalleProduccion({
       });
       setSelectedMueble({
         id_mue: detalleproduccionSeleccionado.id_mue,
-        nom_mue: detalleproduccionSeleccionado.mueble?.nom_mue || "",
+        nom_mue: detalleproduccionSeleccionado.mueble?.nombre || "",
       });
     }
   }, [detalleproduccionSeleccionado]);
@@ -368,7 +361,7 @@ export default function ModalEditarDetalleProduccion({
     } catch {}
     try {
       const res = await fetch(
-        `http://localhost:8080/api/detalle-produccion/${detalleproduccionSeleccionado.id_det_prod}`,
+        `http://localhost:8080/api/detalle-produccion/${detalleproduccionSeleccionado.id_det_pro}`,
         {
           method: "PUT",
           headers: {
@@ -377,7 +370,7 @@ export default function ModalEditarDetalleProduccion({
           },
           body: JSON.stringify({
             cantidad: form.cantidad,
-            estado: form.estado,
+            est_det_pro: form.est_det_pro,
             id_pro: selectedProduccion.id_pro,
             id_mue: selectedMueble.id_mue,
           }),
@@ -387,14 +380,14 @@ export default function ModalEditarDetalleProduccion({
       const data = await res.json();
       setDetallesProducciones((prev) =>
         prev.map((d) =>
-          d.id_det_prod === detalleproduccionSeleccionado.id_det_prod
+          d.id_det_pro === detalleproduccionSeleccionado.id_det_pro
             ? {
                 ...data,
                 produccion: {
                   cod_pro: selectedProduccion.cod_pro || "",
                   est_pro: selectedProduccion.est_pro,
                 },
-                mueble: { nom_mue: selectedMueble.nom_mue },
+                mueble: { nombre: selectedMueble.nom_mue },
               }
             : d
         )
@@ -418,7 +411,7 @@ export default function ModalEditarDetalleProduccion({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden flex flex-col">
-        <div className="bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-4 flex items-center justify-between">
+        <div className="bg-linear-to-r from-sky-500 to-cyan-500 px-6 py-4 flex items-center justify-between">
           <h2 className="text-xl font-bold text-white flex items-center gap-3">
             <Cog className="w-6 h-6" />
             Editar Detalle de Producción
@@ -484,9 +477,9 @@ export default function ModalEditarDetalleProduccion({
                       <button
                         key={e}
                         type="button"
-                        onClick={() => setForm({ ...form, estado: e })}
+                        onClick={() => setForm({ ...form, est_det_pro: e })}
                         className={`py-2 px-3 rounded-xl border-2 text-sm font-medium transition-all ${
-                          form.estado === e
+                          form.est_det_pro === e
                             ? "border-sky-500 bg-sky-50 dark:bg-sky-900/20 text-sky-700"
                             : "border-gray-200 dark:border-gray-700 text-gray-500"
                         }`}

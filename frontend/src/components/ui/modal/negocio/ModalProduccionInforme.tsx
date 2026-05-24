@@ -23,18 +23,18 @@ interface Evidencia {
 }
 
 interface ProduccionEtapa {
-  id_pro_eta: number;
+  id: number;
   cod_pro_eta: string;
   fec_ini: string;
   fec_fin: string;
   est_eta: string;
-  etapa: { nom_eta: string };
+  etapaProduccion: { nom_eta: string };
   empleado?: { nom_emp: string };
   evidencias: Evidencia[];
 }
 
 interface Produccion {
-  id_pro: number;
+  id: number;
   cod_pro: string;
   fec_ini: string;
   fec_fin_estimada: string;
@@ -44,7 +44,7 @@ interface Produccion {
   notas?: string;
   cotizacion?: { cod_cot: string; cliente?: { nom_cli: string } };
   venta?: { cod_ven: string; cliente?: { nom_cli: string } };
-  empleado?: { id_emp: number; nom_emp: string; ap_pat_emp?: string };
+  empleado?: { id: number; nom_emp: string; ap_pat_emp?: string };
   produccion_etapas: ProduccionEtapa[];
   etapas_total: number;
   etapas_completadas: number;
@@ -82,19 +82,39 @@ export default function ModalProduccionInforme({
     if (!produccionId) return;
     setLoading(true);
     try {
-      const res = await fetch(`${API}/produccion/${produccionId}`);
-      const data = await res.json();
+      const [pRes, eRes] = await Promise.all([
+        fetch(`${API}/producciones/${produccionId}`),
+        fetch(`${API}/produccion-etapas?filter[produccion.id]=${produccionId}&per_page=100`),
+      ]);
+      
+      const pData = await pRes.json();
+      const eData = await eRes.json();
+
+      if (!pData.success) throw new Error(pData.message);
+
+      const mainData = pData.data;
+      const stagesList = eData?.data?.content || eData?.data || [];
+
       // Normalizar
       const normalizedData = {
-        ...data,
-        produccion_etapas:
-          data.produccion_etapas || data.produccionEtapas || [],
-        etapas_total: data.etapas_total ?? 0,
-        etapas_completadas: data.etapas_completadas ?? 0,
-        progreso: data.progreso ?? 0,
+        ...mainData,
+        produccion_etapas: stagesList,
+        etapas_total: stagesList.length,
+        etapas_completadas: stagesList.filter(
+          (e: ProduccionEtapa) => e.est_eta === "Completado"
+        ).length,
+        progreso: 0,
       };
+
+      if (normalizedData.etapas_total > 0) {
+        normalizedData.progreso = Math.round(
+          (normalizedData.etapas_completadas / normalizedData.etapas_total) *
+            100
+        );
+      }
       setProduccion(normalizedData);
-    } catch {
+    } catch (e: any) {
+      console.error("Error fetching report data:", e);
       setProduccion(null);
     } finally {
       setLoading(false);
@@ -259,7 +279,7 @@ export default function ModalProduccionInforme({
                     </p>
                   ) : (
                     produccion.produccion_etapas?.map((etapa, idx) => (
-                      <div key={etapa.id_pro_eta} className="p-4">
+                      <div key={etapa.id} className="p-4">
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-3">
                             <div
@@ -275,7 +295,7 @@ export default function ModalProduccionInforme({
                             </div>
                             <div>
                               <p className="font-medium">
-                                {etapa.etapa?.nom_eta || "Etapa"}
+                                {etapa.etapaProduccion?.nom_eta || "Etapa"}
                               </p>
                               <p className="text-xs text-gray-500">
                                 {etapa.fec_ini} → {etapa.fec_fin}

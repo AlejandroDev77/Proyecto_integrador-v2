@@ -43,9 +43,11 @@ export function useMuebles() {
       setLoading(true);
       try {
         const data = await getMuebles(currentPage, itemsPerPage, filters, sort);
-      setMuebles(data.data || data);
-        setTotalPages(data.last_pag || 1);
-        setTotalItems(data.total || (data.data ? data.data.length : 0));
+        const realData = data.data && data.success !== undefined ? data.data : data;
+        const itemsArray = realData.content || realData.data || (Array.isArray(realData) ? realData : []);
+        setMuebles(itemsArray);
+        setTotalPages(realData.totalPages || realData.total_pages || realData.last_page || 1);
+        setTotalItems(realData.totalElements || realData.total_elements || realData.total || itemsArray.length);
       } catch (error) {
         console.error("Error al cargar muebles:", error);
         // Intentar usar cache si hay error

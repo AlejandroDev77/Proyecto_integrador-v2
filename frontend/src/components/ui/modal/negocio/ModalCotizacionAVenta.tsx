@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 interface Cotizacion {
-  id_cot: number;
+  id: number;
   cod_cot: string;
   fec_cot: string;
   est_cot: string;
@@ -24,7 +24,7 @@ interface Cotizacion {
   cliente?: { nom_cli: string; ap_pat_cli: string };
 }
 interface Empleado {
-  id_emp: number;
+  id: number;
   nom_emp: string;
   ap_pat_emp: string;
 }
@@ -112,12 +112,12 @@ export default function ModalCotizacionAVenta({
   const fetchData = useCallback(async () => {
     try {
       const [cRes, eRes] = await Promise.all([
-        fetch(`${API}/cotizacion?filter[est_cot]=Pendiente&per_page=100`),
+        fetch(`${API}/cotizaciones?filter[est_cot]=Pendiente&per_page=100`),
         fetch(`${API}/empleados?per_page=100`),
       ]);
       const [cData, eData] = await Promise.all([cRes.json(), eRes.json()]);
-      setCotizaciones(cData.data || cData);
-      setEmpleados(eData.data || eData);
+      setCotizaciones(Array.isArray(cData?.data?.content) ? cData.data.content : (Array.isArray(cData?.data) ? cData.data : (Array.isArray(cData) ? cData : [])));
+      setEmpleados(Array.isArray(eData?.data?.content) ? eData.data.content : (Array.isArray(eData?.data) ? eData.data : (Array.isArray(eData) ? eData : [])));
     } catch (e) {
       console.error(e);
     }
@@ -150,14 +150,14 @@ export default function ModalCotizacionAVenta({
     setIsSubmitting(true);
     try {
       const payload = {
-        id_emp: selectedEmpleado.id_emp,
+        id_emp: selectedEmpleado.id,
         registrar_pago: registrarPago,
         ...(registrarPago && {
           pago: { monto: selectedCotizacion.total_cot, metodo_pag: metodoPago },
         }),
       };
       const res = await fetch(
-        `${API}/negocio/cotizacion-a-venta/${selectedCotizacion.id_cot}`,
+        `${API}/negocio/cotizacion-a-venta/${selectedCotizacion.id}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -228,10 +228,10 @@ export default function ModalCotizacionAVenta({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[350px] overflow-y-auto">
                 {filteredCotizaciones.map((c) => (
                   <div
-                    key={c.id_cot}
+                    key={c.id}
                     onClick={() => setSelectedCotizacion(c)}
                     className={`cursor-pointer rounded-xl border-2 p-4 transition-all ${
-                      selectedCotizacion?.id_cot === c.id_cot
+                      selectedCotizacion?.id && selectedCotizacion.id === c.id
                         ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
                         : "border-gray-200 dark:border-gray-700 hover:border-blue-300"
                     }`}
@@ -275,10 +275,10 @@ export default function ModalCotizacionAVenta({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {empleados.map((e) => (
                   <div
-                    key={e.id_emp}
+                    key={e.id}
                     onClick={() => setSelectedEmpleado(e)}
                     className={`cursor-pointer rounded-xl border-2 p-3 transition-all ${
-                      selectedEmpleado?.id_emp === e.id_emp
+                      selectedEmpleado?.id && selectedEmpleado.id === e.id
                         ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
                         : "border-gray-200 dark:border-gray-700"
                     }`}

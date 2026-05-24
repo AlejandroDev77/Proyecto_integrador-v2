@@ -55,9 +55,11 @@ export function useEvidenciasProduccion() {
           itemsPerPage,
           params
         );
-        setEvidenciasProduccion(data.data || data);
-        setTotalPages(data.last_page || 1);
-        setTotalItems(data.total || 0);
+        const realData = data.data && data.success !== undefined ? data.data : data;
+        const itemsArray = realData.content || realData.data || (Array.isArray(realData) ? realData : []);
+        setEvidenciasProduccion(itemsArray);
+        setTotalPages(realData.totalPages || realData.total_pages || realData.last_page || 1);
+        setTotalItems(realData.totalElements || realData.total_elements || realData.total || itemsArray.length);
       } catch (err) {
         console.error(err);
       } finally {

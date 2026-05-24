@@ -291,7 +291,7 @@ export default function MovimientosInventarios() {
                     {movimiento.material?.nom_mat || "-"}
                   </TableCell>
                   <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {movimiento.mueble?.nom_mue || "-"}
+                    {movimiento.mueble?.nombre || "-"}
                   </TableCell>
                   <TableCell className={`px-5 py-4 ${textColor}`}>
                     {movimiento.empleado
