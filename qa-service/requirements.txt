@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+playwright
+python-docx
+reportlab
+openpyxl
+jinja2
+requests
+python-multipart

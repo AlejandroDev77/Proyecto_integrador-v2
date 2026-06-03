@@ -47,6 +47,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/chat/**").permitAll()
                         .requestMatchers("/api/reportes/**").permitAll()
                         .requestMatchers("/error").permitAll()
+                        .requestMatchers("/api/qa/**").permitAll()
 
                         .requestMatchers("/api/**").permitAll()
                         .anyRequest().permitAll())
