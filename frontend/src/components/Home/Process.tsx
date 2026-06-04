@@ -15,30 +15,38 @@ const Process = () => {
         title="Así trabajamos"
         subtitle="Transparencia en cada etapa, desde la idea hasta la instalación."
       />
-      <div className="max-w-4xl mx-auto px-6">
-        <ol className="relative border-s border-[#e8dcc7]">
+      <div className="max-w-4xl mx-auto px-6 relative">
+        {/* Animated Background Line */}
+        <div className="absolute left-6 md:left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-transparent via-[#a67c52]/30 to-transparent -translate-x-1/2 rounded-full hidden md:block" />
+        
+        <div className="space-y-12">
           {steps.map((step, idx) => (
-            <motion.li
+            <motion.div
               key={step.t}
-              className="mb-10 ms-4"
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: idx * 0.2 }}
-              viewport={{ once: true }}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.6, delay: idx * 0.15 }}
+              className={`relative flex flex-col md:flex-row items-center gap-6 md:gap-12 ${idx % 2 === 0 ? "md:flex-row-reverse" : ""}`}
             >
-              <div className="absolute w-3 h-3 rounded-full bg-[#a67c52] -start-1.5 mt-2"/>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: idx * 0.2 + 0.2 }}
-                viewport={{ once: true }}
-              >
-                <h4 className="text-lg font-semibold">{idx + 1}. {step.t}</h4>
-                <p className="text-gray-600 text-sm mt-1">{step.d}</p>
-              </motion.div>
-            </motion.li>
+              {/* Center Node */}
+              <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-white border-4 border-[#fdf8f3] rounded-full items-center justify-center shadow-xl z-10">
+                <div className="w-3 h-3 bg-[#a67c52] rounded-full shadow-[0_0_10px_#a67c52]" />
+              </div>
+              
+              {/* Content Card */}
+              <div className={`w-full md:w-1/2 ${idx % 2 === 0 ? "md:text-left md:pl-12" : "md:text-right md:pr-12"}`}>
+                <div className="bg-white/80 backdrop-blur-sm p-6 rounded-3xl shadow-lg border border-gray-100 hover:shadow-2xl hover:scale-105 transition-all duration-300 group">
+                  <div className={`text-[#a67c52] font-black text-5xl mb-2 opacity-20 group-hover:opacity-40 transition-opacity ${idx % 2 === 0 ? "" : "md:text-right"}`}>
+                    0{idx + 1}
+                  </div>
+                  <h4 className="text-xl font-bold text-gray-800 mb-2">{step.t}</h4>
+                  <p className="text-gray-600 leading-relaxed">{step.d}</p>
+                </div>
+              </div>
+            </motion.div>
           ))}
-        </ol>
+        </div>
       </div>
     </section>
   );

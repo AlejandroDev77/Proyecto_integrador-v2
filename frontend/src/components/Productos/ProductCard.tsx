@@ -41,7 +41,7 @@ export default function ProductCard({
   const stock = p.stock ?? 0;
   const isOutOfStock = stock <= 0;
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (isOutOfStock) return;
     setIsAdding(true);
     const priceNum = parseInt(p.price.replace(/\D/g, "")) || 0;
@@ -51,10 +51,51 @@ export default function ProductCard({
       img_mue: p.img,
       precio_venta: priceNum,
     });
-    setTimeout(() => {
-      setIsAdding(false);
-      setIsOpen(true);
-    }, 300);
+
+    // Flying animation
+    const button = e.currentTarget;
+    const card = button.closest('article');
+    const img = card?.querySelector('img');
+    const cartIcon = document.getElementById('cart-icon') || document.getElementById('cart-icon-mobile');
+
+    if (img && cartIcon) {
+      const imgRect = img.getBoundingClientRect();
+      const cartRect = cartIcon.getBoundingClientRect();
+
+      const flyingImg = document.createElement('img');
+      flyingImg.src = p.img;
+      flyingImg.style.position = 'fixed';
+      flyingImg.style.left = `${imgRect.left}px`;
+      flyingImg.style.top = `${imgRect.top}px`;
+      flyingImg.style.width = `${imgRect.width}px`;
+      flyingImg.style.height = `${imgRect.height}px`;
+      flyingImg.style.objectFit = 'contain';
+      flyingImg.style.zIndex = '999999';
+      flyingImg.style.transition = 'all 0.8s cubic-bezier(0.25, 1, 0.5, 1)';
+      flyingImg.style.pointerEvents = 'none';
+
+      document.body.appendChild(flyingImg);
+
+      requestAnimationFrame(() => {
+        flyingImg.style.left = `${cartRect.left + cartRect.width / 2}px`;
+        flyingImg.style.top = `${cartRect.top + cartRect.height / 2}px`;
+        flyingImg.style.width = '20px';
+        flyingImg.style.height = '20px';
+        flyingImg.style.opacity = '0';
+        flyingImg.style.transform = 'scale(0.1) rotate(15deg) translate(-50%, -50%)';
+      });
+
+      setTimeout(() => {
+        flyingImg.remove();
+        setIsAdding(false);
+        setIsOpen(true);
+      }, 800);
+    } else {
+      setTimeout(() => {
+        setIsAdding(false);
+        setIsOpen(true);
+      }, 300);
+    }
   };
 
   const handleToggleFavorite = () => {
@@ -65,8 +106,8 @@ export default function ProductCard({
 
   return (
     <motion.article
-      whileHover={{ y: -8, scale: 1.02 }}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      whileHover={{ y: -10, scale: 1.03 }}
+      transition={{ type: "spring", stiffness: 400, damping: 25 }}
       className="group relative bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 flex flex-col border border-gray-100"
     >
       {/* Image Container */}
@@ -96,15 +137,15 @@ export default function ProductCard({
         />
 
         {/* Category badge */}
-        <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-semibold text-[#7c5e3c] shadow-lg border border-[#e8dcc7] flex items-center gap-1.5">
-          <Sparkles className="w-3 h-3" />
+        <div className="absolute top-4 left-4 bg-white/70 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-bold text-[#7c5e3c] shadow-[0_4px_12px_rgba(166,124,82,0.15)] border border-white/60 flex items-center gap-1.5">
+          <Sparkles className="w-3.5 h-3.5 text-[#a67c52]" />
           {p.category}
         </div>
 
         {/* Stock badge */}
         {!isOutOfStock && (
-          <div className="absolute top-4 right-14 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-            <Package className="w-3 h-3" />
+          <div className="absolute top-4 right-14 bg-green-500/90 backdrop-blur-sm text-white px-2.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg shadow-green-500/20 border border-green-400/50">
+            <Package className="w-3.5 h-3.5" />
             {stock}
           </div>
         )}
@@ -125,12 +166,12 @@ export default function ProductCard({
         </button>
 
         {/* Quick actions overlay */}
-        <div className="absolute inset-x-0 bottom-0 p-4 flex justify-center gap-2 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+        <div className="absolute inset-x-0 bottom-0 p-4 flex justify-center gap-2 opacity-0 translate-y-6 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-400 ease-out z-20">
           <button
             onClick={() => onQuickView(p)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white/95 backdrop-blur-sm rounded-xl text-sm font-medium text-[#3a2f22] shadow-lg hover:bg-white transition border border-white/50"
+            className="flex items-center gap-2 px-5 py-2.5 bg-white/80 backdrop-blur-md rounded-2xl text-sm font-bold text-[#3a2f22] shadow-[0_8px_16px_rgba(58,47,34,0.1)] hover:bg-white hover:scale-105 transition-all border border-white/60"
           >
-            <Eye className="w-4 h-4" />
+            <Eye className="w-4 h-4 text-[#a67c52]" />
             Vista rápida
           </button>
         </div>
@@ -164,16 +205,20 @@ export default function ProductCard({
             onClick={handleAddToCart}
             disabled={isAdding || isOutOfStock}
             className={`
-              flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all duration-300
+              flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm transition-all duration-300 relative overflow-hidden
               ${
                 isOutOfStock
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                   : isAdding
-                  ? "bg-green-500 text-white scale-95"
-                  : "bg-gradient-to-r from-[#a67c52] to-[#8b6914] text-white hover:shadow-lg hover:scale-[1.02]"
+                  ? "bg-green-500 text-white scale-95 shadow-inner"
+                  : "bg-gradient-to-r from-[#a67c52] to-[#8b6914] text-white hover:shadow-[0_8px_20px_rgba(166,124,82,0.4)] hover:scale-[1.03] group/btn"
               }
             `}
           >
+            {/* Glossy overlay effect for the button */}
+            {!isOutOfStock && !isAdding && (
+              <div className="absolute inset-0 bg-white/20 translate-y-[-100%] group-hover/btn:translate-y-[100%] transition-transform duration-700 ease-in-out" />
+            )}
             {isOutOfStock ? (
               <>
                 <Package className="w-4 h-4" />

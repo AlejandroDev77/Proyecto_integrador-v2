@@ -16,6 +16,8 @@ import {
   Calendar,
   CheckCircle,
   Loader2,
+  ShieldCheck,
+  Lock,
 } from "lucide-react";
 import type { CartItem } from "../../../../context/CartContext";
 import AnimatedCreditCard from "../../../payment/AnimatedCreditCard";
@@ -221,8 +223,8 @@ export default function ModalCompraCliente({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="bg-gradient-to-r from-green-500 to-emerald-600 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -428,14 +430,24 @@ export default function ModalCompraCliente({
               </div>
 
               {/* Order Summary */}
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
-                <div className="flex items-center justify-between">
-                  <span className="font-medium text-gray-700 dark:text-gray-300">
-                    Total a pagar:
-                  </span>
-                  <span className="text-xl font-bold text-green-600">
-                    Bs. {total.toLocaleString()}
-                  </span>
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-5 border border-gray-100 dark:border-gray-700">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+                    <span>Subtotal de productos:</span>
+                    <span className="font-medium">Bs. {total.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 pb-3 border-b border-gray-200 dark:border-gray-700">
+                    <span>Costo de envío:</span>
+                    <span className="font-medium text-green-600">¡Gratis!</span>
+                  </div>
+                  <div className="flex items-center justify-between pt-2">
+                    <span className="font-bold text-gray-800 dark:text-white">
+                      Total Final:
+                    </span>
+                    <span className="text-2xl font-black text-green-600">
+                      Bs. {total.toLocaleString()}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -491,14 +503,26 @@ export default function ModalCompraCliente({
           )}
         </div>
 
-        {/* Footer */}
-        <div className="border-t dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-6 py-4">
+        <div className="border-t dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-6 py-5">
           {step !== 3 && (
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-gray-600 dark:text-gray-400">Total:</span>
-              <span className="text-2xl font-bold text-green-600">
-                Bs. {total.toLocaleString()}
-              </span>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <span className="text-gray-600 dark:text-gray-400 text-sm">Total final a pagar:</span>
+                <div className="text-2xl font-bold text-green-600">
+                  Bs. {total.toLocaleString()}
+                </div>
+              </div>
+              {/* Trust Badges */}
+              <div className="hidden sm:flex items-center gap-4 text-xs text-gray-500">
+                <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm">
+                  <ShieldCheck className="w-4 h-4 text-green-500" />
+                  <span>Pago Seguro</span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm">
+                  <Lock className="w-4 h-4 text-blue-500" />
+                  <span>Cifrado SSL</span>
+                </div>
+              </div>
             </div>
           )}
 

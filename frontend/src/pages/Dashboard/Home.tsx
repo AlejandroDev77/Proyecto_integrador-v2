@@ -11,6 +11,7 @@ import ResumenTab from "../../components/dashboard/tabs/ResumenTab";
 import VentasTab from "../../components/dashboard/tabs/VentasTab";
 import ProduccionTab from "../../components/dashboard/tabs/ProduccionTab";
 import InventarioTab from "../../components/dashboard/tabs/InventarioTab";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Tab {
   id: TabType;
@@ -150,28 +151,29 @@ function DashboardContent() {
         tabIcon={currentTab?.icon}
       />
 
-      {/* Tab Navigation */}
-      <div className="flex flex-wrap gap-2 p-1.5 bg-gray-100 dark:bg-gray-800/50 rounded-2xl border border-gray-200 dark:border-gray-700">
+      {/* Tab Navigation with Framer Motion */}
+      <div className="flex flex-wrap gap-2 p-1.5 bg-white/40 dark:bg-gray-800/40 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-gray-700/50 shadow-sm relative z-20">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-5 py-3 rounded-xl font-medium text-sm transition-all duration-300 ${
+            className={`relative flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-colors duration-300 z-10 ${
               activeTab === tab.id
-                ? "bg-white dark:bg-gray-700 text-orange-600 dark:text-orange-400 shadow-md"
-                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-gray-700/50"
+                ? "text-[#a67c52] dark:text-[#d4b48f]"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
             }`}
           >
-            <span
-              className={
-                activeTab === tab.id
-                  ? "text-orange-600 dark:text-orange-400"
-                  : ""
-              }
-            >
+            {activeTab === tab.id && (
+              <motion.div
+                layoutId="active-dashboard-tab"
+                className="absolute inset-0 bg-white dark:bg-gray-700 shadow-[0_4px_15px_rgba(166,124,82,0.15)] rounded-xl -z-10"
+                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+              />
+            )}
+            <span className="relative z-10">
               {tab.icon}
             </span>
-            <span className="hidden sm:inline">{tab.label}</span>
+            <span className="hidden sm:inline relative z-10">{tab.label}</span>
           </button>
         ))}
       </div>
@@ -188,12 +190,22 @@ function DashboardContent() {
         </div>
       )}
 
-      {/* Tab Content */}
-      <div className="min-h-[calc(100vh-350px)]">
-        {activeTab === "resumen" && <ResumenTab key="resumen" />}
-        {activeTab === "ventas" && <VentasTab key="ventas" />}
-        {activeTab === "produccion" && <ProduccionTab key="produccion" />}
-        {activeTab === "inventario" && <InventarioTab key="inventario" />}
+      {/* Tab Content with AnimatePresence */}
+      <div className="min-h-[calc(100vh-350px)] relative z-10">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+          >
+            {activeTab === "resumen" && <ResumenTab />}
+            {activeTab === "ventas" && <VentasTab />}
+            {activeTab === "produccion" && <ProduccionTab />}
+            {activeTab === "inventario" && <InventarioTab />}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );
@@ -201,14 +213,24 @@ function DashboardContent() {
 
 export default function Home() {
   return (
-    <>
-      <PageMeta
-        title="Dashboard | Sistema de Gestión de Mueblería"
-        description="Panel de control con métricas de ventas, producción e inventario"
-      />
-      <DashboardProvider>
-        <DashboardContent />
-      </DashboardProvider>
+    <div className="relative min-h-screen overflow-hidden">
+      {/* High-Tech Animated Grid Background */}
+      <div className="fixed inset-0 z-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+
+      {/* Dynamic Glow Blobs */}
+      <div className="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] bg-gradient-to-r from-[#a67c52]/20 to-orange-500/10 dark:from-[#a67c52]/30 dark:to-orange-500/20 rounded-full mix-blend-multiply filter blur-[120px] animate-blob pointer-events-none z-0" />
+      <div className="fixed bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-gradient-to-l from-[#d4b48f]/20 to-amber-500/10 dark:from-[#d4b48f]/30 dark:to-amber-500/20 rounded-full mix-blend-multiply filter blur-[120px] animate-blob animation-delay-2000 pointer-events-none z-0" />
+      <div className="fixed top-[40%] left-[20%] w-[400px] h-[400px] bg-gradient-to-t from-[#c69c6d]/15 to-yellow-500/10 dark:from-[#c69c6d]/20 dark:to-yellow-500/15 rounded-full mix-blend-screen filter blur-[100px] animate-blob animation-delay-4000 pointer-events-none z-0" />
+
+      <div className="relative z-10 px-4 py-6 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <PageMeta
+          title="Dashboard | Sistema de Gestión de Mueblería"
+          description="Panel de control con métricas de ventas, producción e inventario"
+        />
+        <DashboardProvider>
+          <DashboardContent />
+        </DashboardProvider>
+      </div>
 
       {/* Animation Styles */}
       <style>{`
@@ -219,7 +241,22 @@ export default function Home() {
         .animate-fadeIn {
           animation: fadeIn 0.4s ease-out;
         }
+        @keyframes blob {
+          0% { transform: translate(0px, 0px) scale(1); }
+          33% { transform: translate(30px, -50px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
+          100% { transform: translate(0px, 0px) scale(1); }
+        }
+        .animate-blob {
+          animation: blob 7s infinite alternate;
+        }
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
       `}</style>
-    </>
+    </div>
   );
 }

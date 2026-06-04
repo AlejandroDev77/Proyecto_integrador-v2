@@ -19,15 +19,17 @@ const Landing = () => {
       try {
         const data = await getMuebles();
         const muebles = data
-          .filter((m: any) => m.est_mue)
-          .slice(0, 3)
+          .filter((m: any) => m.est_mue !== false && m.precio_venta > 1000)
+          .slice(0, 8)
           .map((m: any) => ({
             id: m.id_mue,
+            cod: m.cod_mue,
             title: m.nom_mue,
             img: m.img_mue ? m.img_mue.replace("public", "") : "/images/no-image.png",
             category: m.categoria?.nom_cat || "Sin categoría",
             price: `Bs. ${m.precio_venta}`,
             desc: m.desc_mue,
+            stock: m.stock,
           }));
         setProducts(muebles);
       } catch {
