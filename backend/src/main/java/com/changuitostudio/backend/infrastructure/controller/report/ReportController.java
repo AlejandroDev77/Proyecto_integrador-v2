@@ -3,6 +3,9 @@ package com.changuitostudio.backend.infrastructure.controller.report;
 import com.changuitostudio.backend.application.dto.dashboard.DashboardRequest;
 import com.changuitostudio.backend.application.dto.dashboard.DashboardResponse;
 import com.changuitostudio.backend.application.usecase.dashboard.GetDashboardDataUseCase;
+import com.changuitostudio.backend.application.usecase.ManageUsuarioUseCase;
+import com.changuitostudio.backend.domain.model.Usuario;
+import com.changuitostudio.backend.application.dto.PageResult;
 import com.changuitostudio.backend.infrastructure.service.report.PdfReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -24,6 +27,7 @@ public class ReportController {
 
     private final GetDashboardDataUseCase getDashboardDataUseCase;
     private final PdfReportService pdfReportService;
+    private final ManageUsuarioUseCase manageUsuarioUseCase;
 
     @GetMapping("/dashboard/pdf")
     public ResponseEntity<byte[]> downloadDashboardPdf(
@@ -53,6 +57,26 @@ public class ReportController {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
         headers.setContentDispositionFormData("attachment", "Reporte_Operaciones_" + year + "_" + (month != null ? month : "") + ".pdf");
+        headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+
+        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+    }
+
+    @GetMapping("/usuarios/pdf")
+    public ResponseEntity<byte[]> downloadUsuariosPdf() {
+        // Obtenemos todos los usuarios (enviando un límite muy alto y la primera página)
+        PageResult<Usuario> pageResult = manageUsuarioUseCase.listarUsuarios(0, 10000, new java.util.HashMap<>(), "");
+        java.util.List<Usuario> usuarios = pageResult.getContent();
+
+        byte[] pdfBytes = pdfReportService.generateUsuariosPdf(usuarios);
+
+        if (pdfBytes.length == 0) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment", "Reporte_Usuarios.pdf");
         headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
 
         return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);

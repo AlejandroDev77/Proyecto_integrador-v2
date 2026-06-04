@@ -14,6 +14,76 @@ import java.time.format.DateTimeFormatter;
 @Service
 public class PdfReportService {
 
+    public byte[] generateUsuariosPdf(java.util.List<com.changuitostudio.backend.domain.model.Usuario> usuarios) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            Document document = new Document(PageSize.A4);
+            PdfWriter.getInstance(document, out);
+            document.open();
+
+            // Título
+            Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18);
+            Paragraph title = new Paragraph("Reporte de Usuarios Registrados", titleFont);
+            title.setAlignment(Element.ALIGN_CENTER);
+            title.setSpacingAfter(20);
+            document.add(title);
+
+            // Subtítulo con fecha
+            Font subTitleFont = FontFactory.getFont(FontFactory.HELVETICA, 12);
+            Paragraph subtitle = new Paragraph("Generado el: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")), subTitleFont);
+            subtitle.setAlignment(Element.ALIGN_CENTER);
+            subtitle.setSpacingAfter(30);
+            document.add(subtitle);
+
+            // Tabla de usuarios
+            PdfPTable table = new PdfPTable(5);
+            table.setWidthPercentage(100);
+            table.setWidths(new float[]{1f, 3f, 4f, 2f, 2f});
+            table.setSpacingBefore(10f);
+            table.setSpacingAfter(20f);
+
+            // Encabezados
+            Font headFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10);
+            String[] headers = {"ID", "Usuario", "Email", "Rol", "Estado"};
+            for (String h : headers) {
+                PdfPCell cell = new PdfPCell(new Phrase(h, headFont));
+                cell.setPadding(8);
+                cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                cell.setBackgroundColor(new java.awt.Color(230, 230, 230));
+                table.addCell(cell);
+            }
+
+            // Datos
+            Font rowFont = FontFactory.getFont(FontFactory.HELVETICA, 10);
+            for (com.changuitostudio.backend.domain.model.Usuario u : usuarios) {
+                PdfPCell cId = new PdfPCell(new Phrase(u.getIdUsu() != null ? String.valueOf(u.getIdUsu()) : "N/A", rowFont));
+                cId.setPadding(8); cId.setHorizontalAlignment(Element.ALIGN_CENTER); table.addCell(cId);
+
+                PdfPCell cNom = new PdfPCell(new Phrase(u.getNomUsu() != null ? u.getNomUsu() : "N/A", rowFont));
+                cNom.setPadding(8); table.addCell(cNom);
+
+                PdfPCell cEmail = new PdfPCell(new Phrase(u.getEmailUsu() != null ? u.getEmailUsu() : "N/A", rowFont));
+                cEmail.setPadding(8); table.addCell(cEmail);
+
+                String roleName = (u.getNomRol() != null) ? u.getNomRol() : "Usuario";
+                PdfPCell cRol = new PdfPCell(new Phrase(roleName, rowFont));
+                cRol.setPadding(8); cRol.setHorizontalAlignment(Element.ALIGN_CENTER); table.addCell(cRol);
+
+                String estado = (u.getEstUsu() != null && u.getEstUsu()) ? "Activo" : "Inactivo";
+                PdfPCell cEst = new PdfPCell(new Phrase(estado, rowFont));
+                cEst.setPadding(8); cEst.setHorizontalAlignment(Element.ALIGN_CENTER); table.addCell(cEst);
+            }
+
+            document.add(table);
+            document.close();
+            return out.toByteArray();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new byte[0];
+        }
+    }
+
     public byte[] generateDashboardPdf(DashboardResponse data, Integer year, Integer month) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 

@@ -8,6 +8,7 @@ import {
   Baby,
   ArrowLeft,
   Box,
+  Sparkles,
 } from "lucide-react";
 import ProductCard from "../../components/Productos/ProductCard";
 import ProductsHeader from "../../components/Productos/ProductsHeader";
@@ -208,10 +209,15 @@ export default function ProductsPage() {
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                 
                 {/* 1. Hero Banner */}
-                <div className="w-full bg-[#f3f4f6] rounded-3xl overflow-hidden flex flex-col lg:flex-row items-stretch mb-12">
-                  <div className="lg:w-1/2 p-10 md:p-16 flex flex-col justify-center">
-                    <span className="text-xs font-bold tracking-widest text-[#0058a3] uppercase mb-4">Nuevo Planificador 3D</span>
-                    <h1 className="text-4xl md:text-5xl font-bold text-[#111] mb-4 leading-tight">
+                <div className="w-full bg-gradient-to-br from-[#0058a3]/5 via-[#f8f9fa] to-[#0058a3]/10 rounded-3xl overflow-hidden flex flex-col lg:flex-row items-stretch mb-12 border border-[#0058a3]/20 shadow-[inset_0_2px_20px_rgba(0,88,163,0.05)] relative group/hero">
+                  {/* Decorative background glow */}
+                  <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#0058a3]/10 rounded-full blur-[100px] pointer-events-none" />
+                  
+                  <div className="lg:w-1/2 p-10 md:p-16 flex flex-col justify-center relative z-10">
+                    <span className="text-xs font-bold tracking-widest text-[#0058a3] uppercase mb-4 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4" /> Nuevo Planificador 3D
+                    </span>
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#111] mb-6 leading-[1.1] tracking-tight drop-shadow-sm">
                       Crea y visualiza <br/> tu espacio ideal
                     </h1>
                     <p className="text-gray-600 text-lg mb-8 max-w-md">
@@ -220,9 +226,9 @@ export default function ProductsPage() {
                     <div>
                       <button 
                         onClick={() => setActiveEstancia(ESTANCIAS_DATA[0].id)}
-                        className="px-8 py-4 bg-[#0058a3] text-white rounded-full font-bold hover:bg-[#004f93] transition-all shadow-lg shadow-blue-900/20 transform hover:-translate-y-1"
+                        className="px-8 py-4 bg-gradient-to-r from-[#0058a3] to-[#004f93] text-white rounded-full font-bold hover:shadow-[0_8px_24px_rgba(0,88,163,0.4)] transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 flex items-center gap-2"
                       >
-                        Abre el diseñador
+                        Abre el diseñador <ArrowLeft className="w-5 h-5 rotate-180" />
                       </button>
                     </div>
                   </div>
@@ -243,7 +249,7 @@ export default function ProductsPage() {
                     {/* Custom Dimensions */}
                     <div 
                       onClick={() => setShowCustomModal(true)}
-                      className="bg-white rounded-2xl border border-gray-200 hover:border-[#0058a3] hover:shadow-xl transition-all cursor-pointer group overflow-hidden flex flex-col"
+                      className="bg-white rounded-2xl border border-gray-200 hover:border-[#0058a3]/50 hover:shadow-[0_12px_30px_rgba(0,88,163,0.15)] hover:-translate-y-2 transition-all duration-300 cursor-pointer group overflow-hidden flex flex-col"
                     >
                       <div className="h-40 w-full overflow-hidden mb-4 bg-gray-50">
                         <img 
@@ -266,7 +272,7 @@ export default function ProductsPage() {
                         setCustomConfig(null);
                         setActiveEstancia(1);
                       }}
-                      className="bg-white rounded-2xl border border-gray-200 hover:border-[#0058a3] hover:shadow-xl transition-all cursor-pointer group overflow-hidden flex flex-col"
+                      className="bg-white rounded-2xl border border-gray-200 hover:border-[#0058a3]/50 hover:shadow-[0_12px_30px_rgba(0,88,163,0.15)] hover:-translate-y-2 transition-all duration-300 cursor-pointer group overflow-hidden flex flex-col"
                     >
                       <div className="h-40 w-full overflow-hidden mb-4 bg-gray-50">
                         <img 
@@ -286,7 +292,7 @@ export default function ProductsPage() {
                     {/* From template */}
                     <div 
                       onClick={() => document.getElementById("plantillas")?.scrollIntoView({ behavior: 'smooth' })}
-                      className="bg-white rounded-2xl border border-gray-200 hover:border-[#0058a3] hover:shadow-xl transition-all cursor-pointer group overflow-hidden flex flex-col"
+                      className="bg-white rounded-2xl border border-gray-200 hover:border-[#a67c52]/50 hover:shadow-[0_12px_30px_rgba(166,124,82,0.15)] hover:-translate-y-2 transition-all duration-300 cursor-pointer group overflow-hidden flex flex-col"
                     >
                       <div className="h-40 w-full overflow-hidden mb-4 bg-gray-50">
                         <img 
@@ -306,7 +312,7 @@ export default function ProductsPage() {
                     {/* Catalog */}
                     <div 
                       onClick={() => setActiveTab('categorias')}
-                      className="bg-white rounded-2xl border border-gray-200 hover:border-[#0058a3] hover:shadow-xl transition-all cursor-pointer group overflow-hidden flex flex-col"
+                      className="bg-white rounded-2xl border border-gray-200 hover:border-green-600/50 hover:shadow-[0_12px_30px_rgba(22,163,74,0.15)] hover:-translate-y-2 transition-all duration-300 cursor-pointer group overflow-hidden flex flex-col"
                     >
                       <div className="h-40 w-full overflow-hidden mb-4 bg-gray-50">
                         <img 
@@ -337,16 +343,16 @@ export default function ProductsPage() {
                         <div
                           key={estancia.id}
                           onClick={() => setActiveEstancia(estancia.id)}
-                          className="group relative rounded-2xl overflow-hidden shadow-sm border border-gray-200 hover:shadow-xl transition-all cursor-pointer"
+                          className="group relative rounded-2xl overflow-hidden shadow-sm border border-gray-200 hover:shadow-[0_12px_30px_rgba(0,0,0,0.1)] hover:-translate-y-1 transition-all duration-300 cursor-pointer bg-white"
                         >
                           <div className="h-[240px] bg-gray-100 overflow-hidden relative">
                             <img
                               src={estancia.image}
                               alt={estancia.name}
-                              className="w-full h-full object-cover mix-blend-multiply opacity-90 transition-transform duration-700 group-hover:scale-105"
+                              className="w-full h-full object-cover mix-blend-multiply opacity-90 transition-transform duration-700 group-hover:scale-110"
                             />
-                            {/* Simulate empty 3D room look */}
-                            <div className="absolute inset-0 bg-white/20 backdrop-blur-[2px]"></div>
+                            {/* Simulate empty 3D room look with glass overlay on hover */}
+                            <div className="absolute inset-0 bg-white/20 backdrop-blur-[2px] group-hover:bg-white/10 group-hover:backdrop-blur-0 transition-all duration-500"></div>
                           </div>
 
                           <div className="p-5 bg-white">
