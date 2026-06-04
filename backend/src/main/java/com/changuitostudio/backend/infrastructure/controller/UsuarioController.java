@@ -16,19 +16,70 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Controller REST para gestiÃ³n de usuarios.
- * Solo inyecta el Use Case ManageUsuarioUseCase.
- */
+
 @RestController
 @RequestMapping("/api/usuarios")
 @CrossOrigin(origins = "*")
 public class UsuarioController {
 
     private final ManageUsuarioUseCase manageUsuarioUseCase;
+    private final com.changuitostudio.backend.application.usecase.ManageClienteUseCase manageClienteUseCase;
+    private final com.changuitostudio.backend.application.usecase.ManageEmpleadoUseCase manageEmpleadoUseCase;
 
-    public UsuarioController(ManageUsuarioUseCase manageUsuarioUseCase) {
+    public UsuarioController(
+            ManageUsuarioUseCase manageUsuarioUseCase,
+            com.changuitostudio.backend.application.usecase.ManageClienteUseCase manageClienteUseCase,
+            com.changuitostudio.backend.application.usecase.ManageEmpleadoUseCase manageEmpleadoUseCase) {
         this.manageUsuarioUseCase = manageUsuarioUseCase;
+        this.manageClienteUseCase = manageClienteUseCase;
+        this.manageEmpleadoUseCase = manageEmpleadoUseCase;
+    }
+
+    @GetMapping("/{id}/perfil")
+    public ResponseEntity<?> obtenerPerfil(@PathVariable Long id) {
+        return manageUsuarioUseCase.obtenerPorId(id).map(u -> {
+            Map<String, Object> perfil = new HashMap<>();
+            perfil.put("id_usu", u.getIdUsu());
+            perfil.put("nom_usu", u.getNomUsu());
+            perfil.put("email_usu", u.getEmailUsu());
+            perfil.put("est_usu", u.getEstUsu());
+            perfil.put("cod_usu", u.getCodUsu());
+            perfil.put("id_rol", u.getIdRol());
+            perfil.put("nom_rol", u.getNomRol());
+
+            manageClienteUseCase.listar(1, 1, Map.of("usuario.id_usu", id.toString()), "id")
+                    .getContent().stream().findFirst().ifPresent(c -> {
+                        perfil.put("id_cli", c.getId());
+                        perfil.put("nom_cli", c.getNomCli());
+                        perfil.put("ap_pat_cli", c.getApPatCli());
+                        perfil.put("ap_mat_cli", c.getApMatCli());
+                        perfil.put("cel_cli", c.getCelCli());
+                        perfil.put("dir_cli", c.getDirCli());
+                        if (c.getFecNacCli() != null) perfil.put("fec_nac_cli", c.getFecNacCli().toString());
+                        perfil.put("ci_cli", c.getCiCli());
+                        perfil.put("img_cli", c.getImgCli());
+                        perfil.put("est_cli", c.getEstCli());
+                        perfil.put("cod_cli", c.getCodCli());
+                    });
+
+            manageEmpleadoUseCase.listar(1, 1, Map.of("usuario.id_usu", id.toString()), "id")
+                    .getContent().stream().findFirst().ifPresent(e -> {
+                        perfil.put("id_emp", e.getId());
+                        perfil.put("nom_emp", e.getNomEmp());
+                        perfil.put("ap_pat_emp", e.getApPatEmp());
+                        perfil.put("ap_mat_emp", e.getApMatEmp());
+                        perfil.put("cel_emp", e.getCelEmp());
+                        perfil.put("dir_emp", e.getDirEmp());
+                        if (e.getFecNacEmp() != null) perfil.put("fec_nac_emp", e.getFecNacEmp().toString());
+                        perfil.put("ci_emp", e.getCiEmp());
+                        perfil.put("img_emp", e.getImgEmp());
+                        perfil.put("car_emp", e.getCarEmp());
+                        perfil.put("est_emp", e.getEstEmp());
+                        perfil.put("cod_emp", e.getCodEmp());
+                    });
+
+            return ResponseEntity.ok(perfil);
+        }).orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping

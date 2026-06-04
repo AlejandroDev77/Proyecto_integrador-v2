@@ -1,6 +1,6 @@
-import axios from "axios";
+import axiosClient from "../api/axios";
 
-const API_URL = "http://localhost:8080/api/cotizacion";
+const API_URL = "/api/cotizaciones";
 
 export async function getCotizaciones(
   page: number = 1,
@@ -21,6 +21,6 @@ export async function getCotizaciones(
 
   if (sort) params.sort = sort;
 
-  const response = await axios.get(API_URL, { params });
+  const response = await axiosClient.get(API_URL, { params });
   return response.data;
 }

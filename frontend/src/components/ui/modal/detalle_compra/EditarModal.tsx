@@ -19,17 +19,9 @@ import {
   DollarSign,
   Save,
 } from "lucide-react";
+import { DetalleCompra } from "../../../../hooks/detalles_compras/useDetallesCompras";
 
-interface DetalleCompra {
-  id_det_comp: number;
-  cantidad: number;
-  precio_unitario: number;
-  subtotal: number;
-  id_comp: number;
-  id_mat: number;
-  compramaterial?: { fec_comp: string };
-  material?: { nom_mat: string };
-}
+
 interface Compra {
   id_comp: number;
   cod_comp?: string;
@@ -47,7 +39,7 @@ interface Props {
   showModal: boolean;
   setShowModal: (show: boolean) => void;
   detalleSeleccionado: DetalleCompra | null;
-  setDetallesCompras: React.Dispatch<React.SetStateAction<DetalleCompra[]>>;
+  setDetallesCompra: React.Dispatch<React.SetStateAction<DetalleCompra[]>>;
 }
 interface PaginationInfo {
   currentPage: number;
@@ -243,7 +235,7 @@ export default function ModalEditarDetalleCompra({
   showModal,
   setShowModal,
   detalleSeleccionado,
-  setDetallesCompras,
+  setDetallesCompra,
 }: Props) {
   const [activeTab, setActiveTab] = useState<TabType>("datos");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -339,7 +331,7 @@ export default function ModalEditarDetalleCompra({
       });
       setSelectedCompra({
         id_comp: detalleSeleccionado.id_comp,
-        fec_comp: detalleSeleccionado.compramaterial?.fec_comp || "",
+        fec_comp: detalleSeleccionado.compra?.fec_comp || "",
       });
       setSelectedMaterial({
         id_mat: detalleSeleccionado.id_mat,
@@ -404,12 +396,12 @@ export default function ModalEditarDetalleCompra({
         return;
       }
 
-      setDetallesCompras((prev) =>
+      setDetallesCompra((prev) =>
         prev.map((d) =>
           d.id_det_comp === detalleSeleccionado.id_det_comp
             ? {
                 ...responseData,
-                compramaterial: { fec_comp: selectedCompra.fec_comp },
+                compra: { fec_comp: selectedCompra.fec_comp },
                 material: { nom_mat: selectedMaterial.nom_mat },
               }
             : d

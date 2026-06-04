@@ -22,20 +22,20 @@ import {
 } from "lucide-react";
 
 interface Cliente {
-  id_cli: number;
+  id: number;
   nom_cli: string;
   ap_pat_cli: string;
   ci_cli: string;
   img_cli?: string;
 }
 interface Empleado {
-  id_emp: number;
+  id: number;
   nom_emp: string;
   ap_pat_emp: string;
   img_emp?: string;
 }
 interface Mueble {
-  id_mue: number;
+  id: number;
   nom_mue: string;
   cod_mue: string;
   precio_venta: number;
@@ -43,7 +43,7 @@ interface Mueble {
   img_mue?: string;
 }
 interface DetalleItem {
-  id_mue: number;
+  id: number;
   nom_mue: string;
   img_mue?: string;
   cantidad: number;
@@ -179,18 +179,21 @@ export default function ModalVentaCompleta({ showModal, setShowModal }: Props) {
       const [cRes, eRes, mRes] = await Promise.all([
         fetch(`${API}/clientes?per_page=100`),
         fetch(`${API}/empleados?per_page=100`),
-        fetch(`${API}/mueble?per_page=100`),
+        fetch(`${API}/muebles?per_page=100`),
       ]);
       const [cData, eData, mData] = await Promise.all([
         cRes.json(),
         eRes.json(),
         mRes.json(),
       ]);
-      setClientes(cData.data || cData);
-      setEmpleados(eData.data || eData);
-      setMuebles(mData.data || mData);
+      setClientes(Array.isArray(cData?.data?.content) ? cData.data.content : (Array.isArray(cData?.data) ? cData.data : []));
+      setEmpleados(Array.isArray(eData?.data?.content) ? eData.data.content : (Array.isArray(eData?.data) ? eData.data : []));
+      setMuebles(Array.isArray(mData?.data?.content) ? mData.data.content : (Array.isArray(mData?.data) ? mData.data : []));
     } catch (e) {
       console.error(e);
+      setClientes([]);
+      setEmpleados([]);
+      setMuebles([]);
     }
   }, []);
 
@@ -209,11 +212,11 @@ export default function ModalVentaCompleta({ showModal, setShowModal }: Props) {
   };
 
   const addMueble = (m: Mueble) => {
-    if (detalles.find((d) => d.id_mue === m.id_mue)) return;
+    if (detalles.find((d) => d.id === m.id)) return;
     setDetalles([
       ...detalles,
       {
-        id_mue: m.id_mue,
+        id: m.id,
         nom_mue: m.nom_mue,
         img_mue: m.img_mue,
         cantidad: 1,
@@ -268,12 +271,12 @@ export default function ModalVentaCompleta({ showModal, setShowModal }: Props) {
           est_ven: "Completada",
           total_ven: totalVenta,
           descuento: Number(descuento) || 0,
-          id_cli: selectedCliente.id_cli,
-          id_emp: selectedEmpleado.id_emp,
+          id_cli: selectedCliente.id,
+          id_emp: selectedEmpleado.id,
           notas,
         },
         detalles: detalles.map((d) => ({
-          id_mue: d.id_mue,
+          id_mue: d.id,
           cantidad: Number(d.cantidad) || 1,
           precio_unitario: Number(d.precio_unitario) || 0,
           descuento_item: Number(d.descuento_item) || 0,
@@ -360,10 +363,10 @@ export default function ModalVentaCompleta({ showModal, setShowModal }: Props) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[350px] overflow-y-auto">
                 {filteredClientes.map((c) => (
                   <div
-                    key={c.id_cli}
+                    key={c.id}
                     onClick={() => setSelectedCliente(c)}
                     className={`cursor-pointer rounded-xl border-2 p-3 transition-all flex items-center gap-3 ${
-                      selectedCliente?.id_cli === c.id_cli
+                      selectedCliente?.id && selectedCliente.id === c.id
                         ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20"
                         : "border-gray-200 dark:border-gray-700 hover:border-emerald-300"
                     }`}
@@ -379,7 +382,7 @@ export default function ModalVentaCompleta({ showModal, setShowModal }: Props) {
                       </p>
                       <p className="text-sm text-gray-500">CI: {c.ci_cli}</p>
                     </div>
-                    {selectedCliente?.id_cli === c.id_cli && (
+                    {selectedCliente?.id && selectedCliente.id === c.id && (
                       <Check className="w-5 h-5 text-emerald-500 ml-auto" />
                     )}
                   </div>
@@ -398,10 +401,10 @@ export default function ModalVentaCompleta({ showModal, setShowModal }: Props) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[350px] overflow-y-auto">
                 {empleados.map((e) => (
                   <div
-                    key={e.id_emp}
+                    key={e.id}
                     onClick={() => setSelectedEmpleado(e)}
                     className={`cursor-pointer rounded-xl border-2 p-3 transition-all flex items-center gap-3 ${
-                      selectedEmpleado?.id_emp === e.id_emp
+                      selectedEmpleado?.id && selectedEmpleado.id === e.id
                         ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20"
                         : "border-gray-200 dark:border-gray-700 hover:border-emerald-300"
                     }`}
@@ -416,7 +419,7 @@ export default function ModalVentaCompleta({ showModal, setShowModal }: Props) {
                         {e.nom_emp} {e.ap_pat_emp}
                       </p>
                     </div>
-                    {selectedEmpleado?.id_emp === e.id_emp && (
+                    {selectedEmpleado?.id && selectedEmpleado.id === e.id && (
                       <Check className="w-5 h-5 text-emerald-500 ml-auto" />
                     )}
                   </div>
@@ -447,11 +450,11 @@ export default function ModalVentaCompleta({ showModal, setShowModal }: Props) {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-h-[200px] overflow-y-auto">
                 {filteredMuebles.slice(0, 16).map((m) => (
                   <button
-                    key={m.id_mue}
+                    key={m.id}
                     onClick={() => addMueble(m)}
-                    disabled={detalles.some((d) => d.id_mue === m.id_mue)}
+                    disabled={detalles.some((d) => d.id && d.id === m.id)}
                     className={`relative rounded-xl border overflow-hidden transition-all hover:shadow-lg ${
-                      detalles.some((d) => d.id_mue === m.id_mue)
+                      detalles.some((d) => d.id && d.id === m.id)
                         ? "opacity-50 cursor-not-allowed"
                         : "hover:border-emerald-400"
                     }`}
@@ -474,12 +477,12 @@ export default function ModalVentaCompleta({ showModal, setShowModal }: Props) {
                         </span>
                       </div>
                     </div>
-                    {!detalles.some((d) => d.id_mue === m.id_mue) && (
+                    {!detalles.some((d) => d.id && d.id === m.id) && (
                       <div className="absolute top-1 right-1 p-1 bg-emerald-500 rounded-full text-white">
                         <Plus className="w-3 h-3" />
                       </div>
                     )}
-                    {detalles.some((d) => d.id_mue === m.id_mue) && (
+                    {detalles.some((d) => d.id && d.id === m.id) && (
                       <div className="absolute inset-0 bg-emerald-500/20 flex items-center justify-center">
                         <Check className="w-8 h-8 text-emerald-600" />
                       </div>

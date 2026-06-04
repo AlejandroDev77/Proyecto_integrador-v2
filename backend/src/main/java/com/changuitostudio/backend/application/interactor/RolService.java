@@ -10,10 +10,8 @@ import com.changuitostudio.backend.domain.model.Rol;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Servicio de aplicaciÃ³n â€” Implementa el caso de uso de gestiÃ³n de roles.
- * Solo depende de puertos (interfaces), no de infraestructura.
- */
+
+
 public class RolService implements ManageRolUseCase {
 
     private final RolRepository rolRepository;

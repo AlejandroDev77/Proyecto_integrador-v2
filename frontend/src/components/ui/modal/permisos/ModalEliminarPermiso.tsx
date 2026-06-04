@@ -1,11 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
 import Swal from "sweetalert2";
-
-interface Permiso {
-  id_permiso: number;
-  nombre: string;
-  descripcion?: string;
-}
+import { usePermisos } from "../../../../hooks/permisos/usePermisos";
+import { Permiso } from "../../../../types/permiso";
 
 interface ModalEliminarPermisoProps {
   showModal: boolean;
@@ -20,27 +16,13 @@ const ModalEliminarPermiso: React.FC<ModalEliminarPermisoProps> = ({
   permisoSeleccionado,
   onSuccess,
 }) => {
-  const [loading, setLoading] = useState(false);
+  const { eliminarPermiso, loadingAction } = usePermisos();
 
   const handleEliminar = async () => {
     if (!permisoSeleccionado) return;
 
-    setLoading(true);
     try {
-      const res = await fetch(
-        `http://localhost:8080/api/permisos/${permisoSeleccionado.id_permiso}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Error al eliminar permiso");
-      }
+      await eliminarPermiso(permisoSeleccionado.id);
 
       Swal.fire({
         icon: "success",
@@ -59,8 +41,6 @@ const ModalEliminarPermiso: React.FC<ModalEliminarPermisoProps> = ({
         title: "Error",
         text: error instanceof Error ? error.message : "No se pudo eliminar el permiso.",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -73,7 +53,7 @@ const ModalEliminarPermiso: React.FC<ModalEliminarPermisoProps> = ({
               ¿Estás seguro de eliminar este permiso?
             </h2>
             <p className="text-gray-600 dark:text-gray-400 text-center mb-6">
-              <strong>{permisoSeleccionado.nombre}</strong>
+              <strong>{permisoSeleccionado.nom_permiso}</strong>
             </p>
 
             <div className="flex justify-center gap-4">
@@ -85,10 +65,10 @@ const ModalEliminarPermiso: React.FC<ModalEliminarPermisoProps> = ({
               </button>
               <button
                 onClick={handleEliminar}
-                disabled={loading}
+                disabled={loadingAction}
                 className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded dark:bg-red-500 dark:hover:bg-red-600"
               >
-                {loading ? "Eliminando..." : "Eliminar"}
+                {loadingAction ? "Eliminando..." : "Eliminar"}
               </button>
             </div>
           </div>

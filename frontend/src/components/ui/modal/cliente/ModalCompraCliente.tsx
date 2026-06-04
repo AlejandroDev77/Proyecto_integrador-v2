@@ -16,8 +16,12 @@ import {
   Calendar,
   CheckCircle,
   Loader2,
+  ShieldCheck,
+  Lock,
 } from "lucide-react";
 import type { CartItem } from "../../../../context/CartContext";
+import AnimatedCreditCard from "../../../payment/AnimatedCreditCard";
+import QrScannerSimulator from "../../../payment/QrScannerSimulator";
 
 interface Props {
   showModal: boolean;
@@ -36,7 +40,7 @@ interface ClienteInfo {
   dir_cli: string;
 }
 
-type PaymentMethod = "efectivo" | "transferencia" | "qr";
+type PaymentMethod = "efectivo" | "transferencia" | "qr" | "tarjeta";
 
 const paymentMethods = [
   {
@@ -46,12 +50,18 @@ const paymentMethods = [
     color: "green",
   },
   {
-    id: "transferencia" as PaymentMethod,
-    label: "Transferencia",
+    id: "tarjeta" as PaymentMethod,
+    label: "Tarjeta",
     icon: CreditCard,
     color: "blue",
   },
   { id: "qr" as PaymentMethod, label: "QR", icon: Smartphone, color: "purple" },
+  {
+    id: "transferencia" as PaymentMethod,
+    label: "Transferencia",
+    icon: Calendar,
+    color: "amber",
+  },
 ];
 
 export default function ModalCompraCliente({
@@ -94,7 +104,7 @@ export default function ModalCompraCliente({
         return;
       }
 
-      // Llamar al endpoint público para obtener cliente por id_usu
+      // Llamar al endpoint para obtener cliente por id_usu
       const res = await fetch(`${API}/cliente/por-usuario/${idUsu}`);
 
       if (res.ok) {
@@ -213,8 +223,8 @@ export default function ModalCompraCliente({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="bg-gradient-to-r from-green-500 to-emerald-600 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -336,26 +346,26 @@ export default function ModalCompraCliente({
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                   Selecciona cómo deseas pagar:
                 </label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-4 gap-2">
                   {paymentMethods.map((pm) => (
                     <button
                       key={pm.id}
                       onClick={() => setPaymentMethod(pm.id)}
-                      className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition ${
+                      className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition ${
                         paymentMethod === pm.id
                           ? `border-${pm.color}-500 bg-${pm.color}-50 dark:bg-${pm.color}-900/20`
                           : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
                       }`}
                     >
                       <pm.icon
-                        className={`w-6 h-6 ${
+                        className={`w-5 h-5 ${
                           paymentMethod === pm.id
                             ? `text-${pm.color}-500`
                             : "text-gray-400"
                         }`}
                       />
                       <span
-                        className={`text-sm font-medium ${
+                        className={`text-xs font-medium ${
                           paymentMethod === pm.id
                             ? `text-${pm.color}-700 dark:text-${pm.color}-300`
                             : "text-gray-600"
@@ -368,6 +378,42 @@ export default function ModalCompraCliente({
                 </div>
               </div>
 
+              {/* Dynamic Payment Content */}
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                {paymentMethod === "tarjeta" && (
+                  <AnimatedCreditCard />
+                )}
+
+                {paymentMethod === "qr" && (
+                  <QrScannerSimulator 
+                    totalAmount={total} 
+                    onScanSuccess={() => {
+                      handleSubmit();
+                    }}
+                  />
+                )}
+
+                {(paymentMethod === "efectivo" || paymentMethod === "transferencia") && (
+                  <div className="p-8 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-dashed border-gray-300 dark:border-gray-600 text-center">
+                    {paymentMethod === "efectivo" ? (
+                      <>
+                        <Banknote className="w-12 h-12 text-green-500 mx-auto mb-4" />
+                        <p className="text-gray-600 dark:text-gray-300">
+                          Pagarás en efectivo al momento de recibir tus productos.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <Calendar className="w-12 h-12 text-amber-500 mx-auto mb-4" />
+                        <p className="text-gray-600 dark:text-gray-300">
+                          Realiza la transferencia y adjunta tu comprobante luego de confirmar.
+                        </p>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+
               {/* Delivery Address */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -378,20 +424,30 @@ export default function ModalCompraCliente({
                   value={direccion}
                   onChange={(e) => setDireccion(e.target.value)}
                   placeholder="Ingresa la dirección completa de entrega..."
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-800 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  rows={3}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-800 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                  rows={2}
                 />
               </div>
 
               {/* Order Summary */}
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
-                <div className="flex items-center justify-between text-lg">
-                  <span className="font-medium text-gray-700 dark:text-gray-300">
-                    Total a pagar:
-                  </span>
-                  <span className="text-2xl font-bold text-green-600">
-                    Bs. {total.toLocaleString()}
-                  </span>
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-5 border border-gray-100 dark:border-gray-700">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+                    <span>Subtotal de productos:</span>
+                    <span className="font-medium">Bs. {total.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 pb-3 border-b border-gray-200 dark:border-gray-700">
+                    <span>Costo de envío:</span>
+                    <span className="font-medium text-green-600">¡Gratis!</span>
+                  </div>
+                  <div className="flex items-center justify-between pt-2">
+                    <span className="font-bold text-gray-800 dark:text-white">
+                      Total Final:
+                    </span>
+                    <span className="text-2xl font-black text-green-600">
+                      Bs. {total.toLocaleString()}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -447,14 +503,26 @@ export default function ModalCompraCliente({
           )}
         </div>
 
-        {/* Footer */}
-        <div className="border-t dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-6 py-4">
+        <div className="border-t dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-6 py-5">
           {step !== 3 && (
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-gray-600 dark:text-gray-400">Total:</span>
-              <span className="text-2xl font-bold text-green-600">
-                Bs. {total.toLocaleString()}
-              </span>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <span className="text-gray-600 dark:text-gray-400 text-sm">Total final a pagar:</span>
+                <div className="text-2xl font-bold text-green-600">
+                  Bs. {total.toLocaleString()}
+                </div>
+              </div>
+              {/* Trust Badges */}
+              <div className="hidden sm:flex items-center gap-4 text-xs text-gray-500">
+                <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm">
+                  <ShieldCheck className="w-4 h-4 text-green-500" />
+                  <span>Pago Seguro</span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm">
+                  <Lock className="w-4 h-4 text-blue-500" />
+                  <span>Cifrado SSL</span>
+                </div>
+              </div>
             </div>
           )}
 

@@ -12,7 +12,7 @@ export default function ProductsHeader({ query = "", setQuery }: Props) {
   const { totalItems, setIsOpen } = useCart();
 
   return (
-    <header className="w-full sticky top-0 bg-white/80 backdrop-blur-md shadow-md z-40">
+    <header className="w-full sticky top-0 bg-white/80 backdrop-blur-xl shadow-sm border-b border-[#e8dcc7]/50 z-50 transition-all duration-300">
       <div className="max-w-[1800px] mx-auto px-2 md:px-4 lg:px-6 py-4 md:py-5">
         <div className="flex items-center">
           <div className="flex items-center gap-6 flex-1">
@@ -30,7 +30,7 @@ export default function ProductsHeader({ query = "", setQuery }: Props) {
               <div className="relative flex max-w-[500px] w-full">
                 <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-[#a67c52]" />
                 <input
-                  className="w-full pl-12 pr-4 py-3 border-2 border-[#e8dcc7] rounded-full text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#a67c52] bg-white/80"
+                  className="w-full pl-12 pr-4 py-3 border border-[#e8dcc7] rounded-full text-sm shadow-inner focus:outline-none focus:ring-4 focus:ring-[#a67c52]/20 focus:border-[#a67c52] bg-white/60 backdrop-blur-sm transition-all duration-300 placeholder:text-gray-400"
                   placeholder="Buscar Productos"
                   value={query}
                   onChange={(e) => setQuery && setQuery(e.target.value)}
@@ -57,6 +57,7 @@ export default function ProductsHeader({ query = "", setQuery }: Props) {
               <Heart className="w-6 h-6" />
             </button>
             <button
+              id="cart-icon-mobile"
               onClick={() => setIsOpen(true)}
               className="relative hover:text-[#a67c52] p-2 rounded-full hover:bg-[#f3e7d7]"
               title="Carrito"
@@ -94,13 +95,14 @@ export default function ProductsHeader({ query = "", setQuery }: Props) {
               <span>Favoritos</span>
             </button>
             <button
+              id="cart-icon"
               onClick={() => setIsOpen(true)}
               className="relative hover:text-[#a67c52] flex items-center gap-2 px-4 py-2.5 rounded-full hover:bg-[#f3e7d7] transition-colors"
             >
               <ShoppingCart className="w-7 h-7" />
               <span>Carrito</span>
               {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#a67c52] text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#a67c52] text-white text-xs font-bold rounded-full flex items-center justify-center shadow-[0_0_8px_rgba(166,124,82,0.6)] ring-2 ring-white">
                   {totalItems > 9 ? "9+" : totalItems}
                 </span>
               )}

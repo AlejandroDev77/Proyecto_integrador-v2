@@ -13,10 +13,7 @@ import java.security.SecureRandom;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Servicio de aplicaciÃƒÂ³n Ã¢â‚¬â€ Implementa el caso de uso de gestiÃƒÂ³n de usuarios.
- * Solo depende de puertos (interfaces), no de infraestructura.
- */
+
 public class UsuarioService implements ManageUsuarioUseCase {
 
     private final UsuarioRepository usuarioRepository;

@@ -1,57 +1,46 @@
-const API_URL = "http://localhost:8080/api/evidencia-produccion";
+import axiosClient from "../api/axios";
+
+const API_URL = "/api/evidencias-produccion";
 
 export async function getEvidenciasProduccion(
   page = 1,
   perPage = 20,
   params: Record<string, any> = {}
 ) {
-  const searchParams = new URLSearchParams({
-    page: String(page),
-    per_page: String(perPage),
-    ...params,
+  const response = await axiosClient.get(API_URL, {
+    params: { page, per_page: perPage, ...params },
   });
-  const response = await fetch(`${API_URL}?${searchParams.toString()}`);
-  if (!response.ok) throw new Error("Error al obtener evidencias");
-  return response.json();
+  return response.data;
 }
 
 export async function getEvidenciaProduccion(id: number) {
-  const response = await fetch(`${API_URL}/${id}`);
-  if (!response.ok) throw new Error("Error al obtener evidencia");
-  return response.json();
+  const response = await axiosClient.get(`${API_URL}/${id}`);
+  return response.data;
 }
 
 export async function createEvidenciaProduccion(formData: FormData) {
-  const response = await fetch(API_URL, {
-    method: "POST",
-    body: formData,
+  const response = await axiosClient.post(API_URL, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
   });
-  if (!response.ok) throw new Error("Error al crear evidencia");
-  return response.json();
+  return response.data;
 }
 
 export async function updateEvidenciaProduccion(
   id: number,
   formData: FormData
 ) {
-  // Laravel needs _method for PUT with FormData
-  formData.append("_method", "PUT");
-  const response = await fetch(`${API_URL}/${id}`, {
-    method: "POST",
-    body: formData,
+  const response = await axiosClient.put(`${API_URL}/${id}`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
   });
-  if (!response.ok) throw new Error("Error al actualizar evidencia");
-  return response.json();
+  return response.data;
 }
 
 export async function deleteEvidenciaProduccion(id: number) {
-  const response = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-  if (!response.ok) throw new Error("Error al eliminar evidencia");
-  return response.json();
+  const response = await axiosClient.delete(`${API_URL}/${id}`);
+  return response.data;
 }
 
 export async function getEvidenciasPorProduccion(idPro: number) {
-  const response = await fetch(`${API_URL}/por-produccion/${idPro}`);
-  if (!response.ok) throw new Error("Error al obtener evidencias");
-  return response.json();
+  const response = await axiosClient.get(`${API_URL}/por-produccion/${idPro}`);
+  return response.data;
 }

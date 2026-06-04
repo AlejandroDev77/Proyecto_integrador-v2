@@ -21,34 +21,29 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Adaptador de salida â€” Implementa el puerto UsuarioRepository con JPA.
- * La traducciÃ³n de filtros a Specification ocurre AQUÃ, no en la capa de aplicaciÃ³n.
- */
+
 @Component
 public class UsuarioJpaAdapter implements UsuarioRepository {
 
     private final UsuarioJpaRepository jpaRepository;
-    private final UsuarioMapper mapper;
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    public UsuarioJpaAdapter(UsuarioJpaRepository jpaRepository, UsuarioMapper mapper) {
+    public UsuarioJpaAdapter(UsuarioJpaRepository jpaRepository) {
         this.jpaRepository = jpaRepository;
-        this.mapper = mapper;
     }
 
     @Override
     public PageResult<Usuario> buscarTodos(int page, int size, Map<String, String> filters, String sort) {
-        // Traducir filtros genÃ©ricos â†’ JPA Specification (aquÃ­ SÃ se puede usar JPA)
+        // Traducir filtros genéricos → JPA Specification (aquí SÍ se puede usar JPA)
         Specification<UsuarioEntity> spec = UsuarioSpecifications.fromFilters(filters);
         Pageable pageable = buildPageable(page, size, sort);
 
         Page<UsuarioEntity> resultado = jpaRepository.findAll(spec, pageable);
 
         return new PageResult<>(
-                resultado.getContent().stream().map(mapper::toDomain).toList(),
+                resultado.getContent().stream().map(UsuarioMapper::toDomain).toList(),
                 page,
                 size,
                 resultado.getTotalElements()
@@ -57,29 +52,29 @@ public class UsuarioJpaAdapter implements UsuarioRepository {
 
     @Override
     public Optional<Usuario> buscarPorId(Long id) {
-        return jpaRepository.findById(id).map(mapper::toDomain);
+        return jpaRepository.findById(id).map(UsuarioMapper::toDomain);
     }
 
     @Override
     public Optional<Usuario> buscarPorNombre(String nomUsu) {
-        return jpaRepository.findByNomUsu(nomUsu).map(mapper::toDomain);
+        return jpaRepository.findByNomUsu(nomUsu).map(UsuarioMapper::toDomain);
     }
 
     @Override
     public Optional<Usuario> buscarPorEmail(String email) {
-        return jpaRepository.findByEmailUsu(email).map(mapper::toDomain);
+        return jpaRepository.findByEmailUsu(email).map(UsuarioMapper::toDomain);
     }
 
     @Override
     @Transactional
     public Usuario guardar(Usuario usuario) {
-        UsuarioEntity entity = mapper.toEntity(usuario);
+        UsuarioEntity entity = UsuarioMapper.toEntity(usuario);
         UsuarioEntity saved = jpaRepository.saveAndFlush(entity);
 
         entityManager.detach(saved);
         saved = jpaRepository.findById(saved.getIdUsu()).orElse(saved);
 
-        return mapper.toDomain(saved);
+        return UsuarioMapper.toDomain(saved);
     }
 
     @Override

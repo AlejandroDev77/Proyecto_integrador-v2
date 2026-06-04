@@ -35,8 +35,21 @@ public class SecurityConfig {
                                 "/api/forgot-password", "/api/reset-password")
                         .permitAll()
 
-                        .requestMatchers("/api/**").authenticated()
-                        .anyRequest().authenticated())
+                        // Endpoints públicos de ecommerce
+                        .requestMatchers(HttpMethod.GET, "/api/categorias", "/api/categorias/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/muebles", "/api/muebles/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/cliente/favoritos", "/api/cliente/favoritos/ids").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/cliente/favoritos/toggle").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/cliente/por-usuario/*").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/cliente/compra-directa").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/permisos").permitAll()
+                        .requestMatchers("/api/chat/**").permitAll()
+                        .requestMatchers("/api/reportes/**").permitAll()
+                        .requestMatchers("/error").permitAll()
+
+                        .requestMatchers("/api/**").permitAll()
+                        .anyRequest().permitAll())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

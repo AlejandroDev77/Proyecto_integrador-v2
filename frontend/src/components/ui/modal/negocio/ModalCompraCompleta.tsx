@@ -16,17 +16,17 @@ import {
 } from "lucide-react";
 
 interface Proveedor {
-  id_prov: number;
+  id: number;
   nom_prov: string;
   contacto_prov: string;
 }
 interface Empleado {
-  id_emp: number;
+  id: number;
   nom_emp: string;
   ap_pat_emp: string;
 }
 interface Material {
-  id_mat: number;
+  id: number;
   nom_mat: string;
   cod_mat: string;
   costo_mat: number;
@@ -34,7 +34,7 @@ interface Material {
   unidad_medida: string;
 }
 interface DetalleItem {
-  id_mat: number;
+  id: number;
   nom_mat: string;
   cantidad: number;
   precio_unitario: number;
@@ -127,7 +127,7 @@ export default function ModalCompraCompleta({
   const fetchData = useCallback(async () => {
     try {
       const [pRes, eRes, mRes] = await Promise.all([
-        fetch(`${API}/proveedor?per_page=100`),
+        fetch(`${API}/proveedores?per_page=100`),
         fetch(`${API}/empleados?per_page=100`),
         fetch(`${API}/materiales?per_page=100`),
       ]);
@@ -136,9 +136,9 @@ export default function ModalCompraCompleta({
         eRes.json(),
         mRes.json(),
       ]);
-      setProveedores(pData.data || pData);
-      setEmpleados(eData.data || eData);
-      setMateriales(mData.data || mData);
+      setProveedores(Array.isArray(pData?.data?.content) ? pData.data.content : (Array.isArray(pData?.data) ? pData.data : (Array.isArray(pData) ? pData : [])));
+      setEmpleados(Array.isArray(eData?.data?.content) ? eData.data.content : (Array.isArray(eData?.data) ? eData.data : (Array.isArray(eData) ? eData : [])));
+      setMateriales(Array.isArray(mData?.data?.content) ? mData.data.content : (Array.isArray(mData?.data) ? mData.data : (Array.isArray(mData) ? mData : [])));
     } catch (e) {
       console.error(e);
     }
@@ -157,11 +157,11 @@ export default function ModalCompraCompleta({
   };
 
   const addMaterial = (m: Material) => {
-    if (detalles.find((d) => d.id_mat === m.id_mat)) return;
+    if (detalles.find((d) => d.id === m.id)) return;
     setDetalles([
       ...detalles,
       {
-        id_mat: m.id_mat,
+        id: m.id,
         nom_mat: m.nom_mat,
         cantidad: 1,
         precio_unitario: m.costo_mat,
@@ -205,11 +205,11 @@ export default function ModalCompraCompleta({
       const payload = {
         compra: {
           fec_comp: new Date().toISOString().split("T")[0],
-          id_prov: selectedProveedor.id_prov,
-          id_emp: selectedEmpleado.id_emp,
+          id_prov: selectedProveedor.id,
+          id_emp: selectedEmpleado.id,
         },
         detalles: detalles.map((d) => ({
-          id_mat: d.id_mat,
+          id_mat: d.id,
           cantidad: d.cantidad,
           precio_unitario: d.precio_unitario,
         })),
@@ -284,10 +284,10 @@ export default function ModalCompraCompleta({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto">
                 {filteredProveedores.map((p) => (
                   <div
-                    key={p.id_prov}
+                    key={p.id}
                     onClick={() => setSelectedProveedor(p)}
                     className={`cursor-pointer rounded-xl border-2 p-3 transition-all ${
-                      selectedProveedor?.id_prov === p.id_prov
+                      selectedProveedor?.id === p.id
                         ? "border-purple-500 bg-purple-50 dark:bg-purple-900/20"
                         : "border-gray-200 dark:border-gray-700"
                     }`}
@@ -309,10 +309,10 @@ export default function ModalCompraCompleta({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {empleados.map((e) => (
                   <div
-                    key={e.id_emp}
+                    key={e.id}
                     onClick={() => setSelectedEmpleado(e)}
                     className={`cursor-pointer rounded-xl border-2 p-3 transition-all ${
-                      selectedEmpleado?.id_emp === e.id_emp
+                      selectedEmpleado?.id === e.id
                         ? "border-purple-500 bg-purple-50 dark:bg-purple-900/20"
                         : "border-gray-200 dark:border-gray-700"
                     }`}
@@ -345,7 +345,7 @@ export default function ModalCompraCompleta({
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2 max-h-[150px] overflow-y-auto">
                 {filteredMateriales.slice(0, 12).map((m) => (
                   <button
-                    key={m.id_mat}
+                    key={m.id}
                     onClick={() => addMaterial(m)}
                     className="flex items-center gap-2 p-2 rounded-lg border hover:bg-purple-50 text-left"
                   >

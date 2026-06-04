@@ -2,9 +2,7 @@ package com.changuitostudio.backend.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
 
-/**
- * Entidad JPA â€” Mapea a la tabla 'usuarios' en PostgreSQL.
- */
+
 @Entity
 @Table(name = "usuarios")
 public class UsuarioEntity {
@@ -45,8 +43,7 @@ public class UsuarioEntity {
     public UsuarioEntity() {
     }
 
-    // â”€â”€ Getters & Setters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
+   
     public Long getIdUsu() {
         return idUsu;
     }

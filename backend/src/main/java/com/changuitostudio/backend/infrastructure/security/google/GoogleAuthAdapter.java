@@ -11,9 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 
-/**
- * Adaptador de salida â€” Implementa GoogleAuthProvider usando Google API Client.
- */
+
 @Component
 public class GoogleAuthAdapter implements GoogleAuthProvider {
 
@@ -32,7 +30,7 @@ public class GoogleAuthAdapter implements GoogleAuthProvider {
 
         GoogleIdToken idToken = verifier.verify(idTokenString);
         if (idToken == null) {
-            throw new RuntimeException("El token de Google no es vÃ¡lido.");
+            throw new RuntimeException("El token de Google no es valido.");
         }
 
         GoogleIdToken.Payload payload = idToken.getPayload();

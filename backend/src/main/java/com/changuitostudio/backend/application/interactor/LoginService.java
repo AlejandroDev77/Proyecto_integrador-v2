@@ -5,7 +5,7 @@ import com.changuitostudio.backend.application.gateway.*;
 import com.changuitostudio.backend.domain.exception.CredencialesInvalidasException;
 import com.changuitostudio.backend.domain.exception.UsuarioNoEncontradoException;
 import com.changuitostudio.backend.domain.model.Permiso;
-import com.changuitostudio.backend.domain.model.Rol;
+//import com.changuitostudio.backend.domain.model.Rol;
 import com.changuitostudio.backend.domain.model.Usuario;
 
 
@@ -119,7 +119,7 @@ public class LoginService implements LoginUseCase {
         if (idRol == null) return Collections.emptyList();
         return rolRepository.buscarPorId(idRol)
                 .map(rol -> rol.getPermisos().stream()
-                        .map(Permiso::getNombre)
+                        .map(Permiso::getNomPermiso)
                         .collect(Collectors.toList()))
                 .orElse(Collections.emptyList());
     }

@@ -1,4 +1,4 @@
-import axios from "axios";
+import axiosClient from "../api/axios";
 
 export async function getClientes(
   page: number = 1,
@@ -29,7 +29,7 @@ export async function getClientes(
     params.sort = sort;
   }
 
-  const response = await axios.get("http://localhost:8080/api/clientes", {
+  const response = await axiosClient.get("/api/clientes", {
     params,
   });
   return response.data;

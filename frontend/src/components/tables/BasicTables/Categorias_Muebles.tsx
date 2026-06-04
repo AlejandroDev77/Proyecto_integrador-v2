@@ -70,13 +70,13 @@ export default function CategoriasMuebles() {
         {
           method: "DELETE",
           headers,
-        }
+        },
       );
 
       if (!res.ok) throw new Error("Error al eliminar material");
 
       setCategoriasMuebles((prev) =>
-        prev.filter((mat) => mat.id_cat !== id_cat)
+        prev.filter((mat) => mat.id_cat !== id_cat),
       );
     } catch (error) {
       console.error("Error al eliminar material:", error);

@@ -1,6 +1,6 @@
-import axios from "axios";
+import axiosClient from "../api/axios";
 
-const API_URL = "http://localhost:8080/api/roles-permisos";
+const API_URL = "/api/roles-permisos";
 
 export async function RolesPermisos(
   page: number = 1,
@@ -27,6 +27,6 @@ export async function RolesPermisos(
     params.sort = sort;
   }
 
-  const response = await axios.get(API_URL, { params });
+  const response = await axiosClient.get(API_URL, { params });
   return response.data;
 }

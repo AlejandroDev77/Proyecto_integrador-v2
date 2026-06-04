@@ -1,11 +1,8 @@
 package com.changuitostudio.backend.application.usecase;
 
-import java.util.List;
+//import java.util.List;
 
-/**
- * Caso de uso: Iniciar sesiÃ³n.
- * Define el contrato para autenticaciÃ³n de usuarios.
- */
+
 public interface LoginUseCase {
 
     /**
@@ -35,9 +32,7 @@ public interface LoginUseCase {
      */
     LoginResult loginWithGoogle(String googleIdToken);
 
-    /**
-     * Verificar cÃ³digo 2FA y completar login.
-     */
+    
     LoginResult verify2fa(String tempToken, String code);
 }
 

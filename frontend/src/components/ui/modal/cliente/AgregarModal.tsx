@@ -66,7 +66,21 @@ export default function ModalAgregarCliente({
     if (showModal) {
       setValidationErrors(null);
       setGeneralError(null);
-      fetch("http://localhost:8080/api/usuarios-sin-relaciones")
+
+      // Pre-seleccionar usuario actual si es posible
+      try {
+        const token = localStorage.getItem("token");
+        if (token) {
+          const decoded: any = jwtDecode(token);
+          if (decoded.id_usu) {
+            setForm((prev) => ({ ...prev, id_usu: decoded.id_usu.toString() }));
+          }
+        }
+      } catch (e) {
+        console.error("Error decoding token in Modal", e);
+      }
+
+      fetch("http://localhost:8080/api/usuarios?filter[sin_relaciones]=true")
         .then((res) => res.json())
         .then((payload: any) => {
           const items = payload?.data ?? payload;

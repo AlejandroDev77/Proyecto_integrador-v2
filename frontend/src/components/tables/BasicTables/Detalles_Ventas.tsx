@@ -245,7 +245,7 @@ export default function detallesventas() {
                 >
                   <SortableTableHeader
                     label="Mueble"
-                    sortField="muebles.nom_mue"
+                    sortField="muebles.nombre"
                     currentSort={currentSort}
                     onSort={handleSort}
                   />
@@ -300,7 +300,7 @@ export default function detallesventas() {
                       : ""}
                   </TableCell>
                   <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {detalleventa.mueble?.nom_mue}
+                    {detalleventa.mueble?.nombre}
                   </TableCell>
                   <TableCell className={`px-5 py-4 ${textColor}`}>
                     {detalleventa.venta?.est_ven === "Completado" ? (

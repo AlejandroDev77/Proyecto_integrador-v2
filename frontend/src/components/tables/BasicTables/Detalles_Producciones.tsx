@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useDetallesProducciones } from "../../../hooks/detalles_producciones/useDetalles_Producciones";
+import { useDetallesProducciones, DetalleProduccion } from "../../../hooks/detalles_producciones/useDetalles_Producciones";
 import DetallesProduccionAdvancedFilters from "../../filters/DetallesProduccionAdvancedFilters";
 import ModalAgregarDetalleProduccion from "../../ui/modal/detalle_produccion/AgregarModal";
 import ModalEditarDetalleProduccion from "../../ui/modal/detalle_produccion/EditarModal";
@@ -37,7 +37,7 @@ export default function DetallesDevoluciones() {
   } = useDetallesProducciones();
   const [showModalEditar, setShowModalEditar] = useState(false);
   const [detalleproduccionSeleccionado, setDetalleProduccionSeleccionado] =
-    useState<any>(null);
+    useState<DetalleProduccion | null>(null);
   const [showModalVer, setShowModalVer] = useState(false);
   const handleEliminar = async (id_det_pro: number) => {
     const confirm = window.confirm(
@@ -261,7 +261,7 @@ export default function DetallesDevoluciones() {
                   </TableCell>
 
                   <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {detalleproduccion.mueble?.nom_mue}
+                    {detalleproduccion.mueble?.nombre}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-start text-sm">
                     <TableActionButtons

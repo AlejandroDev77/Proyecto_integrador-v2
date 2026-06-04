@@ -35,7 +35,7 @@ import {
 } from "lucide-react";
 
 interface Cliente {
-  id_cli: number;
+  id: number;
   nom_cli: string;
   ap_pat_cli: string;
   ci_cli: string;
@@ -43,13 +43,13 @@ interface Cliente {
   img_cli?: string;
 }
 interface Empleado {
-  id_emp: number;
+  id: number;
   nom_emp: string;
   ap_pat_emp: string;
   img_emp?: string;
 }
 interface Mueble {
-  id_mue: number;
+  id: number;
   nom_mue: string;
   cod_mue: string;
   precio_venta: number;
@@ -270,18 +270,21 @@ export default function ModalCotizacionCompleta({
       const [cRes, eRes, mRes] = await Promise.all([
         fetch(`${API}/clientes?per_page=100`),
         fetch(`${API}/empleados?per_page=100`),
-        fetch(`${API}/mueble?per_page=100`),
+        fetch(`${API}/muebles?per_page=100`),
       ]);
       const [cData, eData, mData] = await Promise.all([
         cRes.json(),
         eRes.json(),
         mRes.json(),
       ]);
-      setClientes(cData.data || cData);
-      setEmpleados(eData.data || eData);
-      setCatalogoMuebles(mData.data || mData);
+      setClientes(Array.isArray(cData?.data?.content) ? cData.data.content : (Array.isArray(cData?.data) ? cData.data : []));
+      setEmpleados(Array.isArray(eData?.data?.content) ? eData.data.content : (Array.isArray(eData?.data) ? eData.data : []));
+      setCatalogoMuebles(Array.isArray(mData?.data?.content) ? mData.data.content : (Array.isArray(mData?.data) ? mData.data : []));
     } catch (e) {
       console.error(e);
+      setClientes([]);
+      setEmpleados([]);
+      setCatalogoMuebles([]);
     }
   }, []);
 
@@ -360,11 +363,11 @@ export default function ModalCotizacionCompleta({
   };
 
   const agregarDesdeCatalogo = (m: Mueble) => {
-    if (detalles.find((d) => d.id_mue === m.id_mue)) return;
+    if (detalles.find((d) => d.id_mue === m.id)) return;
     setDetalles([
       ...detalles,
       {
-        id_mue: m.id_mue,
+        id_mue: m.id,
         nombre_mueble: m.nom_mue,
         tipo_mueble: "",
         dimensiones: "",
@@ -428,8 +431,8 @@ export default function ModalCotizacionCompleta({
           validez_dias: validezDias,
           descuento: Number(descuento) || 0,
           notas,
-          id_cli: selectedCliente.id_cli,
-          id_emp: selectedEmpleado.id_emp,
+          id_cli: selectedCliente.id,
+          id_emp: selectedEmpleado.id,
           presupuesto_cliente: presupuestoCliente || null,
           plazo_esperado: plazoEsperado || null,
           tiempo_entrega: tiempoEntrega || null,
@@ -539,10 +542,10 @@ export default function ModalCotizacionCompleta({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[200px] overflow-y-auto">
                   {filteredClientes.map((c) => (
                     <div
-                      key={c.id_cli}
+                      key={c.id}
                       onClick={() => setSelectedCliente(c)}
                       className={`cursor-pointer rounded-xl border-2 p-3 transition-all flex items-center gap-3 ${
-                        selectedCliente?.id_cli === c.id_cli
+                        selectedCliente?.id === c.id
                           ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20"
                           : "border-gray-200 dark:border-gray-700 hover:border-indigo-300"
                       }`}
@@ -558,7 +561,7 @@ export default function ModalCotizacionCompleta({
                         </p>
                         <p className="text-xs text-gray-500">CI: {c.ci_cli}</p>
                       </div>
-                      {selectedCliente?.id_cli === c.id_cli && (
+                      {selectedCliente?.id && selectedCliente.id === c.id && (
                         <Check className="w-5 h-5 text-indigo-500" />
                       )}
                     </div>
@@ -574,10 +577,10 @@ export default function ModalCotizacionCompleta({
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-[150px] overflow-y-auto">
                   {empleados.map((e) => (
                     <div
-                      key={e.id_emp}
+                      key={e.id}
                       onClick={() => setSelectedEmpleado(e)}
                       className={`cursor-pointer rounded-xl border-2 p-2 transition-all flex items-center gap-2 ${
-                        selectedEmpleado?.id_emp === e.id_emp
+                        selectedEmpleado?.id === e.id
                           ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20"
                           : "border-gray-200 dark:border-gray-700 hover:border-indigo-300"
                       }`}
@@ -1290,11 +1293,11 @@ export default function ModalCotizacionCompleta({
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-[300px] overflow-y-auto">
                     {filteredCatalogo.map((m) => (
                       <button
-                        key={m.id_mue}
+                        key={m.id}
                         onClick={() => agregarDesdeCatalogo(m)}
-                        disabled={detalles.some((d) => d.id_mue === m.id_mue)}
+                        disabled={detalles.some((d) => d.id_mue === m.id)}
                         className={`relative rounded-xl border overflow-hidden transition-all hover:shadow-lg text-left ${
-                          detalles.some((d) => d.id_mue === m.id_mue)
+                          detalles.some((d) => d.id_mue === m.id)
                             ? "opacity-50 cursor-not-allowed"
                             : "hover:border-blue-400"
                         }`}

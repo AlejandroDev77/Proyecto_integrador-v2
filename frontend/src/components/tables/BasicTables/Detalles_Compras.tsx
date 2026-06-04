@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useDetallesCompras } from "../../../hooks/detalles_compras/useDetallesCompras";
+import { useDetallesCompras, DetalleCompra } from "../../../hooks/detalles_compras/useDetallesCompras";
 import ModalAgregarDetalleCompra from "../../ui/modal/detalle_compra/AgregarModal";
 import ModalEditarDetalleCompra from "../../ui/modal/detalle_compra/EditarModal";
 import ModalVerDetalleCompra from "../../ui/modal/detalle_compra/VerDatos";
@@ -37,7 +37,7 @@ export default function detallescompras() {
   } = useDetallesCompras();
   const [showModalEditar, setShowModalEditar] = useState(false);
   const [detallecompraSeleccionado, setDetalleCompraSeleccionado] =
-    useState<any>(null);
+    useState<DetalleCompra | null>(null);
   const [showModalVer, setShowModalVer] = useState(false); // Nuevo estado para ver
   const [currentSort, setCurrentSort] = useState<string>("");
 
@@ -248,9 +248,9 @@ export default function detallescompras() {
                     {detallecompra.subtotal} Bs.
                   </TableCell>
                   <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {detallecompra.compramaterial?.fec_comp
+                    {detallecompra.compra?.fec_comp
                       ? new Date(
-                          detallecompra.compramaterial.fec_comp
+                          detallecompra.compra.fec_comp
                         ).toLocaleDateString("es-ES", {
                           day: "2-digit",
                           month: "2-digit",

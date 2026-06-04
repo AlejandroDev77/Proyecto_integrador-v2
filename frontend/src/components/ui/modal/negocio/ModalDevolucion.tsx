@@ -15,23 +15,23 @@ import {
 } from "lucide-react";
 
 interface Venta {
-  id_ven: number;
+  id: number;
   cod_ven: string;
   fec_ven: string;
   total_ven: number;
   cliente?: { nom_cli: string; ap_pat_cli?: string };
 }
 interface Empleado {
-  id_emp: number;
+  id: number;
   nom_emp: string;
   ap_pat_emp: string;
 }
 interface DetalleVenta {
-  id_det_ven: number;
-  id_mue: number;
+  id: number;
+  venta?: { id: number };
+  mueble?: { id: number; nombre: string; imagen?: string };
   cantidad: number;
   precio_unitario: number;
-  mueble?: { nom_mue: string };
 }
 interface DetalleItem {
   id_mue: number;
@@ -142,13 +142,13 @@ export default function ModalDevolucion({ showModal, setShowModal }: Props) {
       const [vRes, eRes] = await Promise.all([
         // Solo ventas completadas de los últimos 7 días
         fetch(
-          `${API}/venta?filter[est_ven]=Completado&filter[fec_ven_desde]=${sevenDaysAgo}&per_page=100`
+          `${API}/ventas?filter[est_ven]=Completada&filter[fec_ven_desde]=${sevenDaysAgo}&per_page=100`
         ),
         fetch(`${API}/empleados?per_page=100`),
       ]);
       const [vData, eData] = await Promise.all([vRes.json(), eRes.json()]);
-      setVentas(vData.data || vData);
-      setEmpleados(eData.data || eData);
+      setVentas(Array.isArray(vData?.data?.content) ? vData.data.content : (Array.isArray(vData?.data) ? vData.data : (Array.isArray(vData) ? vData : [])));
+      setEmpleados(Array.isArray(eData?.data?.content) ? eData.data.content : (Array.isArray(eData?.data) ? eData.data : (Array.isArray(eData) ? eData : [])));
     } catch (e) {
       console.error(e);
     }
@@ -158,20 +158,21 @@ export default function ModalDevolucion({ showModal, setShowModal }: Props) {
     if (showModal) fetchData();
   }, [showModal, fetchData]);
 
-  const fetchDetallesVenta = async (id_ven: number) => {
+  const fetchDetallesVenta = async (id: number) => {
     try {
       // Usar endpoint específico de venta para obtener detalles
-      const res = await fetch(`${API}/venta/${id_ven}`);
-      const ventaData = await res.json();
+      const res = await fetch(`${API}/ventas/${id}`);
+      // Validar que la venta exista
+      if (!res.ok) throw new Error("Venta no encontrada");
 
       // Obtener los detalles desde el endpoint de detalles pero sin filtro que cause error
-      const detRes = await fetch(`${API}/detalle-venta?per_page=200`);
+      const detRes = await fetch(`${API}/detalle-ventas?per_page=200`);
       const detData = await detRes.json();
-      const allDetalles = detData.data || detData;
+      const allDetalles = detData?.data?.content || detData?.data || detData || [];
 
-      // Filtrar en el frontend por id_ven
+      // Filtrar en el frontend por id de venta (soportando id_ven o objeto venta)
       const filteredDetalles = allDetalles.filter(
-        (d: any) => d.id_ven === id_ven
+        (d: any) => d.id_ven === id || d.venta?.id === id
       );
       setDetallesVenta(filteredDetalles);
     } catch (e) {
@@ -180,7 +181,7 @@ export default function ModalDevolucion({ showModal, setShowModal }: Props) {
   };
 
   useEffect(() => {
-    if (selectedVenta) fetchDetallesVenta(selectedVenta.id_ven);
+    if (selectedVenta?.id) fetchDetallesVenta(selectedVenta.id);
   }, [selectedVenta]);
 
   const handleClose = () => {
@@ -193,12 +194,16 @@ export default function ModalDevolucion({ showModal, setShowModal }: Props) {
   };
 
   const addProducto = (d: DetalleVenta) => {
-    if (detalles.find((x) => x.id_mue === d.id_mue)) return;
+    const muebleId = d.mueble?.id;
+    if (!muebleId) return;
+
+    if (detalles.find((x) => x.id_mue === muebleId)) return;
+
     setDetalles([
       ...detalles,
       {
-        id_mue: d.id_mue,
-        nom_mue: d.mueble?.nom_mue || "Mueble",
+        id_mue: muebleId,
+        nom_mue: d.mueble?.nombre || "Mueble",
         cantidad: d.cantidad,
         precio_unitario: d.precio_unitario,
       },
@@ -238,8 +243,8 @@ export default function ModalDevolucion({ showModal, setShowModal }: Props) {
         devolucion: {
           fec_dev: new Date().toISOString().split("T")[0],
           motivo_dev: motivo,
-          id_ven: selectedVenta.id_ven,
-          id_emp: selectedEmpleado.id_emp,
+          id_ven: selectedVenta.id,
+          id_emp: selectedEmpleado.id,
         },
         detalles: detalles.map((d) => ({
           id_mue: d.id_mue,
@@ -335,10 +340,10 @@ export default function ModalDevolucion({ showModal, setShowModal }: Props) {
                     const daysLeft = getDaysRemaining(v.fec_ven);
                     return (
                       <div
-                        key={v.id_ven}
+                        key={v.id}
                         onClick={() => setSelectedVenta(v)}
                         className={`cursor-pointer rounded-xl border-2 p-3 transition-all ${
-                          selectedVenta?.id_ven === v.id_ven
+                          selectedVenta?.id && selectedVenta.id === v.id
                             ? "border-orange-500 bg-orange-50 dark:bg-orange-900/20"
                             : "border-gray-200 dark:border-gray-700 hover:border-orange-300"
                         }`}
@@ -366,7 +371,7 @@ export default function ModalDevolucion({ showModal, setShowModal }: Props) {
                             {v.total_ven} Bs.
                           </p>
                         </div>
-                        {selectedVenta?.id_ven === v.id_ven && (
+                        {selectedVenta?.id === v.id && (
                           <Check className="absolute top-2 right-2 w-5 h-5 text-orange-500" />
                         )}
                       </div>
@@ -378,10 +383,10 @@ export default function ModalDevolucion({ showModal, setShowModal }: Props) {
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 {empleados.map((e) => (
                   <div
-                    key={e.id_emp}
+                    key={e.id}
                     onClick={() => setSelectedEmpleado(e)}
                     className={`cursor-pointer rounded-lg border-2 p-2 text-sm ${
-                      selectedEmpleado?.id_emp === e.id_emp
+                      selectedEmpleado?.id && selectedEmpleado.id === e.id
                         ? "border-orange-500 bg-orange-50"
                         : "border-gray-200"
                     }`}
@@ -402,13 +407,13 @@ export default function ModalDevolucion({ showModal, setShowModal }: Props) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[150px] overflow-y-auto">
                 {detallesVenta.map((d) => (
                   <button
-                    key={d.id_det_ven}
+                    key={d.id}
                     onClick={() => addProducto(d)}
                     className="flex items-center gap-2 p-2 rounded-lg border hover:bg-orange-50 text-left"
                   >
                     <Plus className="w-4 h-4 text-orange-600" />
                     <div className="flex-1">
-                      <p className="text-sm font-medium">{d.mueble?.nom_mue}</p>
+                      <p className="text-sm font-medium">{d.mueble?.nombre}</p>
                       <p className="text-xs text-gray-500">
                         Cant: {d.cantidad} | {d.precio_unitario} Bs.
                       </p>

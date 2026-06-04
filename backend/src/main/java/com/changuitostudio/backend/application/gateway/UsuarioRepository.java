@@ -6,10 +6,7 @@ import com.changuitostudio.backend.domain.model.Usuario;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Puerto de salida: Persistencia de usuarios.
- * Define el contrato SIN conocer JPA, Specification ni ninguna tecnologÃ­a.
- */
+
 public interface UsuarioRepository {
 
     PageResult<Usuario> buscarTodos(int page, int size, Map<String, String> filters, String sort);

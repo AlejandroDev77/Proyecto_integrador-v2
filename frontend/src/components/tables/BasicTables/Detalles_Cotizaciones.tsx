@@ -249,7 +249,7 @@ export default function DetallesCotizaciones() {
                   <TableCell className={`px-5 py-4 ${textColor}`}>
                     <span className="font-medium">
                       {detallecotizacion.nombre_mueble ||
-                        detallecotizacion.mueble?.nom_mue ||
+                        detallecotizacion.mueble?.nombre ||
                         "-"}
                     </span>
                   </TableCell>

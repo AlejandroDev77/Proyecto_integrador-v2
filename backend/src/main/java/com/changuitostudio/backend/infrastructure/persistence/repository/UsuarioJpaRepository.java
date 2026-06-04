@@ -7,10 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-/**
- * Repositorio Spring Data JPA con soporte para Specifications (filtros
- * dinÃ¡micos).
- */
+
 @Repository
 public interface UsuarioJpaRepository extends JpaRepository<UsuarioEntity, Long>,
         JpaSpecificationExecutor<UsuarioEntity> {

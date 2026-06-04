@@ -21,9 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Adaptador de salida â€” Implementa el puerto RolRepository con JPA.
- */
+
 @Component
 public class RolJpaAdapter implements RolRepository {
 

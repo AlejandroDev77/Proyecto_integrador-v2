@@ -1,6 +1,6 @@
-import axios from "axios";
+import axiosClient from "../api/axios";
 
-const API_URL = "http://localhost:8080/api/venta";
+const API_URL = "/api/ventas";
 
 export async function getVentas(
   page: number = 1,
@@ -33,6 +33,6 @@ export async function getVentas(
     params.sort = sort;
   }
 
-  const response = await axios.get(API_URL, { params });
+  const response = await axiosClient.get(API_URL, { params });
   return response.data;
 }

@@ -6,19 +6,13 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.util.Map;
 
-/**
- * Specifications dinÃ¡micas para filtrar usuarios.
- * Replica los filtros de Spatie QueryBuilder del backend Laravel.
- */
+
 public class UsuarioSpecifications {
 
     private UsuarioSpecifications() {
     }
 
-    /**
-     * Construye una Specification a partir del mapa de filtros del frontend.
-     * Soporta: search, cod_usu, nom_usu, email_usu, nom_rol, est_usu, id_rol
-     */
+   
     public static Specification<UsuarioEntity> fromFilters(Map<String, String> filters) {
         Specification<UsuarioEntity> spec = (root, query, cb) -> cb.conjunction();
 
@@ -40,11 +34,37 @@ public class UsuarioSpecifications {
                 case "nom_rol" -> spec.and(rolNameFilter(value));
                 case "est_usu" -> spec.and(estadoFilter(value));
                 case "id_rol" -> spec.and(equalFilter("idRol", Long.parseLong(value)));
+                case "sin_relaciones" -> {
+                    if ("true".equalsIgnoreCase(value) || "1".equals(value)) {
+                        yield spec.and(sinRelacionesFilter());
+                    }
+                    yield spec;
+                }
                 default -> spec;
             };
         }
 
         return spec;
+    }
+
+    /**
+     * Filtro para obtener usuarios que no estÃ¡n en la tabla clientes ni en empleados.
+     */
+    private static Specification<UsuarioEntity> sinRelacionesFilter() {
+        return (root, query, cb) -> {
+            jakarta.persistence.criteria.Subquery<Long> clientSubquery = query.subquery(Long.class);
+            jakarta.persistence.criteria.Root<com.changuitostudio.backend.infrastructure.persistence.entity.ClienteEntity> clientRoot = clientSubquery.from(com.changuitostudio.backend.infrastructure.persistence.entity.ClienteEntity.class);
+            clientSubquery.select(clientRoot.get("usuario").get("idUsu"));
+
+            jakarta.persistence.criteria.Subquery<Long> empSubquery = query.subquery(Long.class);
+            jakarta.persistence.criteria.Root<com.changuitostudio.backend.infrastructure.persistence.entity.EmpleadoEntity> empRoot = empSubquery.from(com.changuitostudio.backend.infrastructure.persistence.entity.EmpleadoEntity.class);
+            empSubquery.select(empRoot.get("usuario").get("idUsu"));
+
+            return cb.and(
+                cb.not(root.get("idUsu").in(clientSubquery)),
+                cb.not(root.get("idUsu").in(empSubquery))
+            );
+        };
     }
 
     /**

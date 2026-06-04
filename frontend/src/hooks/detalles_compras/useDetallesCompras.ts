@@ -1,17 +1,15 @@
 import { useState, useEffect } from "react";
 import { getDetallesCompras } from "../../services/detalle_compraService";
 
-interface DetalleCompra {
+export interface DetalleCompra {
     id_det_comp: number;
     cod_det_comp?: string;
     cantidad: number;
     precio_unitario: number;
     subtotal: number;
     id_comp: number;
-    compramaterial?: {
+    compra?: {
         fec_comp: string;
-        
-    
     }
     id_mat: number;
     material?: {
@@ -51,9 +49,11 @@ export function useDetallesCompras() {
         }
 
         const data = await getDetallesCompras(currentPage, itemsPerPage, filters, sort);
-        setDetallesCompra(data.data || data);
-        setTotalPages(data.last_page || 1);
-        setTotalItems(data.total || (data.data ? data.data.length : 0));
+        const realData = data.data && data.success !== undefined ? data.data : data;
+        const itemsArray = realData.content || realData.data || (Array.isArray(realData) ? realData : []);
+        setDetallesCompra(itemsArray);
+        setTotalPages(realData.totalPages || realData.total_pages || realData.last_page || 1);
+        setTotalItems(realData.totalElements || realData.total_elements || realData.total || itemsArray.length);
       } catch (err) {
         console.error(err);
       } finally {
@@ -65,7 +65,7 @@ export function useDetallesCompras() {
   }, [currentPage, itemsPerPage, filters, sort]);
 
   const filtered = detallescompras.filter((c) =>
-    `${c.id_det_comp} ${c.cantidad} ${c.precio_unitario} ${c.subtotal} ${c.id_comp} ${c.id_mat} ${c.material?.nom_mat || ""} ${c.compramaterial?.fec_comp || ""}`
+    `${c.id_det_comp} ${c.cantidad} ${c.precio_unitario} ${c.subtotal} ${c.id_comp} ${c.id_mat} ${c.material?.nom_mat || ""} ${c.compra?.fec_comp || ""}`
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
   );

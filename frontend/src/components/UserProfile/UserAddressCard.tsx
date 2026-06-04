@@ -1,12 +1,16 @@
 // modales y formularios removidos: sólo botones visibles
+import { useState } from "react";
 import { useCliente } from "../../hooks/useUserAddress";
+import ModalAgregarCliente from "../ui/modal/cliente/AgregarModal";
 
 type Props = {
   forceLight?: boolean;
 };
 
 export default function UserAddressCard({ forceLight = false }: Props) {
-  const { cliente, loading, error } = useCliente();
+  const { cliente, loading, error, fetchCliente } = useCliente();
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   return (
     <>
@@ -246,7 +250,7 @@ export default function UserAddressCard({ forceLight = false }: Props) {
                 )}
                 {!cliente && (
                   <button
-                    onClick={() => console.log("Agregar (modal eliminado)")}
+                    onClick={() => setShowAddModal(true)}
                     className="flex w-full items-center justify-center gap-2 rounded-full border border-blue-500 bg-blue-500 px-4 py-3 text-sm font-medium text-white shadow-theme-xs hover:bg-blue-600 lg:inline-flex lg:w-auto mt-4"
                   >
                     Agregar datos de cliente
@@ -257,7 +261,7 @@ export default function UserAddressCard({ forceLight = false }: Props) {
           </div>
           {cliente && (
             <button
-              onClick={() => console.log("Editar (modal eliminado)")}
+              onClick={() => setShowEditModal(true)}
               className={`flex w-full items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 lg:inline-flex lg:w-auto ${
                 forceLight
                   ? ""
@@ -284,7 +288,12 @@ export default function UserAddressCard({ forceLight = false }: Props) {
           )}
         </div>
       </div>
-      {/* Modales de agregar/editar eliminados: los botones quedan inactivos por ahora */}
+      
+      <ModalAgregarCliente 
+        showModal={showAddModal}
+        setShowModal={setShowAddModal}
+        setClientes={() => fetchCliente()}
+      />
     </>
   );
 }

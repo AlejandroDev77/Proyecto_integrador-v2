@@ -20,9 +20,11 @@ export function useVentas() {
       setLoading(true);
       try {
         const data = await getVentas(currentPage, itemsPerPage , filters, sort);
-        setVentas(data.data || data);
-        setTotalPages(data.last_page || 1);
-        setTotalItems(data.total || (data.data ? data.data.length : 0));
+        const realData = data.data && data.success !== undefined ? data.data : data;
+        const itemsArray = realData.content || realData.data || (Array.isArray(realData) ? realData : []);
+        setVentas(itemsArray);
+        setTotalPages(realData.totalPages || realData.total_pages || realData.last_page || 1);
+        setTotalItems(realData.totalElements || realData.total_elements || realData.total || itemsArray.length);
       } catch (err) {
         console.error(err);
       } finally {

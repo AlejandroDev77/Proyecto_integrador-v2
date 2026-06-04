@@ -256,6 +256,18 @@ const navItems: NavItem[] = [
       },
     ],
   },
+  {
+    name: "IA",
+    icon: <FaCube className="w-5 h-5" />,
+    subItems: [
+      {
+        name: "Generación 3D",
+        path: "/generacion-ia",
+        pro: false,
+        // requiredPermisos: ["ver_ia"], // Puedes descomentar esto cuando tengas el permiso
+      },
+    ],
+  },
 ];
 
 const othersItems: NavItem[] = [

@@ -3,30 +3,6 @@ package com.changuitostudio.backend.infrastructure.controller.dto.RolDTO;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
-/**
- * âœ… DTO para respuesta de listar roles CON permisos y pivot
- * 
- * Usado en: GET /api/roles
- * 
- * Estructura de respuesta (Laravel-compatible):
- * [
- *   {
- *     "id_rol": 1,
- *     "nom_rol": "Administrador",
- *     "permisos": [
- *       {
- *         "id_permiso": 2,
- *         "nombre": "ver_reportes",
- *         "descripcion": "Ver reportes generales",
- *         "pivot": {
- *           "id_rol": 1,
- *           "id_permiso": 2
- *         }
- *       }
- *     ]
- *   }
- * ]
- */
 public class RolDTO {
 
     @JsonProperty("id_rol")
@@ -38,17 +14,17 @@ public class RolDTO {
     @JsonProperty("permisos")
     private List<PermisoConPivotDTO> permisos;
 
-    // âœ… Constructor vacÃ­o para deserializaciÃ³n
+   
     public RolDTO() {
     }
 
-    // âœ… Constructor con parÃ¡metros
+   
     public RolDTO(Long idRol, String nomRol) {
         this.idRol = idRol;
         this.nomRol = nomRol;
     }
 
-    // âœ… Constructor con permisos
+    
     public RolDTO(Long idRol, String nomRol, List<PermisoConPivotDTO> permisos) {
         this.idRol = idRol;
         this.nomRol = nomRol;
@@ -80,7 +56,7 @@ public class RolDTO {
         this.permisos = permisos;
     }
 
-    // âœ… DTO INTERNO: Permiso con Pivot (tabla intermedia)
+ 
     public static class PermisoConPivotDTO {
         @JsonProperty("id_permiso")
         private Long idPermiso;
@@ -138,7 +114,7 @@ public class RolDTO {
             this.pivot = pivot;
         }
 
-        // âœ… DTO INTERNO: Pivot (relaciÃ³n Many-to-Many)
+       
         public static class PivotDTO {
             @JsonProperty("id_rol")
             private Long idRol;

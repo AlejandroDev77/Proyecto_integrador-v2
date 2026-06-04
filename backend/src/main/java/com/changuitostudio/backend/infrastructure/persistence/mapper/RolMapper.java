@@ -5,9 +5,7 @@ import com.changuitostudio.backend.infrastructure.persistence.entity.RolEntity;
 
 import org.springframework.stereotype.Component;
 
-/**
- * Mapper â€” Convierte entre Domain Model (Rol) y JPA Entity (RolEntity).
- */
+
 @Component
 public class RolMapper {
 
@@ -17,9 +15,7 @@ public class RolMapper {
         this.permisoMapper = permisoMapper;
     }
 
-    /**
-     * JPA Entity â†’ Domain Model
-     */
+  
     public Rol toDomain(RolEntity entity) {
         if (entity == null) {
             return null;
@@ -36,9 +32,7 @@ public class RolMapper {
         return domain;
     }
 
-    /**
-     * Domain Model â†’ JPA Entity
-     */
+   
     public RolEntity toEntity(Rol domain) {
         if (domain == null) {
             return null;
