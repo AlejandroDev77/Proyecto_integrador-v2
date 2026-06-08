@@ -65,5 +65,6 @@ public class BeanConfig {
                                                      TwoFactorAuthCoreService tfaCoreService) {
         return new TwoFactorAuthServiceImpl(usuarioRepository, tfaCoreService);
     }
+    
 }
 

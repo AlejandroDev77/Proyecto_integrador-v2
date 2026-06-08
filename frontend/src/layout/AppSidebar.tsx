@@ -266,6 +266,13 @@ const navItems: NavItem[] = [
         pro: false,
         // requiredPermisos: ["ver_ia"], // Puedes descomentar esto cuando tengas el permiso
       },
+      {
+        name: "QA Automatizada",
+        path: "/qa",
+        pro: false,
+        // requiredPermisos: ["ver_qa"], // Puedes descomentar esto cuando tengas el permiso
+      }
+
     ],
   },
 ];

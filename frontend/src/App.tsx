@@ -67,7 +67,7 @@ import SolicitarCotizacion from "./pages/ClientPortal/SolicitarCotizacion";
 import MisFavoritos from "./pages/ClientPortal/MisFavoritos";
 import MiCarrito from "./pages/ClientPortal/MiCarrito";
 import MisProducciones from "./pages/ClientPortal/MisProducciones";
-
+import QA from "./pages/Tables/QA";
 import Home from "./pages/Dashboard/Home";
 import MobilePaymentSimulation from "./pages/payment/MobilePaymentSimulation";
 import Chatbot from "./components/ui/chatbot/Chatbot";
@@ -204,6 +204,7 @@ export default function App() {
                     element={<EvidenciasProduccion />}
                   />
                   <Route path="/generacion-ia" element={<GeneracionIA />} />
+                  <Route path="/qa" element={<QA />} />
                   <Route
                     path="/logs"
                     element={

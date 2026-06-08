@@ -1,0 +1,94 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Reporte QA</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; color: #333; }
+    h1 { color: #1F4E79; border-bottom: 3px solid #1F4E79; padding-bottom: 8px; }
+    h2 { color: #2E75B6; margin-top: 30px; }
+    .meta { background: #EBF3FB; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+    .meta span { margin-right: 30px; font-weight: bold; }
+    .badge { padding: 4px 12px; border-radius: 4px; color: white; font-weight: bold; font-size: 13px; }
+    .pass { background-color: #375623; }
+    .fail { background-color: #833C00; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th { background: #1F4E79; color: white; padding: 10px; text-align: left; }
+    td { padding: 9px 10px; border-bottom: 1px solid #ddd; vertical-align: top; }
+    tr:nth-child(even) { background: #F7F9FC; }
+    .screenshot { margin: 10px 0 20px; }
+    .screenshot img { max-width: 700px; border: 1px solid #ccc; border-radius: 4px; }
+    .timestamp { color: #888; font-size: 12px; margin-top: 40px; }
+  </style>
+</head>
+<body>
+  <h1>Reporte de Ejecución QA</h1>
+
+  <div class="meta">
+    <span>ID: 9c4cda0a-46e5-4061-9031-5bf59f928bfb</span>
+    <span>Fecha: 24/05/2026 19:43:29</span>
+    <span>Estado: COMPLETADO</span>
+    <span>Total: 2</span>
+    <span style="color: #375623;">✔ Pasados: 2</span>
+    <span style="color: #833C00;">✘ Fallidos: 0</span>
+  </div>
+
+  <h2>Resultados por caso</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Caso de Prueba</th>
+        <th>Resultado Esperado</th>
+        <th>Resultado Obtenido</th>
+        <th>Estado</th>
+        <th>Tiempo (ms)</th>
+        <th>Observaciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+      <tr>
+        <td>1</td>
+        <td>Verificar carga del sistema</td>
+        <td>El sistema debe cargar y mostrar la pantalla principal</td>
+        <td>Página cargada: </td>
+        <td><span class="badge pass">PASS</span></td>
+        <td>5029</td>
+        <td></td>
+      </tr>
+      
+      <tr>
+        <td>2</td>
+        <td>Verificar login</td>
+        <td>El formulario de login debe estar visible</td>
+        <td>Página cargada: </td>
+        <td><span class="badge pass">PASS</span></td>
+        <td>3994</td>
+        <td></td>
+      </tr>
+      
+    </tbody>
+  </table>
+
+  <h2>Evidencias</h2>
+  
+  <div class="screenshot">
+    <strong>Verificar carga del sistema</strong>
+    
+    <br><img src="screenshots/3309dffa-c5d2-4e88-a654-bdd1a954a6af.png" alt="Screenshot Verificar carga del sistema">
+    
+  </div>
+  
+  <div class="screenshot">
+    <strong>Verificar login</strong>
+    
+    <br><img src="screenshots/588d8fac-8557-441a-9627-b82d242362e1.png" alt="Screenshot Verificar login">
+    
+  </div>
+  
+
+  <p class="timestamp">Generado el 24/05/2026 19:43:29</p>
+</body>
+</html>
