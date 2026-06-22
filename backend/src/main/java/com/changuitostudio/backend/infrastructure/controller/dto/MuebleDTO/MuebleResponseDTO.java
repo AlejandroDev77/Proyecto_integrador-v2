@@ -13,6 +13,7 @@ public class MuebleResponseDTO {
     private Integer stock;
     private String modelo_3d;
     private String dimensiones;
+    private Boolean est_mue;
     private CategoriaResponseDTO categoria;
 
     public MuebleResponseDTO() {
@@ -96,6 +97,14 @@ public class MuebleResponseDTO {
 
     public void setDimensiones(String dimensiones) {
         this.dimensiones = dimensiones;
+    }
+
+    public Boolean getEst_mue() {
+        return est_mue;
+    }
+
+    public void setEst_mue(Boolean est_mue) {
+        this.est_mue = est_mue;
     }
 
     public CategoriaResponseDTO getCategoria() {

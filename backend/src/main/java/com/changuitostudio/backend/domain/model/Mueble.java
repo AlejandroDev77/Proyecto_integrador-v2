@@ -11,6 +11,7 @@ public class Mueble {
     private Integer stock;
     private String modelo3d;
     private String dimensiones;
+    private Boolean estado;
     private Categoria categoria;
 
     public Mueble() {
@@ -25,7 +26,7 @@ public class Mueble {
     }
 
     public Mueble(Long id, String codigo, String nombre, String imagen, Double precioVenta, 
-                  String descripcion, Integer stock, String modelo3d, String dimensiones, Categoria categoria) {
+                  String descripcion, Integer stock, String modelo3d, String dimensiones, Boolean estado, Categoria categoria) {
         this.id = id;
         this.codigo = codigo;
         this.nombre = nombre;
@@ -35,6 +36,7 @@ public class Mueble {
         this.stock = stock;
         this.modelo3d = modelo3d;
         this.dimensiones = dimensiones;
+        this.estado = estado;
         this.categoria = categoria;
     }
 
@@ -110,6 +112,14 @@ public class Mueble {
         this.dimensiones = dimensiones;
     }
 
+    public Boolean getEstado() {
+        return estado;
+    }
+
+    public void setEstado(Boolean estado) {
+        this.estado = estado;
+    }
+
     public Categoria getCategoria() {
         return categoria;
     }
@@ -143,6 +153,7 @@ public class Mueble {
                 ", stock=" + stock +
                 ", modelo3d='" + modelo3d + '\'' +
                 ", dimensiones='" + dimensiones + '\'' +
+                ", estado=" + estado +
                 ", categoria=" + categoria +
                 '}';
     }

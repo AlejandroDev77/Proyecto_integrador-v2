@@ -3,28 +3,16 @@ import { useVentas } from "../../../hooks/ventas/useVentas";
 import VentasAdvancedFilters from "../../filters/VentasAdvancedFilters";
 import SortableTableHeader from "../../ui/SortableTableHeader";
 import TableActionButtons from "../../ui/button/TableActionButtons";
-import Button from "../../ui/button/Button";
-import { FaFileAlt } from "react-icons/fa";
-import { Plus } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Plus, ShoppingBag, ChevronLeft, ChevronRight, FileText, User, Briefcase, Calendar } from "lucide-react";
 import ModalAgregarVenta from "../../ui/modal/venta/AgregarModal";
 import ModalEditarVenta from "../../ui/modal/venta/EditarModal";
 import ModalVerVenta from "../../ui/modal/venta/VerDatos";
 import Badge from "../../ui/badge/Badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHeader,
-  TableRow,
-} from "../../ui/table";
 
-const textColor = "text-gray-800 dark:text-white/90";
-
-export default function ventas() {
+export default function Ventas() {
   const {
     setVentas,
-    /*     searchTerm,
-    setSearchTerm, */
     currentPage,
     setCurrentPage,
     itemsPerPage,
@@ -34,14 +22,12 @@ export default function ventas() {
     paginatedData,
     totalPages,
     setFilters,
-
     setSort,
   } = useVentas();
+
   const [showModalEditar, setShowModalEditar] = useState(false);
-  const [ventaSeleccionado, setVentaSeleccionado] = useState<any>(null); // Permitir null o un objeto de tipo Venta
-  const [showModalVer, setShowModalVer] = useState(false); // Nuevo estado para ver
-  /*   const [filtroFecha, setFiltroFecha] = useState(""); // Estado para el filtro de fecha
-  const [filtroEstado, setFiltroEstado] = useState(""); // Estado para el filtro de estado */
+  const [ventaSeleccionado, setVentaSeleccionado] = useState<any>(null);
+  const [showModalVer, setShowModalVer] = useState(false);
   const [currentSort, setCurrentSort] = useState<string>("");
 
   const handleSort = (field: string) => {
@@ -76,20 +62,16 @@ export default function ventas() {
       setVentas((prev) => prev.filter((ven) => ven.id_ven !== id_ven));
     } catch (error) {
       console.error("Error al eliminar Venta:", error);
-      alert("No se pudo eliminar el Venta.");
+      alert("No se pudo eliminar la Venta.");
     }
   };
+
   const generarReporte = async () => {
     try {
-      const response = await fetch(
-        `http://localhost:8080/api/reporte-Ventas`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await fetch(`http://localhost:8080/api/reporte-Ventas`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
       if (!response.ok) throw new Error("Error al generar el reporte");
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -105,282 +87,228 @@ export default function ventas() {
     }
   };
 
-  /* const descargarBackup = async () => {
-    try {
-      const response = await fetch(
-        `http://localhost:8080/api/venta/exportar-sql`
-      );
-      if (!response.ok) throw new Error("Error al descargar el respaldo");
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "ventas-backup.sql";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Error al descargar el respaldo:", error);
-    }
-  }; */
-
   return (
-    <div className="w-full">
-      {/* Advanced Filters */}
+    <div className="space-y-4">
       <VentasAdvancedFilters onFiltersChange={setFilters} />
 
-      {/* Filtros para el reporte */}
-       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 p-4">
-        <div className="w-full md:w-auto flex flex-col md:flex-row gap-4">
-          <button
-            onClick={generarReporte}
-            className="w-full md:w-auto flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white font-semibold px-4 py-2 rounded-md text-sm"
-          >
-            <FaFileAlt /> Generar Reporte
-          </button>
-        </div>
-      </div> 
+      {/* Botón de Reporte */}
+      <div className="flex justify-end px-1">
+        <button
+          onClick={generarReporte}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-white/5 dark:border-white/10 dark:text-gray-300 dark:hover:bg-white/10 transition-colors"
+        >
+          <FileText size={14} /> Reporte PDF
+        </button>
+      </div>
 
-      <div className="flex flex-wrap justify-between items-center p-4 gap-4">
-        <Button
+      {/* Barra de acciones */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-orange-500/10 text-orange-500 dark:bg-orange-400/10 dark:text-orange-400">
+            <ShoppingBag size={18} />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">Ventas Realizadas</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {paginatedData.length} registro{paginatedData.length !== 1 ? "s" : ""}
+            </p>
+          </div>
+        </div>
+        <button
           onClick={() => setShowModalAgregar(true)}
-          startIcon={<Plus size={20} />}
-          size="sm"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 shadow-sm shadow-orange-500/20 transition-all active:scale-95"
         >
-          {""}
-        </Button>
+          <Plus size={16} />
+          Nueva venta
+        </button>
       </div>
 
-      <div className="px-4 mb-4">
-        <div className="flex items-center">
-          <label htmlFor="itemsPerPage" className={`mr-2 ${textColor}`}>
-            Items por página:
-          </label>
-          <select
-            id="itemsPerPage"
-            value={itemsPerPage}
-            onChange={(e) => {
-              setItemsPerPage(Number(e.target.value));
-              setCurrentPage(1);
-            }}
-            className="px-2 py-1 border rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
-          >
-            <option value={5}>5</option>
-            <option value={10}>10</option>
-            <option value={20}>20</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Tabla con los estilos de borde */}
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/5 dark:bg-white/3 mx-4">
+      {/* Tabla */}
+      <div className="overflow-hidden rounded-2xl border border-gray-200 dark:border-white/6 bg-white dark:bg-white/2">
         <div className="overflow-x-auto">
-          <Table className="min-w-full">
-            <TableHeader className="border-b border-gray-100 dark:border-white/5">
-              <TableRow>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="Codigo"
-                    sortField="cod_ven"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="Fecha"
-                    sortField="fec_ven"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="Total"
-                    sortField="total_ven"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="Descuento"
-                    sortField="descuento"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="Notas"
-                    sortField="notas"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="Cliente"
-                    sortField="clientes.nom_cli"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="C.I"
-                    sortField="clientes.ci_cli"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="Empleado"
-                    sortField="empleados.nom_emp"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="Estado"
-                    sortField="est_ven"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  Acciones
-                </TableCell>
-              </TableRow>
-            </TableHeader>
-            <TableBody className="divide-y divide-gray-100 dark:divide-white/5">
-              {paginatedData.map((venta) => (
-                <TableRow key={venta.id_ven}>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {venta.cod_ven || "Sin Codigo"}
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {new Date(venta.fec_ven).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {venta.total_ven} Bs.
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {venta.descuento} Bs.
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {venta.notas}
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {`${venta.cliente?.nom_cli} ${venta.cliente?.ap_pat_cli} ${venta.cliente?.ap_mat_cli}`}
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {venta.cliente?.ci_cli}
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {venta.empleado?.nom_emp}
-                  </TableCell>
-
-                  <TableCell
-                    className={`px-4 py-3 text-start text-sm ${textColor}`}
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-100 dark:border-white/6">
+                {[
+                  { label: "Código",    field: "cod_ven" },
+                  { label: "Fecha",     field: "fec_ven" },
+                  { label: "Importes",  field: "total_ven" },
+                  { label: "Involucrados", field: null },
+                  { label: "Estado",    field: "est_ven" },
+                  { label: "Acciones",  field: null },
+                ].map(({ label, field }) => (
+                  <th
+                    key={label}
+                    className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
                   >
-                    <Badge
-                      size="sm"
-                      color={
-                        venta.est_ven === "Completado"
-                          ? "success"
-                          : venta.est_ven === "Cancelado"
-                          ? "error"
-                          : "warning"
-                      }
-                    >
-                      {venta.est_ven}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-start text-sm">
-                    <TableActionButtons
-                      actions={[
-                        {
-                          type: "view",
-                          onClick: () => {
-                            setVentaSeleccionado(venta);
-                            setShowModalVer(true);
-                          },
-                        },
-                        {
-                          type: "edit",
-                          onClick: () => {
-                            setVentaSeleccionado(venta);
-                            setShowModalEditar(true);
-                          },
-                        },
-                        {
-                          type: "delete",
-                          onClick: () => handleEliminar(venta.id_ven),
-                        },
-                      ]}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                    {field ? (
+                      <SortableTableHeader
+                        label={label}
+                        sortField={field}
+                        currentSort={currentSort}
+                        onSort={handleSort}
+                      />
+                    ) : label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 dark:divide-white/4">
+              {paginatedData.length === 0 ? (
+                <tr>
+                  <td colSpan={6}>
+                    <div className="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-600">
+                      <ShoppingBag size={40} strokeWidth={1.2} className="mb-3 opacity-40" />
+                      <p className="text-sm font-medium">Sin ventas</p>
+                      <p className="text-xs mt-1 opacity-70">No se encontraron ventas con esos filtros</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                <AnimatePresence initial={false}>
+                  {paginatedData.map((venta, idx) => {
+                    const fechaStr = new Date(venta.fec_ven).toLocaleDateString("es-ES", {
+                      day: "2-digit", month: "2-digit", year: "numeric",
+                    });
+
+                    return (
+                      <motion.tr
+                        key={venta.id_ven}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -6 }}
+                        transition={{ duration: 0.18, delay: idx * 0.03 }}
+                        className="hover:bg-gray-50 dark:hover:bg-white/3 transition-colors"
+                      >
+                        {/* Código */}
+                        <td className="px-5 py-4">
+                          <span className="font-mono text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-md">
+                            {venta.cod_ven || "—"}
+                          </span>
+                        </td>
+
+                        {/* Fecha */}
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-1.5 text-sm font-medium text-gray-800 dark:text-gray-200">
+                            <Calendar size={14} className="text-gray-400" />
+                            <span>{fechaStr}</span>
+                          </div>
+                        </td>
+
+                        {/* Importes (Total + Descuento) */}
+                        <td className="px-5 py-4">
+                          <div className="flex flex-col gap-1">
+                            <span className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                              Bs. {venta.total_ven}
+                            </span>
+                            {Number(venta.descuento) > 0 && (
+                              <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded w-fit">
+                                - Bs. {venta.descuento} desc.
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Involucrados (Cliente + Empleado) */}
+                        <td className="px-5 py-4">
+                          <div className="flex flex-col gap-1.5">
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <User size={12} className="text-indigo-400 shrink-0" />
+                              <span className="font-medium text-gray-800 dark:text-gray-200 truncate max-w-[150px]">
+                                {venta.cliente ? `${venta.cliente.nom_cli} ${venta.cliente.ap_pat_cli}` : "—"}
+                                <span className="text-gray-400 font-normal ml-1">({venta.cliente?.ci_cli})</span>
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-[11px] text-gray-500 dark:text-gray-400">
+                              <Briefcase size={12} className="shrink-0" />
+                              <span className="truncate max-w-[150px]">
+                                {venta.empleado ? `${venta.empleado.nom_emp} ${venta.empleado.ap_pat_emp || ''}` : "—"}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Estado */}
+                        <td className="px-5 py-4">
+                          <Badge
+                            size="sm"
+                            color={
+                              venta.est_ven === "Completado"
+                                ? "success"
+                                : venta.est_ven === "Cancelado"
+                                ? "error"
+                                : "warning"
+                            }
+                          >
+                            {venta.est_ven}
+                          </Badge>
+                        </td>
+
+                        {/* Acciones */}
+                        <td className="px-5 py-4 w-32">
+                          <TableActionButtons
+                            actions={[
+                              {
+                                type: "view",
+                                onClick: () => { setVentaSeleccionado(venta); setShowModalVer(true); },
+                              },
+                              {
+                                type: "edit",
+                                onClick: () => { setVentaSeleccionado(venta); setShowModalEditar(true); },
+                              },
+                              {
+                                type: "delete",
+                                onClick: () => handleEliminar(venta.id_ven),
+                              },
+                            ]}
+                          />
+                        </td>
+                      </motion.tr>
+                    );
+                  })}
+                </AnimatePresence>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Footer paginación */}
+        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 border-t border-gray-100 dark:border-white/6 bg-gray-50/50 dark:bg-white/[0.01]">
+          <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+            <span>Página {currentPage} de {totalPages}</span>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+              className="px-2 py-1 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 text-xs focus:outline-none focus:ring-2 focus:ring-orange-400/40"
+            >
+              <option value={5}>5 / pág</option>
+              <option value={10}>10 / pág</option>
+              <option value={20}>20 / pág</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft size={14} /> Anterior
+            </button>
+            <span className="px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300">
+              {currentPage} / {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === totalPages || totalPages === 0}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Siguiente <ChevronRight size={14} />
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4 p-4">
-        <button
-          onClick={() => setCurrentPage(currentPage - 1)}
-          disabled={currentPage === 1}
-          className={`w-full md:w-auto px-4 py-2 border rounded-md disabled:opacity-50 ${textColor}`}
-        >
-          Anterior
-        </button>
-        <span className={`text-center ${textColor}`}>
-          Página {currentPage} de {totalPages}
-        </span>
-        <button
-          onClick={() => setCurrentPage(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className={`w-full md:w-auto px-4 py-2 border rounded-md disabled:opacity-50 ${textColor}`}
-        >
-          Siguiente
-        </button>
-      </div>
-
+      {/* Modales */}
       <ModalAgregarVenta
         showModal={showModalAgregar}
         setShowModal={setShowModalAgregar}

@@ -88,6 +88,7 @@ public class MuebleController {
         dominio.setStock(request.getStock() != null ? request.getStock() : 0);
         dominio.setModelo3d(request.getModelo_3d());
         dominio.setDimensiones(request.getDimensiones());
+        dominio.setEstado(request.getEst_mue() != null ? request.getEst_mue() : true);
         dominio.setCategoria(categoria);
 
         Mueble creado = manageMuebleUseCase.crear(dominio);
@@ -109,10 +110,21 @@ public class MuebleController {
         dominio.setStock(request.getStock());
         dominio.setModelo3d(request.getModelo_3d());
         dominio.setDimensiones(request.getDimensiones());
+        dominio.setEstado(request.getEst_mue());
         dominio.setCategoria(categoria);
 
         Mueble actualizado = manageMuebleUseCase.actualizar(id, dominio);
         return ResponseEntity.ok(toResponseDTO(actualizado));
+    }
+
+    @PutMapping("/{id}/estado")
+    public ResponseEntity<Void> cambiarEstado(@PathVariable Long id, @RequestBody Map<String, Boolean> body) {
+        Boolean estado = body.get("est_mue");
+        if (estado == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        manageMuebleUseCase.cambiarEstado(id, estado);
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
@@ -132,6 +144,7 @@ public class MuebleController {
         dto.setStock(mueble.getStock());
         dto.setModelo_3d(mueble.getModelo3d());
         dto.setDimensiones(mueble.getDimensiones());
+        dto.setEst_mue(mueble.getEstado());
 
         if (mueble.getCategoria() != null) {
             CategoriaResponseDTO catDto = new CategoriaResponseDTO(

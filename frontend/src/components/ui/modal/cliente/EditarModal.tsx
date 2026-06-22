@@ -26,7 +26,7 @@ interface Cliente {
   ci_cli: string;
   img_cli: string;
   id_usu: number;
-  usuario?: { nom_usu: string };
+  usuario?: { nom_usu: string; idUsu?: number; id_usu?: number };
 }
 
 interface Usuario {
@@ -89,7 +89,11 @@ export default function ModalEditarCliente({
         dir_cli: clienteSeleccionado.dir_cli || "",
         fec_nac_cli: clienteSeleccionado.fec_nac_cli || "",
         ci_cli: clienteSeleccionado.ci_cli || "",
-        id_usu: clienteSeleccionado.id_usu?.toString() || "",
+        id_usu:
+          clienteSeleccionado.id_usu?.toString() ||
+          clienteSeleccionado.usuario?.idUsu?.toString() ||
+          clienteSeleccionado.usuario?.id_usu?.toString() ||
+          "",
       });
     }
   }, [clienteSeleccionado]);
@@ -152,15 +156,17 @@ export default function ModalEditarCliente({
         return;
       }
 
-      const usuario = usuarios.find((u) => u.id_usu === responseData.id_usu);
+      const actualData = responseData.data || responseData;
+
+      const usuario = usuarios.find((u) => u.id_usu === actualData.id_usu);
       const clienteConRelaciones = {
-        ...responseData,
+        ...actualData,
         usuario: usuario ? { nom_usu: usuario.nom_usu } : null,
       };
 
       setClientes((prev) =>
         prev.map((c) =>
-          c.id_cli === responseData.id_cli ? clienteConRelaciones : c
+          c.id_cli === actualData.id_cli ? clienteConRelaciones : c
         )
       );
       Swal.fire({

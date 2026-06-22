@@ -49,4 +49,12 @@ public class MaterialService implements ManageMaterialUseCase {
         }
         repository.eliminar(id);
     }
+
+    @Override
+    public void cambiarEstado(Long id, boolean estado) {
+        repository.obtenerPorId(id).map(existing -> {
+            existing.setEstMat(estado);
+            return repository.guardar(existing);
+        }).orElseThrow(() -> new MaterialNoEncontradoException("Material no encontrado con ID: " + id));
+    }
 }

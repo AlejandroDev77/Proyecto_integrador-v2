@@ -3,26 +3,31 @@ import { useClientes } from "../../../hooks/clientes/useClientes";
 import ClientesAdvancedFilters from "../../filters/ClientesAdvancedFilters";
 import SortableTableHeader from "../../ui/SortableTableHeader";
 import TableActionButtons from "../../ui/button/TableActionButtons";
-import Button from "../../ui/button/Button";
-import { Plus } from "lucide-react";
 import ModalAgregarCliente from "../../ui/modal/cliente/AgregarModal";
 import ModalEditarCliente from "../../ui/modal/cliente/EditarModal";
 import ModalVerCliente from "../../ui/modal/cliente/VerDatos";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHeader,
-  TableRow,
-} from "../../ui/table";
+import { motion, AnimatePresence } from "framer-motion";
+import { Plus, Users2, ChevronLeft, ChevronRight } from "lucide-react";
 
-const textColor = "text-gray-800 dark:text-white/90";
+// ── Avatar con iniciales ───────────────────────────────────────────────────────
+function UserAvatar({ name }: { name: string }) {
+  const initials = name
+    .split(" ")
+    .slice(0, 2)
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
+  return (
+    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm">
+      {initials}
+    </div>
+  );
+}
 
+// ── Componente principal ───────────────────────────────────────────────────────
 export default function Clientes() {
   const {
     setClientes,
-    /*     searchTerm,
-    setSearchTerm, */
     currentPage,
     setCurrentPage,
     itemsPerPage,
@@ -34,12 +39,11 @@ export default function Clientes() {
     setFilters,
     setSort,
   } = useClientes();
-  const [showModalEditar, setShowModalEditar] = useState(false);
-  const [usuarioSeleccionado, setUsuarioSeleccionado] = useState<any>(null);
-  const [showModalVer, setShowModalVer] = useState(false);
-  /*   const [filtroNombre, setFiltroNombre] = useState("");
-  const [filtroCI, setFiltroCI] = useState(""); */
-  const [currentSort, setCurrentSort] = useState<string>("");
+
+  const [showModalEditar, setShowModalEditar]       = useState(false);
+  const [clienteSeleccionado, setClienteSeleccionado] = useState<any>(null);
+  const [showModalVer, setShowModalVer]             = useState(false);
+  const [currentSort, setCurrentSort]               = useState<string>("");
 
   const handleSort = (field: string) => {
     setCurrentSort(field);
@@ -53,292 +57,231 @@ export default function Clientes() {
     try {
       const userObj = JSON.parse(localStorage.getItem("user") || "null");
       idUsuarioLocal = userObj && userObj.id_usu ? userObj.id_usu : null;
-    } catch (e) {
+    } catch {
       idUsuarioLocal = null;
     }
-
     const headers = {
       "Content-Type": "application/json",
       ...(idUsuarioLocal ? { "X-USER-ID": idUsuarioLocal } : {}),
     };
-
     try {
       const res = await fetch(`http://localhost:8080/api/clientes/${id_cli}`, {
         method: "DELETE",
         headers,
       });
-
       if (!res.ok) throw new Error("Error al eliminar cliente");
-
       setClientes((prev) => prev.filter((cli) => cli.id_cli !== id_cli));
     } catch (error) {
       console.error("Error al eliminar cliente:", error);
       alert("No se pudo eliminar el cliente.");
     }
   };
-  /* const descargarBackup = async () => {
-    try {
-      const response = await fetch(
-        `http://localhost:8080/api/clientes/exportar-sql`
-      );
-      if (!response.ok) throw new Error("Error al descargar el respaldo");
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "clientes-backup.sql";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Error al descargar el respaldo:", error);
-    }
-  }; */
 
   return (
-    <div>
+    <div className="space-y-4">
       {/* Filtros avanzados */}
-
       <ClientesAdvancedFilters onFiltersChange={setFilters} />
 
-      {/* Filtros para el reporte */}
-      {/* <div className="flex flex-wrap justify-between items-center p-4 gap-4">
-        <div className="flex flex-wrap gap-4 w-full md:w-auto">
-          <button
-            onClick={generarReporte}
-            className="flex items-center gap-2 bg-teal-500 hover:bg-teal-600 text-white font-semibold px-4 py-2 rounded-md text-sm w-full md:w-auto"
-          >
-            <FaFileAlt /> Generar Reporte
-          </button>
+      {/* Barra de acciones */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-orange-500/10 text-orange-500 dark:bg-orange-400/10 dark:text-orange-400">
+            <Users2 size={18} />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">Clientes</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {paginatedData.length} registro{paginatedData.length !== 1 ? "s" : ""}
+            </p>
+          </div>
         </div>
-      </div> */}
-
-      {/* Search and Add Button */}
-      <div className="flex flex-wrap justify-between items-center p-4 gap-4">
-        <Button
+        <button
           onClick={() => setShowModalAgregar(true)}
-          startIcon={<Plus size={20} />}
-          size="sm"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 shadow-sm shadow-orange-500/20 transition-all active:scale-95"
         >
-          {""}
-        </Button>
+          <Plus size={16} />
+          Nuevo cliente
+        </button>
       </div>
 
-      {/* Items per page */}
-      <div className="p-4 flex flex-wrap gap-4 items-center">
-        <label
-          htmlFor="itemsPerPage"
-          className={`mr-2 ${textColor} w-full md:w-auto`}
-        >
-          Items por página:
-        </label>
-        <select
-          id="itemsPerPage"
-          value={itemsPerPage}
-          onChange={(e) => {
-            setItemsPerPage(Number(e.target.value));
-            setCurrentPage(1);
-          }}
-          className="px-2 py-1 border rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-white w-full md:w-auto"
-        >
-          <option value={5}>5</option>
-          <option value={10}>10</option>
-          <option value={20}>20</option>
-        </select>
-      </div>
+      {/* Tabla */}
+      <div className="overflow-hidden rounded-2xl border border-gray-200 dark:border-white/6 bg-white dark:bg-white/2">
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-100 dark:border-white/6">
+                {[
+                  { label: "Código",           field: "cod_cli" },
+                  { label: "Cliente",          field: "nom_cli" },
+                  { label: "Celular",          field: null      },
+                  { label: "Dirección",        field: null      },
+                  { label: "F. Nacimiento",    field: null      },
+                  { label: "Usuario",          field: null      },
+                  { label: "Acciones",         field: null      },
+                ].map(({ label, field }) => (
+                  <th
+                    key={label}
+                    className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
+                  >
+                    {field ? (
+                      <SortableTableHeader
+                        label={label}
+                        sortField={field}
+                        currentSort={currentSort}
+                        onSort={handleSort}
+                      />
+                    ) : label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 dark:divide-white/4">
+              {paginatedData.length === 0 ? (
+                <tr>
+                  <td colSpan={7}>
+                    <div className="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-600">
+                      <Users2 size={40} strokeWidth={1.2} className="mb-3 opacity-40" />
+                      <p className="text-sm font-medium">Sin clientes</p>
+                      <p className="text-xs mt-1 opacity-70">No se encontraron clientes con esos filtros</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                <AnimatePresence initial={false}>
+                  {paginatedData.map((cliente, idx) => (
+                    <motion.tr
+                      key={cliente.id_cli}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      transition={{ duration: 0.18, delay: idx * 0.03 }}
+                      className="hover:bg-gray-50 dark:hover:bg-white/3 transition-colors"
+                    >
+                      {/* Código */}
+                      <td className="px-5 py-4">
+                        <span className="font-mono text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-md">
+                          {cliente.cod_cli || "—"}
+                        </span>
+                      </td>
 
-      {/* Table Container */}
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/5 dark:bg-white/3">
-        <div className="max-w-full overflow-x-auto">
-          <Table>
-            <TableHeader className="border-b border-gray-100 dark:border-white/5">
-              <TableRow>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="Codigo"
-                    sortField="cod_cli"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="Nombre"
-                    sortField="nom_cli"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  Apellido Paterno
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  Apellido Materno
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="C.I"
-                    sortField="ci_cli"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  Celular
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  Dirección
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  Fecha Nacimiento
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  Usuario
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  Acciones
-                </TableCell>
-              </TableRow>
-            </TableHeader>
-            <TableBody className="divide-y divide-gray-100 dark:divide-white/5">
-              {paginatedData.map((cliente) => (
-                <TableRow key={cliente.id_cli}>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {cliente.cod_cli || "sin codigo"}
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {cliente.nom_cli}
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {cliente.ap_pat_cli}
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {cliente.ap_mat_cli}
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {cliente.ci_cli}
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {cliente.cel_cli}
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {cliente.dir_cli}
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {cliente.fec_nac_cli
-                      ? new Date(cliente.fec_nac_cli).toLocaleDateString(
-                          "es-BO",
-                          {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          }
-                        )
-                      : ""}
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {cliente.usuario?.nom_usu}
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-start text-sm">
-                    <TableActionButtons
-                      actions={[
-                        {
-                          type: "view",
-                          onClick: () => {
-                            setUsuarioSeleccionado(cliente);
-                            setShowModalVer(true);
-                          },
-                        },
-                        {
-                          type: "edit",
-                          onClick: () => {
-                            setUsuarioSeleccionado(cliente);
-                            setShowModalEditar(true);
-                          },
-                        },
-                        {
-                          type: "delete",
-                          onClick: () => handleEliminar(cliente.id_cli),
-                        },
-                      ]}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                      {/* Cliente */}
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-3">
+                          <UserAvatar name={cliente.nom_cli} />
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white leading-tight">
+                              {cliente.nom_cli} {cliente.ap_pat_cli} {cliente.ap_mat_cli}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight mt-0.5">
+                              CI: {cliente.ci_cli}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Celular */}
+                      <td className="px-5 py-4 text-gray-700 dark:text-gray-300">
+                        {cliente.cel_cli || "—"}
+                      </td>
+
+                      {/* Dirección */}
+                      <td className="px-5 py-4 text-gray-700 dark:text-gray-300 max-w-[160px] truncate">
+                        {cliente.dir_cli || "—"}
+                      </td>
+
+                      {/* Fecha Nacimiento */}
+                      <td className="px-5 py-4 text-gray-700 dark:text-gray-300">
+                        {cliente.fec_nac_cli
+                          ? new Date(cliente.fec_nac_cli).toLocaleDateString("es-BO", {
+                              day: "2-digit", month: "2-digit", year: "numeric",
+                            })
+                          : "—"}
+                      </td>
+
+                      {/* Usuario */}
+                      <td className="px-5 py-4 text-gray-700 dark:text-gray-300">
+                        {cliente.usuario?.nom_usu || "—"}
+                      </td>
+
+                      {/* Acciones */}
+                      <td className="px-5 py-4">
+                        <TableActionButtons
+                          actions={[
+                            {
+                              type: "view",
+                              onClick: () => { setClienteSeleccionado(cliente); setShowModalVer(true); },
+                            },
+                            {
+                              type: "edit",
+                              onClick: () => { setClienteSeleccionado(cliente); setShowModalEditar(true); },
+                            },
+                            {
+                              type: "delete",
+                              onClick: () => handleEliminar(cliente.id_cli),
+                            },
+                          ]}
+                        />
+                      </td>
+                    </motion.tr>
+                  ))}
+                </AnimatePresence>
+              )}
+            </tbody>
+          </table>
         </div>
 
-        {/* Pagination */}
-        <div className="flex flex-wrap justify-between items-center p-4 gap-4">
-          <button
-            onClick={() => setCurrentPage(currentPage - 1)}
-            disabled={currentPage === 1}
-            className={`px-4 py-2 border rounded-md disabled:opacity-50 w-full md:w-auto ${textColor}`}
-          >
-            Anterior
-          </button>
-          <span className={`w-full text-center md:w-auto ${textColor}`}>
-            Página {currentPage} de {totalPages}
-          </span>
-          <button
-            onClick={() => setCurrentPage(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className={`px-4 py-2 border rounded-md disabled:opacity-50 w-full md:w-auto ${textColor}`}
-          >
-            Siguiente
-          </button>
+        {/* Footer paginación */}
+        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 border-t border-gray-100 dark:border-white/6 bg-gray-50/50 dark:bg-white/[0.01]">
+          <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+            <span>Página {currentPage} de {totalPages}</span>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+              className="px-2 py-1 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 text-xs focus:outline-none focus:ring-2 focus:ring-orange-400/40"
+            >
+              <option value={5}>5 / pág</option>
+              <option value={10}>10 / pág</option>
+              <option value={20}>20 / pág</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft size={14} /> Anterior
+            </button>
+            <span className="px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300">
+              {currentPage} / {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === totalPages || totalPages === 0}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Siguiente <ChevronRight size={14} />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Modals */}
+      {/* Modales */}
       <ModalAgregarCliente
         showModal={showModalAgregar}
         setShowModal={setShowModalAgregar}
         setClientes={setClientes}
       />
-
       <ModalEditarCliente
         showModal={showModalEditar}
         setShowModal={setShowModalEditar}
-        clienteSeleccionado={usuarioSeleccionado}
+        clienteSeleccionado={clienteSeleccionado}
         setClientes={setClientes}
       />
       <ModalVerCliente
         showModal={showModalVer}
         setShowModal={setShowModalVer}
-        clienteSeleccionado={usuarioSeleccionado}
+        clienteSeleccionado={clienteSeleccionado}
       />
     </div>
   );
