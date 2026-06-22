@@ -24,6 +24,8 @@ public class MuebleRequestDTO {
 
     private String dimensiones;
 
+    private Boolean est_mue = true;
+
     @NotNull(message = "La categoría es requerida")
     private Long id_cat;
 
@@ -92,6 +94,14 @@ public class MuebleRequestDTO {
 
     public void setDimensiones(String dimensiones) {
         this.dimensiones = dimensiones;
+    }
+
+    public Boolean getEst_mue() {
+        return est_mue;
+    }
+
+    public void setEst_mue(Boolean est_mue) {
+        this.est_mue = est_mue;
     }
 
     public Long getId_cat() {

@@ -4,28 +4,14 @@ import ModalAgregarCategoriaMueble from "../../ui/modal/categoria_mueble/Agregar
 import ModalEditarCategoriaMueble from "../../ui/modal/categoria_mueble/EditarModal";
 import ModalVerCategoriaMueble from "../../ui/modal/categoria_mueble/VerDatos";
 import TableActionButtons from "../../ui/button/TableActionButtons";
-import Button from "../../ui/button/Button";
-import { Plus } from "lucide-react";
-import {} from "../../../icons";
-
 import SortableTableHeader from "../../ui/SortableTableHeader";
 import CategoriaMueblesAdvancedFilters from "../../filters/CategoriaMueblesAdvancedFilters";
-
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHeader,
-  TableRow,
-} from "../../ui/table";
-
-const textColor = "text-gray-800 dark:text-white/90";
+import { motion, AnimatePresence } from "framer-motion";
+import { Plus, Tags, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function CategoriasMuebles() {
   const {
     setCategoriasMuebles,
-    /*    searchTerm,
-    setSearchTerm, */
     currentPage,
     setCurrentPage,
     itemsPerPage,
@@ -37,19 +23,19 @@ export default function CategoriasMuebles() {
     setFilters,
     setSort,
   } = useCategoriasMuebles();
+
   const [showModalEditar, setShowModalEditar] = useState(false);
-  const [categoriamuebleSeleccionado, setCategoriaMuebleSeleccionado] =
-    useState<any>(null);
-  const [showModalVer, setShowModalVer] = useState(false); // Nuevo estado para ver
-  /*   const [filtroNombre, setFiltroNombre] = useState(""); // Estado para el filtro de nombre */
+  const [categoriamuebleSeleccionado, setCategoriaMuebleSeleccionado] = useState<any>(null);
+  const [showModalVer, setShowModalVer] = useState(false);
   const [currentSort, setCurrentSort] = useState<string>("");
 
   const handleSort = (field: string) => {
     setCurrentSort(field);
     setSort(field);
   };
+
   const handleEliminar = async (id_cat: number) => {
-    const confirm = window.confirm("¿Estás seguro de eliminar este material?");
+    const confirm = window.confirm("¿Estás seguro de eliminar esta categoría?");
     if (!confirm) return;
     let idUsuarioLocal = null;
     try {
@@ -65,215 +51,182 @@ export default function CategoriasMuebles() {
     };
 
     try {
-      const res = await fetch(
-        `http://localhost:8080/api/categoria-mueble/${id_cat}`,
-        {
-          method: "DELETE",
-          headers,
-        },
-      );
+      const res = await fetch(`http://localhost:8080/api/categoria-mueble/${id_cat}`, {
+        method: "DELETE",
+        headers,
+      });
 
-      if (!res.ok) throw new Error("Error al eliminar material");
+      if (!res.ok) throw new Error("Error al eliminar categoría");
 
-      setCategoriasMuebles((prev) =>
-        prev.filter((mat) => mat.id_cat !== id_cat),
-      );
+      setCategoriasMuebles((prev) => prev.filter((cat) => cat.id_cat !== id_cat));
     } catch (error) {
-      console.error("Error al eliminar material:", error);
-      alert("No se pudo eliminar el material.");
+      console.error("Error al eliminar categoría:", error);
+      alert("No se pudo eliminar la categoría.");
     }
   };
 
-  /* const descargarBackup = async () => {
-    try {
-      const response = await fetch(
-        `http://localhost:8080/api/categoria-mueble/exportar-sql`
-      );
-      if (!response.ok) throw new Error("Error al descargar el respaldo");
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "categorias_muebles-backup.sql";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Error al descargar el respaldo:", error);
-    }
-  }; */
-
   return (
-    <div>
+    <div className="space-y-4">
       <CategoriaMueblesAdvancedFilters onFiltersChange={setFilters} />
 
-      {/* Filtros para el reporte */}
-      {/* <div className="flex flex-wrap justify-between items-center p-4 gap-4">
-        <div className="flex flex-wrap gap-4 w-full md:w-auto">
-          <button
-            onClick={generarReporte}
-            className="flex items-center gap-2 bg-teal-500 hover:bg-teal-600 text-white font-semibold px-4 py-2 rounded-md text-sm w-full md:w-auto"
-          >
-            <FaFileAlt /> Generar Reporte
-          </button>
+      {/* Barra de acciones */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-orange-500/10 text-orange-500 dark:bg-orange-400/10 dark:text-orange-400">
+            <Tags size={18} />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">Categorías de Muebles</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {paginatedData.length} registro{paginatedData.length !== 1 ? "s" : ""}
+            </p>
+          </div>
         </div>
-      </div> */}
-
-      {/* Search and Add Button */}
-      <div className="flex flex-wrap justify-between items-center p-4 gap-4">
-        <div className="flex flex-wrap gap-2 w-full md:w-auto">
-          <Button
-            onClick={() => setShowModalAgregar(true)}
-            startIcon={<Plus size={20} />}
-            size="sm"
-          >
-            {""}
-          </Button>
-        </div>
-      </div>
-
-      {/* Items per page */}
-      <div className="p-4 flex flex-wrap gap-4 items-center">
-        <label
-          htmlFor="itemsPerPage"
-          className={`mr-2 ${textColor} w-full md:w-auto`}
+        <button
+          onClick={() => setShowModalAgregar(true)}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 shadow-sm shadow-orange-500/20 transition-all active:scale-95"
         >
-          Items por página:
-        </label>
-        <select
-          id="itemsPerPage"
-          value={itemsPerPage}
-          onChange={(e) => {
-            setItemsPerPage(Number(e.target.value));
-            setCurrentPage(1);
-          }}
-          className="px-2 py-1 border rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-white w-full md:w-auto"
-        >
-          <option value={5}>5</option>
-          <option value={10}>10</option>
-          <option value={20}>20</option>
-        </select>
+          <Plus size={16} />
+          Nueva categoría
+        </button>
       </div>
 
-      {/* Table Container */}
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/5 dark:bg-white/3">
-        <div className="max-w-full overflow-x-auto">
-          <Table>
-            <TableHeader className="border-b border-gray-100 dark:border-white/5">
-              <TableRow>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="Código"
-                    sortField="cod_cat"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="Nombre"
-                    sortField="nom_cat"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="Descripción"
-                    sortField="desc_cat"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  Acciones
-                </TableCell>
-              </TableRow>
-            </TableHeader>
-            <TableBody className="divide-y divide-gray-100 dark:divide-white/5">
-              {paginatedData.map((categoriamueble) => (
-                <TableRow key={categoriamueble.id_cat}>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {categoriamueble.cod_cat || "sin codigo"}
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {categoriamueble.nom_cat}
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {categoriamueble.desc_cat}
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-start text-sm">
-                    <TableActionButtons
-                      actions={[
-                        {
-                          type: "view",
-                          onClick: () => {
-                            setCategoriaMuebleSeleccionado(categoriamueble);
-                            setShowModalVer(true);
-                          },
-                        },
-                        {
-                          type: "edit",
-                          onClick: () => {
-                            setCategoriaMuebleSeleccionado(categoriamueble);
-                            setShowModalEditar(true);
-                          },
-                        },
-                        {
-                          type: "delete",
-                          onClick: () => handleEliminar(categoriamueble.id_cat),
-                        },
-                      ]}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+      {/* Tabla */}
+      <div className="overflow-hidden rounded-2xl border border-gray-200 dark:border-white/6 bg-white dark:bg-white/2">
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-100 dark:border-white/6">
+                {[
+                  { label: "Código",      field: "cod_cat" },
+                  { label: "Categoría",   field: "nom_cat" },
+                  { label: "Descripción", field: "desc_cat" },
+                  { label: "Acciones",    field: null },
+                ].map(({ label, field }) => (
+                  <th
+                    key={label}
+                    className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
+                  >
+                    {field ? (
+                      <SortableTableHeader
+                        label={label}
+                        sortField={field}
+                        currentSort={currentSort}
+                        onSort={handleSort}
+                      />
+                    ) : label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 dark:divide-white/4">
+              {paginatedData.length === 0 ? (
+                <tr>
+                  <td colSpan={4}>
+                    <div className="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-600">
+                      <Tags size={40} strokeWidth={1.2} className="mb-3 opacity-40" />
+                      <p className="text-sm font-medium">Sin categorías</p>
+                      <p className="text-xs mt-1 opacity-70">No se encontraron categorías con esos filtros</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                <AnimatePresence initial={false}>
+                  {paginatedData.map((cat, idx) => (
+                    <motion.tr
+                      key={cat.id_cat}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      transition={{ duration: 0.18, delay: idx * 0.03 }}
+                      className="hover:bg-gray-50 dark:hover:bg-white/3 transition-colors"
+                    >
+                      {/* Código */}
+                      <td className="px-5 py-4">
+                        <span className="font-mono text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-md">
+                          {cat.cod_cat || "—"}
+                        </span>
+                      </td>
+
+                      {/* Nombre */}
+                      <td className="px-5 py-4 font-medium text-gray-900 dark:text-white">
+                        {cat.nom_cat}
+                      </td>
+
+                      {/* Descripción */}
+                      <td className="px-5 py-4 text-gray-600 dark:text-gray-400 max-w-md truncate">
+                        {cat.desc_cat || "Sin descripción"}
+                      </td>
+
+                      {/* Acciones */}
+                      <td className="px-5 py-4 w-32">
+                        <TableActionButtons
+                          actions={[
+                            {
+                              type: "view",
+                              onClick: () => { setCategoriaMuebleSeleccionado(cat); setShowModalVer(true); },
+                            },
+                            {
+                              type: "edit",
+                              onClick: () => { setCategoriaMuebleSeleccionado(cat); setShowModalEditar(true); },
+                            },
+                            {
+                              type: "delete",
+                              onClick: () => handleEliminar(cat.id_cat),
+                            },
+                          ]}
+                        />
+                      </td>
+                    </motion.tr>
+                  ))}
+                </AnimatePresence>
+              )}
+            </tbody>
+          </table>
         </div>
 
-        {/* Pagination */}
-        <div className="flex flex-wrap justify-between items-center p-4 gap-4">
-          <button
-            onClick={() => setCurrentPage(currentPage - 1)}
-            disabled={currentPage === 1}
-            className={`px-4 py-2 border rounded-md disabled:opacity-50 w-full md:w-auto ${textColor}`}
-          >
-            Anterior
-          </button>
-          <span className={`w-full text-center md:w-auto ${textColor}`}>
-            Página {currentPage} de {totalPages}
-          </span>
-          <button
-            onClick={() => setCurrentPage(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className={`px-4 py-2 border rounded-md disabled:opacity-50 w-full md:w-auto ${textColor}`}
-          >
-            Siguiente
-          </button>
+        {/* Footer paginación */}
+        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 border-t border-gray-100 dark:border-white/6 bg-gray-50/50 dark:bg-white/[0.01]">
+          <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+            <span>Página {currentPage} de {totalPages}</span>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+              className="px-2 py-1 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 text-xs focus:outline-none focus:ring-2 focus:ring-orange-400/40"
+            >
+              <option value={5}>5 / pág</option>
+              <option value={10}>10 / pág</option>
+              <option value={20}>20 / pág</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft size={14} /> Anterior
+            </button>
+            <span className="px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300">
+              {currentPage} / {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === totalPages || totalPages === 0}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Siguiente <ChevronRight size={14} />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Modals */}
+      {/* Modales */}
       <ModalAgregarCategoriaMueble
         showModal={showModalAgregar}
         setShowModal={setShowModalAgregar}
         setCategoriasMuebles={setCategoriasMuebles}
       />
-
       <ModalEditarCategoriaMueble
         showModal={showModalEditar}
         setShowModal={setShowModalEditar}

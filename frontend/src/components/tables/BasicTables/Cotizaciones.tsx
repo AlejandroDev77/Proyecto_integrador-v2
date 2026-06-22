@@ -3,30 +3,17 @@ import { useCotizaciones } from "../../../hooks/cotizaciones/useCotizaciones";
 import CotizacionesAdvancedFilters from "../../filters/CotizacionesAdvancedFilters";
 import SortableTableHeader from "../../ui/SortableTableHeader";
 import TableActionButtons from "../../ui/button/TableActionButtons";
-import Button from "../../ui/button/Button";
-import { Plus, Settings } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Plus, Settings, FileSignature, ChevronLeft, ChevronRight, Calendar, Clock, User, Briefcase } from "lucide-react";
 import ModalAgregarCotizacion from "../../ui/modal/cotizacion/AgregarModal";
 import ModalEditarCotizacion from "../../ui/modal/cotizacion/EditarModal";
 import ModalVerCotizacion from "../../ui/modal/cotizacion/VerDatos";
 import ModalGestionCotizacion from "../../ui/modal/negocio/ModalGestionCotizacion";
 import Badge from "../../ui/badge/Badge";
-import "react-datepicker/dist/react-datepicker.css";
-
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHeader,
-  TableRow,
-} from "../../ui/table";
-
-const textColor = "text-gray-800 dark:text-white/90";
 
 export default function Cotizaciones() {
   const {
     setCotizaciones,
-    /*   searchTerm,
-    setSearchTerm, */
     currentPage,
     setCurrentPage,
     itemsPerPage,
@@ -38,9 +25,9 @@ export default function Cotizaciones() {
     setFilters,
     setSort,
   } = useCotizaciones();
+
   const [showModalEditar, setShowModalEditar] = useState(false);
-  const [cotizacionSeleccionado, setCotizacionSeleccionado] =
-    useState<any>(null);
+  const [cotizacionSeleccionado, setCotizacionSeleccionado] = useState<any>(null);
   const [showModalVer, setShowModalVer] = useState(false);
   const [showModalGestion, setShowModalGestion] = useState(false);
   const [currentSort, setCurrentSort] = useState<string>("");
@@ -51,11 +38,11 @@ export default function Cotizaciones() {
   };
 
   const fetchCotizacionesData = async () => {
-    // Refresh by toggling filters - simple approach
     setFilters({});
   };
+
   const handleEliminar = async (id_cot: number) => {
-    const confirm = window.confirm("¿Estás seguro de eliminar este mueble?");
+    const confirm = window.confirm("¿Estás seguro de eliminar esta cotización?");
     if (!confirm) return;
     let idUsuarioLocal = null;
     try {
@@ -71,345 +58,255 @@ export default function Cotizaciones() {
     };
 
     try {
-      const res = await fetch(
-        `http://localhost:8080/api/cotizacion/${id_cot}`,
-        {
-          method: "DELETE",
-          headers,
-        }
-      );
+      const res = await fetch(`http://localhost:8080/api/cotizacion/${id_cot}`, {
+        method: "DELETE",
+        headers,
+      });
 
-      if (!res.ok) throw new Error("Error al eliminar mueble");
+      if (!res.ok) throw new Error("Error al eliminar cotización");
 
       setCotizaciones((prev) => prev.filter((cot) => cot.id_cot !== id_cot));
     } catch (error) {
-      console.error("Error al eliminar mueble:", error);
-      alert("No se pudo eliminar el mueble.");
+      console.error("Error al eliminar:", error);
+      alert("No se pudo eliminar la cotización.");
     }
   };
 
-  /* const descargarBackup = async () => {
-    try {
-      const response = await fetch(
-        `http://localhost:8080/api/cotizacion/exportar-sql`
-      );
-      if (!response.ok) throw new Error("Error al descargar el respaldo");
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "cotizaciones-backup.sql";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Error al descargar el respaldo:", error);
-    }
-  }; */
   return (
-    <div>
-      {/* Advanced Filters */}
+    <div className="space-y-4">
       <CotizacionesAdvancedFilters onFiltersChange={setFilters} />
 
-      {/* Filtros para el reporte */}
-      {/* <div className="flex flex-wrap justify-between items-center p-4 gap-4">
-        <div className="flex flex-wrap gap-4 w-full md:w-auto"></div>
-
-        <div className="flex flex-wrap gap-4 w-full md:w-auto">
-          <button
-            onClick={generarReporte}
-            className="flex items-center gap-2 bg-teal-500 hover:bg-teal-600 text-white font-semibold px-4 py-2 rounded-md text-sm w-full md:w-auto"
-          >
-            <FaFileAlt /> Generar Reporte
-          </button>
+      {/* Barra de acciones */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-orange-500/10 text-orange-500 dark:bg-orange-400/10 dark:text-orange-400">
+            <FileSignature size={18} />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">Cotizaciones</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {paginatedData.length} registro{paginatedData.length !== 1 ? "s" : ""}
+            </p>
+          </div>
         </div>
-      </div> */}
-
-      {/* Search and Add Button */}
-      <div className="flex flex-wrap justify-between items-center p-4 gap-4">
-        <Button
+        <button
           onClick={() => setShowModalAgregar(true)}
-          startIcon={<Plus size={20} />}
-          size="sm"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 shadow-sm shadow-orange-500/20 transition-all active:scale-95"
         >
-          {""}
-        </Button>
+          <Plus size={16} />
+          Nueva cotización
+        </button>
       </div>
 
-      {/* Items per page */}
-      <div className="p-4 flex flex-wrap gap-4 items-center">
-        <label
-          htmlFor="itemsPerPage"
-          className={`mr-2 ${textColor} w-full md:w-auto`}
-        >
-          Items por página:
-        </label>
-        <select
-          id="itemsPerPage"
-          value={itemsPerPage}
-          onChange={(e) => {
-            setItemsPerPage(Number(e.target.value));
-            setCurrentPage(1);
-          }}
-          className="px-2 py-1 border rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-white w-full md:w-auto"
-        >
-          <option value={5}>5</option>
-          <option value={10}>10</option>
-          <option value={20}>20</option>
-        </select>
-      </div>
-
-      {/* Table Container */}
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/5 dark:bg-white/3">
-        <div className="max-w-full overflow-x-auto">
-          <Table>
-            <TableHeader className="border-b border-gray-100 dark:border-white/5">
-              <TableRow>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="Codigo"
-                    sortField="cod_cot"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="Fecha Cotizacion"
-                    sortField="fec_cot"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="Validez (Días)"
-                    sortField="validez_dias"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="Total"
-                    sortField="total_cot"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="Descuento"
-                    sortField="descuento"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="Notas"
-                    sortField="notas"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-4 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="Cliente"
-                    sortField="clientes.nom_cli"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-4 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="Empleado"
-                    sortField="empleados.nom_emp"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-4 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="Estado"
-                    sortField="est_cot"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  Acciones
-                </TableCell>
-              </TableRow>
-            </TableHeader>
-            <TableBody className="divide-y divide-gray-100 dark:divide-white/5">
-              {paginatedData.map((cotizacion) => (
-                <TableRow key={cotizacion.id_cot}>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {cotizacion.cod_cot || "sin codigo"}
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {(() => {
-                      const fecha = new Date(cotizacion.fec_cot);
-                      fecha.setMinutes(
-                        fecha.getMinutes() + fecha.getTimezoneOffset()
-                      );
-                      return fecha.toLocaleDateString("es-ES", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      });
-                    })()}
-                  </TableCell>
-
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {cotizacion.validez_dias} Dias.
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {cotizacion.total_cot} Bs.
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {cotizacion.descuento} Bs
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {cotizacion.notas}
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {cotizacion.cliente
-                      ? `${cotizacion.cliente.nom_cli} ${cotizacion.cliente.ap_pat_cli} ${cotizacion.cliente.ap_mat_cli}`
-                      : ""}
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {cotizacion.empleado
-                      ? `${cotizacion.empleado.nom_emp} ${cotizacion.empleado.ap_pat_emp} ${cotizacion.empleado.ap_mat_emp}`
-                      : ""}
-                  </TableCell>
-                  <TableCell
-                    className={`px-4 py-3 text-start text-sm ${textColor}`}
+      {/* Tabla */}
+      <div className="overflow-hidden rounded-2xl border border-gray-200 dark:border-white/6 bg-white dark:bg-white/2">
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-100 dark:border-white/6">
+                {[
+                  { label: "Código",    field: "cod_cot" },
+                  { label: "Fechas",    field: "fec_cot" },
+                  { label: "Importes",  field: "total_cot" },
+                  { label: "Involucrados", field: null },
+                  { label: "Estado",    field: "est_cot" },
+                  { label: "Acciones",  field: null },
+                ].map(({ label, field }) => (
+                  <th
+                    key={label}
+                    className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
                   >
-                    <Badge
-                      size="sm"
-                      color={
-                        cotizacion.est_cot === "Aprobado"
-                          ? "success"
-                          : cotizacion.est_cot === "Rechazado"
-                          ? "error"
-                          : "warning"
-                      }
-                    >
-                      {cotizacion.est_cot}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-start text-sm">
-                    <div className="flex items-center gap-1">
-                      <TableActionButtons
-                        actions={[
-                          {
-                            type: "view",
-                            onClick: () => {
-                              setCotizacionSeleccionado(cotizacion);
-                              setShowModalVer(true);
-                            },
-                          },
-                          {
-                            type: "edit",
-                            onClick: () => {
-                              console.log(
-                                "Cotización seleccionada:",
-                                cotizacion
-                              );
-                              setCotizacionSeleccionado(cotizacion);
-                              setShowModalEditar(true);
-                            },
-                          },
-                          {
-                            type: "delete",
-                            onClick: () => handleEliminar(cotizacion.id_cot),
-                          },
-                        ]}
+                    {field ? (
+                      <SortableTableHeader
+                        label={label}
+                        sortField={field}
+                        currentSort={currentSort}
+                        onSort={handleSort}
                       />
-                      {cotizacion.est_cot === "Pendiente" && (
-                        <button
-                          onClick={() => {
-                            setCotizacionSeleccionado(cotizacion);
-                            setShowModalGestion(true);
-                          }}
-                          className="ml-1 px-2 py-1 text-xs bg-amber-500 text-white rounded hover:bg-amber-600 flex items-center gap-1"
-                          title="Gestionar Cotización"
-                        >
-                          <Settings className="w-3 h-3" />
-                          Gestionar
-                        </button>
-                      )}
+                    ) : label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 dark:divide-white/4">
+              {paginatedData.length === 0 ? (
+                <tr>
+                  <td colSpan={6}>
+                    <div className="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-600">
+                      <FileSignature size={40} strokeWidth={1.2} className="mb-3 opacity-40" />
+                      <p className="text-sm font-medium">Sin cotizaciones</p>
+                      <p className="text-xs mt-1 opacity-70">No se encontraron cotizaciones con esos filtros</p>
                     </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                  </td>
+                </tr>
+              ) : (
+                <AnimatePresence initial={false}>
+                  {paginatedData.map((cot, idx) => {
+                    const fecha = new Date(cot.fec_cot);
+                    fecha.setMinutes(fecha.getMinutes() + fecha.getTimezoneOffset());
+                    const fechaStr = fecha.toLocaleDateString("es-ES", {
+                      day: "2-digit", month: "2-digit", year: "numeric",
+                    });
+
+                    return (
+                      <motion.tr
+                        key={cot.id_cot}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -6 }}
+                        transition={{ duration: 0.18, delay: idx * 0.03 }}
+                        className="hover:bg-gray-50 dark:hover:bg-white/3 transition-colors"
+                      >
+                        {/* Código */}
+                        <td className="px-5 py-4">
+                          <span className="font-mono text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-md">
+                            {cot.cod_cot || "—"}
+                          </span>
+                        </td>
+
+                        {/* Fechas (Fecha + Validez) */}
+                        <td className="px-5 py-4">
+                          <div className="flex flex-col gap-1.5">
+                            <div className="flex items-center gap-1.5 text-xs text-gray-800 dark:text-gray-200 font-medium">
+                              <Calendar size={12} className="text-gray-400" />
+                              <span>{fechaStr}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-[11px] text-gray-500 dark:text-gray-400">
+                              <Clock size={12} className="text-orange-400" />
+                              <span>Válido {cot.validez_dias} días</span>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Importes (Total + Descuento) */}
+                        <td className="px-5 py-4">
+                          <div className="flex flex-col gap-1">
+                            <span className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                              Bs. {cot.total_cot}
+                            </span>
+                            {Number(cot.descuento) > 0 && (
+                              <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded w-fit">
+                                - Bs. {cot.descuento} desc.
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Involucrados (Cliente + Empleado) */}
+                        <td className="px-5 py-4">
+                          <div className="flex flex-col gap-1.5">
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <User size={12} className="text-indigo-400 shrink-0" />
+                              <span className="font-medium text-gray-800 dark:text-gray-200 truncate max-w-[150px]">
+                                {cot.cliente ? `${cot.cliente.nom_cli} ${cot.cliente.ap_pat_cli}` : "—"}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-[11px] text-gray-500 dark:text-gray-400">
+                              <Briefcase size={12} className="shrink-0" />
+                              <span className="truncate max-w-[150px]">
+                                {cot.empleado ? `${cot.empleado.nom_emp} ${cot.empleado.ap_pat_emp}` : "—"}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Estado */}
+                        <td className="px-5 py-4">
+                          <Badge
+                            size="sm"
+                            color={
+                              cot.est_cot === "Aprobado"
+                                ? "success"
+                                : cot.est_cot === "Rechazado"
+                                ? "error"
+                                : "warning"
+                            }
+                          >
+                            {cot.est_cot}
+                          </Badge>
+                        </td>
+
+                        {/* Acciones */}
+                        <td className="px-5 py-4 w-32">
+                          <div className="flex items-center gap-2">
+                            <TableActionButtons
+                              actions={[
+                                {
+                                  type: "view",
+                                  onClick: () => { setCotizacionSeleccionado(cot); setShowModalVer(true); },
+                                },
+                                {
+                                  type: "edit",
+                                  onClick: () => { setCotizacionSeleccionado(cot); setShowModalEditar(true); },
+                                },
+                                {
+                                  type: "delete",
+                                  onClick: () => handleEliminar(cot.id_cot),
+                                },
+                              ]}
+                            />
+                            {cot.est_cot === "Pendiente" && (
+                              <button
+                                onClick={() => { setCotizacionSeleccionado(cot); setShowModalGestion(true); }}
+                                className="flex items-center justify-center w-7 h-7 rounded-lg bg-orange-100 text-orange-600 hover:bg-orange-200 dark:bg-orange-500/20 dark:text-orange-400 dark:hover:bg-orange-500/30 transition-colors"
+                                title="Gestionar Cotización"
+                              >
+                                <Settings size={14} />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </motion.tr>
+                    );
+                  })}
+                </AnimatePresence>
+              )}
+            </tbody>
+          </table>
         </div>
 
-        {/* Pagination */}
-        <div className="flex flex-wrap justify-between items-center p-4 gap-4">
-          <button
-            onClick={() => setCurrentPage(currentPage - 1)}
-            disabled={currentPage === 1}
-            className={`px-4 py-2 border rounded-md disabled:opacity-50 w-full md:w-auto ${textColor}`}
-          >
-            Anterior
-          </button>
-          <span className={`w-full text-center md:w-auto ${textColor}`}>
-            Página {currentPage} de {totalPages}
-          </span>
-          <button
-            onClick={() => setCurrentPage(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className={`px-4 py-2 border rounded-md disabled:opacity-50 w-full md:w-auto ${textColor}`}
-          >
-            Siguiente
-          </button>
+        {/* Footer paginación */}
+        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 border-t border-gray-100 dark:border-white/6 bg-gray-50/50 dark:bg-white/[0.01]">
+          <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+            <span>Página {currentPage} de {totalPages}</span>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+              className="px-2 py-1 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 text-xs focus:outline-none focus:ring-2 focus:ring-orange-400/40"
+            >
+              <option value={5}>5 / pág</option>
+              <option value={10}>10 / pág</option>
+              <option value={20}>20 / pág</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft size={14} /> Anterior
+            </button>
+            <span className="px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300">
+              {currentPage} / {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === totalPages || totalPages === 0}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Siguiente <ChevronRight size={14} />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Modals */}
+      {/* Modales */}
       <ModalAgregarCotizacion
         showModal={showModalAgregar}
         setShowModal={setShowModalAgregar}
         setCotizaciones={setCotizaciones}
       />
-
       <ModalEditarCotizacion
         showModal={showModalEditar}
         setShowModal={setShowModalEditar}

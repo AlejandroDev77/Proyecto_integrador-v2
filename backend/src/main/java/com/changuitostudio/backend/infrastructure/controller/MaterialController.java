@@ -67,6 +67,16 @@ public class MaterialController {
         return ResponseEntity.ok(ApiResponse.success(actualizado));
     }
 
+    @PutMapping("/{id}/estado")
+    public ResponseEntity<ApiResponse<Void>> cambiarEstado(@PathVariable Long id, @RequestBody Map<String, Boolean> body) {
+        Boolean estado = body.get("est_mat");
+        if (estado == null) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Estado (est_mat) es requerido", HttpStatus.BAD_REQUEST.value()));
+        }
+        manageMaterialUseCase.cambiarEstado(id, estado);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Long id) {
         manageMaterialUseCase.eliminar(id);

@@ -73,6 +73,10 @@ public class MuebleService implements ManageMuebleUseCase {
             existente.setDimensiones(mueble.getDimensiones());
         }
 
+        if (mueble.getEstado() != null) {
+            existente.setEstado(mueble.getEstado());
+        }
+
         if (mueble.getCategoria() != null) {
             existente.setCategoria(mueble.getCategoria());
         }
@@ -85,5 +89,13 @@ public class MuebleService implements ManageMuebleUseCase {
         muebleRepository.buscarPorId(id)
                 .orElseThrow(() -> new MuebleNoEncontradoException("Mueble no encontrado con ID: " + id));
         muebleRepository.eliminarPorId(id);
+    }
+
+    @Override
+    public void cambiarEstado(Long id, boolean estado) {
+        Mueble existente = muebleRepository.buscarPorId(id)
+                .orElseThrow(() -> new MuebleNoEncontradoException("Mueble no encontrado con ID: " + id));
+        existente.setEstado(estado);
+        muebleRepository.guardar(existente);
     }
 }
