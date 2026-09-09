@@ -252,16 +252,14 @@ const ModalEditarVenta = ({
         if (search) params.append("filter[nom_cli]", search);
         const res = await fetch(`http://localhost:8080/api/clientes?${params}`);
         const payload = await res.json();
-        const items = payload?.data ?? payload;
+        const pageResult = payload?.data;
+        const items = pageResult?.content || pageResult || [];
         setClientes(Array.isArray(items) ? items : []);
-        if (payload?.meta || payload?.last_page) {
-          setClientesPagination({
-            currentPage:
-              payload?.meta?.current_page ?? payload?.current_page ?? page,
-            lastPage: payload?.meta?.last_page ?? payload?.last_page ?? 1,
-            total: payload?.meta?.total ?? payload?.total ?? items.length,
-          });
-        }
+        setClientesPagination({
+          currentPage: pageResult?.page || payload.current_page || 1,
+          lastPage: pageResult?.totalPages || pageResult?.total_pages || payload.last_page || 1,
+          total: pageResult?.totalElements || pageResult?.total_elements || payload.total || 0,
+        });
       } catch (error) {
         setClientes([]);
       } finally {
@@ -284,16 +282,14 @@ const ModalEditarVenta = ({
           `http://localhost:8080/api/empleados?${params}`
         );
         const payload = await res.json();
-        const items = payload?.data ?? payload;
+        const pageResult = payload?.data;
+        const items = pageResult?.content || pageResult || [];
         setEmpleados(Array.isArray(items) ? items : []);
-        if (payload?.meta || payload?.last_page) {
-          setEmpleadosPagination({
-            currentPage:
-              payload?.meta?.current_page ?? payload?.current_page ?? page,
-            lastPage: payload?.meta?.last_page ?? payload?.last_page ?? 1,
-            total: payload?.meta?.total ?? payload?.total ?? items.length,
-          });
-        }
+        setEmpleadosPagination({
+          currentPage: pageResult?.page || payload.current_page || 1,
+          lastPage: pageResult?.totalPages || pageResult?.total_pages || payload.last_page || 1,
+          total: pageResult?.totalElements || pageResult?.total_elements || payload.total || 0,
+        });
       } catch (error) {
         setEmpleados([]);
       } finally {
@@ -307,13 +303,13 @@ const ModalEditarVenta = ({
   useEffect(() => {
     if (showModal && ventaSeleccionada) {
       setFormData({
-        fec_ven: ventaSeleccionada.fec_ven,
+        fec_ven: ventaSeleccionada.fec_ven ? ventaSeleccionada.fec_ven.split("T")[0] : "",
         total_ven: ventaSeleccionada.total_ven,
         descuento: ventaSeleccionada.descuento,
         notas: ventaSeleccionada.notas || "",
         est_ven: ventaSeleccionada.est_ven,
-        id_cli: ventaSeleccionada.id_cli,
-        id_emp: ventaSeleccionada.id_emp,
+        id_cli: ventaSeleccionada.cliente ? (ventaSeleccionada.cliente as any).id : ventaSeleccionada.id_cli || 0,
+        id_emp: ventaSeleccionada.empleado ? (ventaSeleccionada.empleado as any).id : ventaSeleccionada.id_emp || 0,
       });
       fetchClientes(1, "");
       fetchEmpleados(1, "");
@@ -357,12 +353,22 @@ const ModalEditarVenta = ({
         ...(idUsuarioLocal ? { "X-USER-ID": idUsuarioLocal } : {}),
       };
 
+      const payloadData = {
+        fec_ven: formData.fec_ven ? formData.fec_ven + "T12:00:00" : null,
+        total_ven: formData.total_ven,
+        descuento: formData.descuento,
+        notas: formData.notas,
+        est_ven: formData.est_ven,
+        cliente: { id: formData.id_cli },
+        empleado: { id: formData.id_emp },
+      };
+
       const res = await fetch(
-        `http://localhost:8080/api/venta/${ventaSeleccionada.id_ven}`,
+        `http://localhost:8080/api/ventas/${ventaSeleccionada.id_ven || (ventaSeleccionada as any).id}`,
         {
           method: "PUT",
           headers,
-          body: JSON.stringify(formData),
+          body: JSON.stringify(payloadData),
         }
       );
 
@@ -382,10 +388,10 @@ const ModalEditarVenta = ({
         return;
       }
 
-      // Refrescar todas las ventas desde la API para obtener relaciones correctas
-      const updatedRes = await fetch("http://localhost:8080/api/venta");
+      const updatedRes = await fetch("http://localhost:8080/api/ventas");
       const updatedPayload: any = await updatedRes.json();
-      const updatedItems = updatedPayload?.data ?? updatedPayload;
+      const pageResult = updatedPayload?.data;
+      const updatedItems = pageResult?.content || pageResult || [];
       setVentas(Array.isArray(updatedItems) ? updatedItems : []);
 
       Swal.fire({
@@ -409,6 +415,32 @@ const ModalEditarVenta = ({
   };
 
   if (!showModal || !ventaSeleccionada) return null;
+
+  // Guarantee selected cliente is in the list
+  const renderClientes = [...clientes];
+  if (
+    ventaSeleccionada.cliente &&
+    !renderClientes.some(
+      (c) =>
+        (c.id_cli || (c as any).id) ===
+        (ventaSeleccionada.cliente.id_cli || (ventaSeleccionada.cliente as any).id)
+    )
+  ) {
+    renderClientes.unshift(ventaSeleccionada.cliente);
+  }
+
+  // Guarantee selected empleado is in the list
+  const renderEmpleados = [...empleados];
+  if (
+    ventaSeleccionada.empleado &&
+    !renderEmpleados.some(
+      (e) =>
+        (e.id_emp || (e as any).id) ===
+        (ventaSeleccionada.empleado.id_emp || (ventaSeleccionada.empleado as any).id)
+    )
+  ) {
+    renderEmpleados.unshift(ventaSeleccionada.empleado);
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -546,14 +578,14 @@ const ModalEditarVenta = ({
               ) : (
                 <>
                   <div className="space-y-2 max-h-[180px] overflow-y-auto">
-                    {clientes.length > 0 ? (
-                      clientes.map((c) => (
+                    {renderClientes.length > 0 ? (
+                      renderClientes.map((c, idx) => (
                         <ClienteCard
-                          key={c.id_cli}
+                          key={c.id_cli || (c as any).id || idx}
                           cliente={c}
-                          isSelected={formData.id_cli === c.id_cli}
+                          isSelected={formData.id_cli === (c.id_cli || (c as any).id)}
                           onSelect={() =>
-                            setFormData({ ...formData, id_cli: c.id_cli })
+                            setFormData({ ...formData, id_cli: c.id_cli || (c as any).id })
                           }
                         />
                       ))
@@ -591,14 +623,14 @@ const ModalEditarVenta = ({
               ) : (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[200px] overflow-y-auto">
-                    {empleados.length > 0 ? (
-                      empleados.map((e) => (
+                    {renderEmpleados.length > 0 ? (
+                      renderEmpleados.map((e, idx) => (
                         <EmpleadoCard
-                          key={e.id_emp}
+                          key={e.id_emp || (e as any).id || idx}
                           empleado={e}
-                          isSelected={formData.id_emp === e.id_emp}
+                          isSelected={formData.id_emp === (e.id_emp || (e as any).id)}
                           onSelect={() =>
-                            setFormData({ ...formData, id_emp: e.id_emp })
+                            setFormData({ ...formData, id_emp: e.id_emp || (e as any).id })
                           }
                         />
                       ))

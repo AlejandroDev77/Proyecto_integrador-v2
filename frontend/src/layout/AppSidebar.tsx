@@ -4,13 +4,14 @@ import { useSidebar } from "../context/SidebarContext";
 import SidebarWidget from "./SidebarWidget";
 import { FaHistory } from "react-icons/fa";
 import { FaStore } from "react-icons/fa";
-// Iconos para el menú
 import {
   FaUsers,
   FaWarehouse,
   FaShoppingCart,
   FaChartPie,
   FaCube,
+  FaFileAlt,
+  FaRobot,
 } from "react-icons/fa";
 
 import { ChevronDownIcon, HorizontaLDots } from "../icons";
@@ -36,6 +37,11 @@ const navItems: NavItem[] = [
     icon: <FaChartPie className="w-5 h-5" />,
     path: "/dashboard",
     requiredPermisos: ["ver_dashboard"],
+  },
+  {
+    name: "Chat Asistente IA",
+    icon: <FaRobot className="w-5 h-5" />,
+    path: "/chatbot",
   },
   {
     name: "Negocio",
@@ -242,6 +248,12 @@ const navItems: NavItem[] = [
     name: "Logs",
     path: "/logs",
     requiredPermisos: ["ver_logs"],
+  },
+  {
+    name: "Reportes",
+    icon: <FaFileAlt className="w-5 h-5" />,
+    path: "/reportes",
+    requiredPermisos: ["ver_reportes"],
   },
 
   {

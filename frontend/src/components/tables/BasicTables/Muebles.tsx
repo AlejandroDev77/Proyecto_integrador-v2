@@ -104,6 +104,7 @@ export default function Muebles() {
             <thead>
               <tr className="border-b border-gray-100 dark:border-white/6">
                 {[
+                  { label: "Código",       field: "cod_mue"      },
                   { label: "Mueble",       field: "nom_mue"      },
                   { label: "Categoría",    field: null           },
                   { label: "Stock",        field: "stock"        },
@@ -131,7 +132,7 @@ export default function Muebles() {
             <tbody className="divide-y divide-gray-100 dark:divide-white/4">
               {paginatedData.length === 0 ? (
                 <tr>
-                  <td colSpan={7}>
+                  <td colSpan={8}>
                     <div className="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-600">
                       <Armchair size={40} strokeWidth={1.2} className="mb-3 opacity-40" />
                       <p className="text-sm font-medium">Sin muebles</p>
@@ -150,17 +151,19 @@ export default function Muebles() {
                       transition={{ duration: 0.18, delay: idx * 0.03 }}
                       className="hover:bg-gray-50 dark:hover:bg-white/3 transition-colors"
                     >
-                      {/* Mueble (Nombre + Codigo + Desc) */}
+                      {/* Código */}
+                      <td className="px-5 py-4">
+                        <span className="font-mono text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-md">
+                          {mueble.cod_mue || "—"}
+                        </span>
+                      </td>
+
+                      {/* Mueble (Nombre + Desc) */}
                       <td className="px-5 py-4">
                         <div className="flex flex-col">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-gray-900 dark:text-white leading-tight">
-                              {mueble.nom_mue}
-                            </span>
-                            <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400">
-                              {mueble.cod_mue || "S/N"}
-                            </span>
-                          </div>
+                          <span className="font-medium text-gray-900 dark:text-white leading-tight">
+                            {mueble.nom_mue}
+                          </span>
                           <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[180px] truncate">
                             {mueble.desc_mue || "Sin descripción"}
                           </span>

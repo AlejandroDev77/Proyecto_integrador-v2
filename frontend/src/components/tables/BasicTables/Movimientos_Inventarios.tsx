@@ -51,14 +51,14 @@ export default function MovimientosInventarios() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8080/api/movimiento-inventario/${id_mov}`, {
+      const res = await fetch(`http://localhost:8080/api/movimientos-inventario/${id_mov}`, {
         method: "DELETE",
         headers,
       });
 
       if (!res.ok) throw new Error("Error al eliminar movimiento");
 
-      setMovimietosInventarios((prev) => prev.filter((mov) => mov.id_mov !== id_mov));
+      setMovimietosInventarios((prev) => prev.filter((mov) => (mov.id_mov || (mov as any).id) !== id_mov));
     } catch (error) {
       console.error("Error al eliminar movimiento:", error);
       alert("No se pudo eliminar el movimiento.");
@@ -145,7 +145,7 @@ export default function MovimientosInventarios() {
 
                     return (
                       <motion.tr
-                        key={mov.id_mov}
+                        key={mov.id_mov || (mov as any).id || idx}
                         initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -6 }}
@@ -238,7 +238,7 @@ export default function MovimientosInventarios() {
                               },
                               {
                                 type: "delete",
-                                onClick: () => handleEliminar(mov.id_mov),
+                                onClick: () => handleEliminar(mov.id_mov || (mov as any).id),
                               },
                             ]}
                           />

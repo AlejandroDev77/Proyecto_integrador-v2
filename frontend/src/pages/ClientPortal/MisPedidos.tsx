@@ -17,7 +17,8 @@ import {
 } from "lucide-react";
 
 interface Pedido {
-  id_ven: number;
+  id?: number;
+  id_ven?: number;
   cod_ven: string;
   fec_ven: string;
   est_ven: string;
@@ -28,7 +29,8 @@ interface Pedido {
 
 interface PedidoDetalle extends Pedido {
   detalles: {
-    id_det_ven: number;
+    id?: number;
+    id_det_ven?: number;
     cantidad: number;
     precio_unitario: number;
     subtotal: number;
@@ -71,7 +73,8 @@ export default function MisPedidos() {
     fetchPedidos();
   }, []);
 
-  const handleViewDetail = async (id: number) => {
+  const handleViewDetail = async (id: number | undefined) => {
+    if (!id) return;
     try {
       const detail = await getPedidoDetalle(id);
       setSelectedPedido(detail);
@@ -142,7 +145,7 @@ export default function MisPedidos() {
           <div className="space-y-4">
             {pedidos.map((ped) => (
               <div
-                key={ped.id_ven}
+                key={ped.id_ven || ped.id}
                 className="bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-all group"
               >
                 <div className="flex flex-col md:flex-row md:items-center gap-4">
@@ -177,7 +180,7 @@ export default function MisPedidos() {
                   </div>
 
                   <button
-                    onClick={() => handleViewDetail(ped.id_ven)}
+                    onClick={() => handleViewDetail(ped.id_ven || ped.id)}
                     className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 text-[#7c5e3c] text-sm font-medium hover:bg-white transition"
                   >
                     <Eye className="w-4 h-4" />
@@ -267,7 +270,7 @@ export default function MisPedidos() {
               <div className="space-y-2">
                 {selectedPedido.detalles?.map((det) => (
                   <div
-                    key={det.id_det_ven}
+                    key={det.id_det_ven || det.id}
                     className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
                   >
                     {det.mueble?.img_mue ? (

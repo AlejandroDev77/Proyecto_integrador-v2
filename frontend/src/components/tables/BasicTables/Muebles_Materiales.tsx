@@ -145,7 +145,7 @@ export default function MueblesMateriales() {
                       {/* Código */}
                       <td className="px-5 py-4">
                         <span className="font-mono text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-md">
-                          {mm.codigo_mat || "—"}
+                          {mm.codMueMat || mm.cod_mue_mat || "—"}
                         </span>
                       </td>
 
@@ -163,7 +163,7 @@ export default function MueblesMateriales() {
                           )}
                           <div className="flex flex-col">
                             <span className="font-medium text-gray-900 dark:text-white leading-tight">
-                              {mm.mueble?.nombre || "—"}
+                              {mm.mueble?.nombre || mm.mueble?.nom_mue || "—"}
                             </span>
                             <span className="text-[10px] text-gray-500 mt-0.5">
                               Stock: {mm.mueble?.stock} | Bs. {mm.mueble?.precio_venta}

@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { cambiarEstadoProveedor, getProveedores } from "../../services/proveedorService";
 
 interface Proveedor {
-    id_prov: number;
+    id_prov?: number;
+    id?: number;
     cod_prov?: string;
     nom_prov: string;
     contacto_prov: string;
@@ -63,7 +64,7 @@ export function useProveedores() {
       try {
         await cambiarEstadoProveedor(selectedProId, nuevoEstado);
         const actualizados = proveedores.map((u) =>
-          u.id_prov === selectedProId ? { ...u, est_prov: nuevoEstado } : u
+          (u.id_prov || u.id) === selectedProId ? { ...u, est_prov: nuevoEstado } : u
         );
         setProveedores(actualizados);
         setShowModalEstado(false);

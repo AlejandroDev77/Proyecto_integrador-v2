@@ -510,17 +510,17 @@ export default function ModalAgregarCompraMaterial({
         });
         if (search) params.append("filter[nom_prov]", search);
         const res = await fetch(
-          `http://localhost:8080/api/proveedor?${params}`
+          `http://localhost:8080/api/proveedores?${params}`
         );
         const payload = await res.json();
-        const items = payload?.data ?? payload;
+        const realData = payload?.data && payload?.success !== undefined ? payload.data : payload;
+        const items = realData?.content || realData?.data || (Array.isArray(realData) ? realData : []);
         setProveedores(Array.isArray(items) ? items : []);
-        if (payload?.meta || payload?.last_page) {
+        if (payload?.data?.total_pages !== undefined || payload?.total_pages !== undefined || payload?.meta || payload?.last_page) {
           setProveedoresPagination({
-            currentPage:
-              payload?.meta?.current_page ?? payload?.current_page ?? page,
-            lastPage: payload?.meta?.last_page ?? payload?.last_page ?? 1,
-            total: payload?.meta?.total ?? payload?.total ?? items.length,
+            currentPage: payload?.data?.page ?? payload?.page ?? payload?.meta?.current_page ?? payload?.current_page ?? page,
+            lastPage: payload?.data?.total_pages ?? payload?.total_pages ?? payload?.meta?.last_page ?? payload?.last_page ?? 1,
+            total: payload?.data?.total ?? payload?.total ?? payload?.meta?.total ?? items.length,
           });
         }
       } catch {
@@ -545,14 +545,14 @@ export default function ModalAgregarCompraMaterial({
           `http://localhost:8080/api/empleados?${params}`
         );
         const payload = await res.json();
-        const items = payload?.data ?? payload;
+        const realData = payload?.data && payload?.success !== undefined ? payload.data : payload;
+        const items = realData?.content || realData?.data || (Array.isArray(realData) ? realData : []);
         setEmpleados(Array.isArray(items) ? items : []);
-        if (payload?.meta || payload?.last_page) {
+        if (payload?.data?.total_pages !== undefined || payload?.total_pages !== undefined || payload?.meta || payload?.last_page) {
           setEmpleadosPagination({
-            currentPage:
-              payload?.meta?.current_page ?? payload?.current_page ?? page,
-            lastPage: payload?.meta?.last_page ?? payload?.last_page ?? 1,
-            total: payload?.meta?.total ?? payload?.total ?? items.length,
+            currentPage: payload?.data?.page ?? payload?.page ?? payload?.meta?.current_page ?? payload?.current_page ?? page,
+            lastPage: payload?.data?.total_pages ?? payload?.total_pages ?? payload?.meta?.last_page ?? payload?.last_page ?? 1,
+            total: payload?.data?.total ?? payload?.total ?? payload?.meta?.total ?? items.length,
           });
         }
       } catch {
@@ -577,14 +577,14 @@ export default function ModalAgregarCompraMaterial({
           `http://localhost:8080/api/materiales?${params}`
         );
         const payload = await res.json();
-        const items = payload?.data ?? payload;
+        const realData = payload?.data && payload?.success !== undefined ? payload.data : payload;
+        const items = realData?.content || realData?.data || (Array.isArray(realData) ? realData : []);
         setMateriales(Array.isArray(items) ? items : []);
-        if (payload?.meta || payload?.last_page) {
+        if (payload?.data?.total_pages !== undefined || payload?.total_pages !== undefined || payload?.meta || payload?.last_page) {
           setMaterialesPagination({
-            currentPage:
-              payload?.meta?.current_page ?? payload?.current_page ?? page,
-            lastPage: payload?.meta?.last_page ?? payload?.last_page ?? 1,
-            total: payload?.meta?.total ?? payload?.total ?? items.length,
+            currentPage: payload?.data?.page ?? payload?.page ?? payload?.meta?.current_page ?? payload?.current_page ?? page,
+            lastPage: payload?.data?.total_pages ?? payload?.total_pages ?? payload?.meta?.last_page ?? payload?.last_page ?? 1,
+            total: payload?.data?.total ?? payload?.total ?? payload?.meta?.total ?? items.length,
           });
         }
       } catch {
@@ -691,10 +691,10 @@ export default function ModalAgregarCompraMaterial({
         fec_comp: form.fec_comp,
         est_comp: form.est_comp,
         total_comp: calcularTotal(),
-        id_prov: selectedProveedor.id_prov,
-        id_emp: selectedEmpleado.id_emp,
+        proveedor: { id: selectedProveedor.id_prov || (selectedProveedor as any).id },
+        empleado: { id: selectedEmpleado.id_emp || (selectedEmpleado as any).id },
       };
-      const res = await fetch("http://localhost:8080/api/compra-material", {
+      const res = await fetch("http://localhost:8080/api/compras-materiales", {
         method: "POST",
         headers,
         body: JSON.stringify(compraData),
@@ -705,13 +705,13 @@ export default function ModalAgregarCompraMaterial({
 
       for (const det of detalles) {
         const detalleData = {
-          id_comp: nuevaCompra.id_comp,
-          id_mat: det.id_mat,
+          compra: { id: nuevaCompra.id_comp || nuevaCompra.id },
+          material: { id: det.id_mat || (det as any).id },
           cantidad: det.cantidad,
           precio_unitario: det.precio_unitario,
           subtotal: det.subtotal,
         };
-        await fetch("http://localhost:8080/api/detalle-compra", {
+        await fetch("http://localhost:8080/api/detalle-compras", {
           method: "POST",
           headers,
           body: JSON.stringify(detalleData),
@@ -719,10 +719,11 @@ export default function ModalAgregarCompraMaterial({
       }
 
       const updatedRes = await fetch(
-        "http://localhost:8080/api/compra-material"
+        "http://localhost:8080/api/compras-materiales"
       );
       const updatedPayload: any = await updatedRes.json();
-      const updatedItems = updatedPayload?.data ?? updatedPayload;
+      const realData = updatedPayload?.data && updatedPayload?.success !== undefined ? updatedPayload.data : updatedPayload;
+      const updatedItems = realData?.content || realData?.data || (Array.isArray(realData) ? realData : []);
       setComprasMateriales(Array.isArray(updatedItems) ? updatedItems : []);
 
       Swal.fire({
@@ -800,15 +801,25 @@ export default function ModalAgregarCompraMaterial({
               ) : (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto">
-                    {proveedores.length > 0 ? (
-                      proveedores.map((p) => (
+                    {proveedores.length > 0 || selectedProveedor ? (
+                      <>
+                        {selectedProveedor && !proveedores.some(p => (p.id_prov || p.id) === (selectedProveedor.id_prov || (selectedProveedor as any).id)) && (
+                          <ProveedorCard
+                            key="selected-prov"
+                            proveedor={selectedProveedor}
+                            isSelected={true}
+                            onSelect={() => setSelectedProveedor(selectedProveedor)}
+                          />
+                        )}
+                      {proveedores.map((p, i) => (
                         <ProveedorCard
-                          key={p.id_prov}
+                          key={p.id_prov || p.id || i}
                           proveedor={p}
-                          isSelected={selectedProveedor?.id_prov === p.id_prov}
+                          isSelected={!!selectedProveedor && (selectedProveedor.id_prov || (selectedProveedor as any).id) === (p.id_prov || (p as any).id)}
                           onSelect={() => setSelectedProveedor(p)}
                         />
-                      ))
+                      ))}
+                      </>
                     ) : (
                       <div className="col-span-2 flex flex-col items-center py-8 text-gray-500">
                         <AlertCircle className="w-12 h-12 mb-2 opacity-50" />
@@ -844,15 +855,25 @@ export default function ModalAgregarCompraMaterial({
               ) : (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto">
-                    {empleados.length > 0 ? (
-                      empleados.map((e) => (
+                    {empleados.length > 0 || selectedEmpleado ? (
+                      <>
+                        {selectedEmpleado && !empleados.some(e => (e.id_emp || e.id) === (selectedEmpleado.id_emp || (selectedEmpleado as any).id)) && (
+                          <EmpleadoCard
+                            key="selected-emp"
+                            empleado={selectedEmpleado}
+                            isSelected={true}
+                            onSelect={() => setSelectedEmpleado(selectedEmpleado)}
+                          />
+                        )}
+                      {empleados.map((e, i) => (
                         <EmpleadoCard
-                          key={e.id_emp}
+                          key={e.id_emp || e.id || i}
                           empleado={e}
-                          isSelected={selectedEmpleado?.id_emp === e.id_emp}
+                          isSelected={!!selectedEmpleado && (selectedEmpleado.id_emp || (selectedEmpleado as any).id) === (e.id_emp || (e as any).id)}
                           onSelect={() => setSelectedEmpleado(e)}
                         />
-                      ))
+                      ))}
+                      </>
                     ) : (
                       <div className="col-span-2 flex flex-col items-center py-8 text-gray-500">
                         <AlertCircle className="w-12 h-12 mb-2 opacity-50" />
@@ -890,12 +911,12 @@ export default function ModalAgregarCompraMaterial({
                   <>
                     <div className="space-y-2 max-h-[280px] overflow-y-auto">
                       {materiales.length > 0 ? (
-                        materiales.map((m) => (
+                        materiales.map((m, i) => (
                           <MaterialCard
-                            key={m.id_mat}
+                            key={m.id_mat || m.id || i}
                             material={m}
                             isAdded={detalles.some(
-                              (d) => d.id_mat === m.id_mat
+                              (d) => (d.id_mat || (d as any).id) === (m.id_mat || (m as any).id)
                             )}
                             onAdd={() => addMaterial(m)}
                           />
@@ -922,9 +943,9 @@ export default function ModalAgregarCompraMaterial({
                 </h3>
                 <div className="space-y-3 max-h-[350px] overflow-y-auto">
                   {detalles.length > 0 ? (
-                    detalles.map((d) => (
+                    detalles.map((d, i) => (
                       <DetalleCard
-                        key={d.id_mat}
+                        key={d.id_mat || d.id || i}
                         detalle={d}
                         onRemove={() => removeDetalle(d.id_mat)}
                         onUpdate={(field, value) =>
@@ -1013,8 +1034,8 @@ export default function ModalAgregarCompraMaterial({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                    {detalles.map((d) => (
-                      <tr key={d.id_mat}>
+                    {detalles.map((d, i) => (
+                      <tr key={d.id_mat || d.id || i}>
                         <td className="px-4 py-2 text-gray-900 dark:text-white">
                           {d.nom_mat}
                         </td>

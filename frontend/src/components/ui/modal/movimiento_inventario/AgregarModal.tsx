@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import Swal from "sweetalert2";
 import { jwtDecode } from "jwt-decode";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import {
   Package,
   Boxes,
@@ -410,11 +412,11 @@ export default function ModalAgregarMovimientoInventario({
         }`
       );
       const p = await res.json();
-      setMateriales(p?.data || []);
+      setMateriales(p?.data?.content || p?.data || []);
       setMatPag({
-        currentPage: p.current_page || 1,
-        lastPage: p.last_page || 1,
-        total: p.total || 0,
+        currentPage: p?.data?.page || p.current_page || 1,
+        lastPage: p?.data?.totalPages || p?.data?.total_pages || p.last_page || 1,
+        total: p?.data?.totalElements || p?.data?.total_elements || p.total || 0,
       });
     } catch {
       setMateriales([]);
@@ -431,11 +433,11 @@ export default function ModalAgregarMovimientoInventario({
         }`
       );
       const p = await res.json();
-      setMuebles(p?.data || []);
+      setMuebles(p?.data?.content || p?.data || []);
       setMuePag({
-        currentPage: p.current_page || 1,
-        lastPage: p.last_page || 1,
-        total: p.total || 0,
+        currentPage: p?.data?.page || p.current_page || 1,
+        lastPage: p?.data?.totalPages || p?.data?.total_pages || p.last_page || 1,
+        total: p?.data?.totalElements || p?.data?.total_elements || p.total || 0,
       });
     } catch {
       setMuebles([]);
@@ -452,11 +454,11 @@ export default function ModalAgregarMovimientoInventario({
         }`
       );
       const p = await res.json();
-      setEmpleados(p?.data || []);
+      setEmpleados(p?.data?.content || p?.data || []);
       setEmpPag({
-        currentPage: p.current_page || 1,
-        lastPage: p.last_page || 1,
-        total: p.total || 0,
+        currentPage: p?.data?.page || p.current_page || 1,
+        lastPage: p?.data?.totalPages || p?.data?.total_pages || p.last_page || 1,
+        total: p?.data?.totalElements || p?.data?.total_elements || p.total || 0,
       });
     } catch {
       setEmpleados([]);
@@ -532,7 +534,7 @@ export default function ModalAgregarMovimientoInventario({
     } catch {}
     try {
       const res = await fetch(
-        "http://localhost:8080/api/movimiento-inventario",
+        "http://localhost:8080/api/movimientos-inventario",
         {
           method: "POST",
           headers: {
@@ -540,10 +542,15 @@ export default function ModalAgregarMovimientoInventario({
             ...(uid ? { "X-USER-ID": uid } : {}),
           },
           body: JSON.stringify({
-            ...form,
-            id_mat: selectedMaterial?.id_mat || null,
-            id_mue: selectedMueble?.id_mue || null,
-            id_emp: selectedEmpleado.id_emp,
+            tipo_mov: form.tipo_mov,
+            fecha_mov: form.fecha_mov ? form.fecha_mov + "T12:00:00" : null,
+            cantidad: form.cantidad,
+            stock_anterior: form.stock_anterior,
+            stock_posterior: form.stock_posterior,
+            motivo: form.motivo,
+            material: selectedMaterial ? { id: selectedMaterial.id_mat || (selectedMaterial as any).id } : null,
+            mueble: selectedMueble ? { id: selectedMueble.id_mue || (selectedMueble as any).id } : null,
+            empleado: selectedEmpleado ? { id: selectedEmpleado.id_emp || (selectedEmpleado as any).id } : null,
           }),
         }
       );
@@ -658,9 +665,9 @@ export default function ModalAgregarMovimientoInventario({
                     {empleados.length > 0 ? (
                       empleados.map((e) => (
                         <EmpleadoCard
-                          key={e.id_emp}
+                          key={e.id_emp || (e as any).id}
                           empleado={e}
-                          isSelected={selectedEmpleado?.id_emp === e.id_emp}
+                          isSelected={(selectedEmpleado?.id_emp || (selectedEmpleado as any)?.id) === (e.id_emp || (e as any).id)}
                           onSelect={() => setSelectedEmpleado(e)}
                         />
                       ))
@@ -706,9 +713,9 @@ export default function ModalAgregarMovimientoInventario({
                     ) : (
                       materiales.map((m) => (
                         <MaterialCard
-                          key={m.id_mat}
+                          key={m.id_mat || (m as any).id}
                           material={m}
-                          isSelected={selectedMaterial?.id_mat === m.id_mat}
+                          isSelected={(selectedMaterial?.id_mat || (selectedMaterial as any)?.id) === (m.id_mat || (m as any).id)}
                           onSelect={() => {
                             setSelectedMaterial(m);
                             setSelectedMueble(null);
@@ -741,9 +748,9 @@ export default function ModalAgregarMovimientoInventario({
                     ) : (
                       muebles.map((m) => (
                         <MuebleCard
-                          key={m.id_mue}
+                          key={m.id_mue || (m as any).id}
                           mueble={m}
-                          isSelected={selectedMueble?.id_mue === m.id_mue}
+                          isSelected={(selectedMueble?.id_mue || (selectedMueble as any)?.id) === (m.id_mue || (m as any).id)}
                           onSelect={() => {
                             setSelectedMueble(m);
                             setSelectedMaterial(null);
@@ -774,13 +781,17 @@ export default function ModalAgregarMovimientoInventario({
                     <Calendar className="w-4 h-4 text-violet-500" />
                     Fecha
                   </label>
-                  <input
-                    type="date"
-                    value={form.fecha_mov}
-                    onChange={(e) =>
-                      setForm({ ...form, fecha_mov: e.target.value })
+                  <DatePicker
+                    selected={form.fecha_mov ? new Date(form.fecha_mov + "T12:00:00") : null}
+                    onChange={(date: Date | null) =>
+                      setForm({
+                        ...form,
+                        fecha_mov: date ? date.toISOString().split("T")[0] : "",
+                      })
                     }
+                    dateFormat="yyyy-MM-dd"
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-violet-500"
+                    placeholderText="Seleccionar fecha"
                   />
                 </div>
                 <div>

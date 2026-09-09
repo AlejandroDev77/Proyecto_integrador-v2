@@ -182,13 +182,13 @@ export default function Materiales() {
                             ? "bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400"
                             : "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400"
                         }`}>
-                          {material.stock_mat} {material.unidad_medida}
+                          {material.stock_mat}
                         </span>
                       </td>
 
                       {/* Stock Min */}
                       <td className="px-5 py-4 text-gray-600 dark:text-gray-400 text-sm">
-                        {material.stock_min} {material.unidad_medida}
+                        {material.stock_min}
                       </td>
 
                       {/* Costo */}

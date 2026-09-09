@@ -13,6 +13,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import com.changuitostudio.backend.application.gateway.StorageGateway;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -25,11 +27,12 @@ public class MuebleController {
 
     private final ManageMuebleUseCase manageMuebleUseCase;
     private final CategoriaRepository categoriaRepository;
+    private final StorageGateway storageGateway;
 
-   
-    public MuebleController(ManageMuebleUseCase manageMuebleUseCase, CategoriaRepository categoriaRepository) {
+    public MuebleController(ManageMuebleUseCase manageMuebleUseCase, CategoriaRepository categoriaRepository, StorageGateway storageGateway) {
         this.manageMuebleUseCase = manageMuebleUseCase;
         this.categoriaRepository = categoriaRepository;
+        this.storageGateway = storageGateway;
     }
 
     @GetMapping
@@ -74,44 +77,84 @@ public class MuebleController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    public ResponseEntity<MuebleResponseDTO> store(@Valid @RequestBody MuebleRequestDTO request) {
-        Categoria categoria = categoriaRepository.buscarPorId(request.getId_cat())
+    @PostMapping(consumes = {"multipart/form-data"})
+    public ResponseEntity<MuebleResponseDTO> store(
+            @RequestParam(value = "cod_mue", required = false) String codMue,
+            @RequestParam("nom_mue") String nomMue,
+            @RequestParam(value = "desc_mue", required = false) String descMue,
+            @RequestParam("precio_venta") Double precioVenta,
+            @RequestParam(value = "precio_costo", required = false) Double precioCosto,
+            @RequestParam(value = "stock", required = false, defaultValue = "0") Integer stock,
+            @RequestParam(value = "stock_min", required = false, defaultValue = "0") Integer stockMin,
+            @RequestParam(value = "dimensiones", required = false) String dimensiones,
+            @RequestParam(value = "est_mue", required = false, defaultValue = "1") String estMue,
+            @RequestParam("id_cat") Long idCat,
+            @RequestParam(value = "img_mue", required = false) MultipartFile imgMue,
+            @RequestParam(value = "modelo_3d", required = false) MultipartFile modelo3d
+    ) {
+        Categoria categoria = categoriaRepository.buscarPorId(idCat)
                 .orElseThrow(() -> new IllegalArgumentException("Categoría no encontrada"));
 
         Mueble dominio = new Mueble();
-        dominio.setCodigo(request.getCod_mue());
-        dominio.setNombre(request.getNom_mue());
-        dominio.setImagen(request.getImg_mue());
-        dominio.setPrecioVenta(request.getPrecio_venta());
-        dominio.setDescripcion(request.getDesc_mue());
-        dominio.setStock(request.getStock() != null ? request.getStock() : 0);
-        dominio.setModelo3d(request.getModelo_3d());
-        dominio.setDimensiones(request.getDimensiones());
-        dominio.setEstado(request.getEst_mue() != null ? request.getEst_mue() : true);
+        dominio.setCodigo(codMue);
+        dominio.setNombre(nomMue);
+        dominio.setPrecioVenta(precioVenta != null ? precioVenta : 0.0);
+        dominio.setPrecioCosto(precioCosto != null ? precioCosto : 0.0);
+        dominio.setDescripcion(descMue);
+        dominio.setStock(stock != null ? stock : 0);
+        dominio.setStockMinimo(stockMin != null ? stockMin : 0);
+        dominio.setDimensiones(dimensiones);
+        dominio.setEstado("1".equals(estMue) || "true".equalsIgnoreCase(estMue));
         dominio.setCategoria(categoria);
+
+        if (imgMue != null && !imgMue.isEmpty()) {
+            dominio.setImagen(storageGateway.save(imgMue, "images"));
+        }
+        if (modelo3d != null && !modelo3d.isEmpty()) {
+            dominio.setModelo3d(storageGateway.save(modelo3d, "models"));
+        }
 
         Mueble creado = manageMuebleUseCase.crear(dominio);
         return ResponseEntity.status(HttpStatus.CREATED).body(toResponseDTO(creado));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<MuebleResponseDTO> update(@PathVariable Long id,
-            @Valid @RequestBody MuebleRequestDTO request) {
-        Categoria categoria = categoriaRepository.buscarPorId(request.getId_cat())
+    @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
+    public ResponseEntity<MuebleResponseDTO> update(
+            @PathVariable Long id,
+            @RequestParam(value = "cod_mue", required = false) String codMue,
+            @RequestParam("nom_mue") String nomMue,
+            @RequestParam(value = "desc_mue", required = false) String descMue,
+            @RequestParam("precio_venta") Double precioVenta,
+            @RequestParam(value = "precio_costo", required = false) Double precioCosto,
+            @RequestParam(value = "stock", required = false, defaultValue = "0") Integer stock,
+            @RequestParam(value = "stock_min", required = false, defaultValue = "0") Integer stockMin,
+            @RequestParam(value = "dimensiones", required = false) String dimensiones,
+            @RequestParam(value = "est_mue", required = false, defaultValue = "1") String estMue,
+            @RequestParam("id_cat") Long idCat,
+            @RequestParam(value = "img_mue", required = false) MultipartFile imgMue,
+            @RequestParam(value = "modelo_3d", required = false) MultipartFile modelo3d
+    ) {
+        Categoria categoria = categoriaRepository.buscarPorId(idCat)
                 .orElseThrow(() -> new IllegalArgumentException("Categoría no encontrada"));
 
         Mueble dominio = new Mueble();
-        dominio.setCodigo(request.getCod_mue());
-        dominio.setNombre(request.getNom_mue());
-        dominio.setImagen(request.getImg_mue());
-        dominio.setPrecioVenta(request.getPrecio_venta());
-        dominio.setDescripcion(request.getDesc_mue());
-        dominio.setStock(request.getStock());
-        dominio.setModelo3d(request.getModelo_3d());
-        dominio.setDimensiones(request.getDimensiones());
-        dominio.setEstado(request.getEst_mue());
+        dominio.setCodigo(codMue);
+        dominio.setNombre(nomMue);
+        dominio.setPrecioVenta(precioVenta != null ? precioVenta : 0.0);
+        dominio.setPrecioCosto(precioCosto != null ? precioCosto : 0.0);
+        dominio.setDescripcion(descMue);
+        dominio.setStock(stock != null ? stock : 0);
+        dominio.setStockMinimo(stockMin != null ? stockMin : 0);
+        dominio.setDimensiones(dimensiones);
+        dominio.setEstado("1".equals(estMue) || "true".equalsIgnoreCase(estMue));
         dominio.setCategoria(categoria);
+
+        if (imgMue != null && !imgMue.isEmpty()) {
+            dominio.setImagen(storageGateway.save(imgMue, "images"));
+        }
+        if (modelo3d != null && !modelo3d.isEmpty()) {
+            dominio.setModelo3d(storageGateway.save(modelo3d, "models"));
+        }
 
         Mueble actualizado = manageMuebleUseCase.actualizar(id, dominio);
         return ResponseEntity.ok(toResponseDTO(actualizado));
@@ -140,8 +183,10 @@ public class MuebleController {
         dto.setNom_mue(mueble.getNombre());
         dto.setImg_mue(mueble.getImagen());
         dto.setPrecio_venta(mueble.getPrecioVenta());
+        dto.setPrecio_costo(mueble.getPrecioCosto());
         dto.setDesc_mue(mueble.getDescripcion());
         dto.setStock(mueble.getStock());
+        dto.setStock_min(mueble.getStockMinimo());
         dto.setModelo_3d(mueble.getModelo3d());
         dto.setDimensiones(mueble.getDimensiones());
         dto.setEst_mue(mueble.getEstado());
@@ -150,6 +195,8 @@ public class MuebleController {
             CategoriaResponseDTO catDto = new CategoriaResponseDTO(
                     mueble.getCategoria().getId(),
                     mueble.getCategoria().getNombre(),
+                    mueble.getCategoria().getDescripcion(),
+                    mueble.getCategoria().getCodigo(),
                     mueble.getCategoria().getEstado()
             );
             dto.setCategoria(catDto);

@@ -31,6 +31,5 @@ export async function getProveedores(
   return response.data;
 }
 export const cambiarEstadoProveedor = async (id: number, nuevoEstado: boolean) => {
-  const estadoNumerico = nuevoEstado ? 1 : 0;
-  await axiosClient.put(`${API_URL}/${id}/estado`, { est_prov: estadoNumerico });
+  await axiosClient.put(`${API_URL}/${id}`, { est_prov: nuevoEstado });
 };

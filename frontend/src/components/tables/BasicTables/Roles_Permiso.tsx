@@ -90,8 +90,7 @@ export default function RolesPermisos() {
               <tr className="border-b border-gray-100 dark:border-white/6">
                 {[
                   { label: "Nombre Rol",     field: "nom_rol"     },
-                  { label: "Nombre Permiso", field: "nom_permiso" },
-                  { label: "Descripción",    field: null          },
+                  { label: "Permisos Asignados", field: null          },
                   { label: "Acciones",       field: null          },
                 ].map(({ label, field }) => (
                   <th
@@ -123,9 +122,19 @@ export default function RolesPermisos() {
                 </tr>
               ) : (
                 <AnimatePresence initial={false}>
-                  {paginatedData.map((rp, idx) => (
+                  {paginatedData.reduce((acc: any[], rp) => {
+                    const rol = acc.find((r) => r.id_rol === rp.id_rol);
+                    if (rol) {
+                      if (!rol.permisos.some((p: any) => p.id_permiso === rp.id_permiso)) {
+                         rol.permisos.push(rp);
+                      }
+                    } else {
+                      acc.push({ ...rp, permisos: [rp] });
+                    }
+                    return acc;
+                  }, []).map((rolGroup, idx) => (
                     <motion.tr
-                      key={`${rp.id_rol}-${rp.id_permiso}-${idx}`}
+                      key={`${rolGroup.id_rol}-${idx}`}
                       initial={{ opacity: 0, y: 6 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -6 }}
@@ -133,52 +142,40 @@ export default function RolesPermisos() {
                       className="hover:bg-gray-50 dark:hover:bg-white/3 transition-colors"
                     >
                       {/* Rol */}
-                      <td className="px-5 py-4">
+                      <td className="px-5 py-4 w-1/4">
                         <div className="flex items-center gap-2">
                           <div className="w-7 h-7 rounded-lg bg-sky-50 dark:bg-sky-500/10 flex items-center justify-center text-sky-500 shrink-0">
                             <ShieldCheck size={14} />
                           </div>
                           <span className="font-medium text-gray-900 dark:text-white">
-                            {rp.nom_rol}
+                            {rolGroup.nom_rol}
                           </span>
                         </div>
                       </td>
 
-                      {/* Permiso */}
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-lg bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center text-violet-500 shrink-0">
-                            <Tag size={14} />
-                          </div>
-                          <span className="font-medium text-gray-900 dark:text-white">
-                            {rp.nom_permiso}
-                          </span>
+                      {/* Permisos (Pills) */}
+                      <td className="px-5 py-4 w-1/2">
+                        <div className="flex flex-wrap gap-2">
+                          {rolGroup.permisos.map((p: any) => (
+                            <span
+                              key={p.id_permiso}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-violet-50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-400 border border-violet-100 dark:border-violet-500/20"
+                            >
+                              <Tag size={12} />
+                              {p.nom_permiso}
+                            </span>
+                          ))}
                         </div>
-                      </td>
-
-                      {/* Descripción */}
-                      <td className="px-5 py-4">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
-                          {rp.descripcion || "Sin descripción"}
-                        </span>
                       </td>
 
                       {/* Acciones */}
-                      <td className="px-5 py-4">
+                      <td className="px-5 py-4 w-1/4">
                         <TableActionButtons
                           actions={[
                             {
-                              type: "view",
-                              onClick: () => { setAsignacionSeleccionada(rp); setShowModalVer(true); },
-                            },
-                            {
                               type: "edit",
-                              onClick: () => { setAsignacionSeleccionada(rp); setShowModalEditar(true); },
-                            },
-                            {
-                              type: "delete",
-                              onClick: () => { setAsignacionSeleccionada(rp); setShowModalEliminar(true); },
-                            },
+                              onClick: () => { setAsignacionSeleccionada(rolGroup); setShowModalEditar(true); },
+                            }
                           ]}
                         />
                       </td>

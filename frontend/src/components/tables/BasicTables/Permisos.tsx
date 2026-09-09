@@ -197,19 +197,19 @@ export default function Permisos() {
       <ModalAgregarPermiso
         showModal={showModalAgregar}
         setShowModal={setShowModalAgregarLocal}
-        onSuccess={fetchPermisos}
+        onSuccess={() => { fetchPermisos(); setShowModalAgregarLocal(false); }}
       />
       <ModalEditarPermiso
         showModal={showModalEditar}
         setShowModal={setShowModalEditar}
         permisoSeleccionado={permisoSeleccionado}
-        onSuccess={fetchPermisos}
+        onSuccess={() => { fetchPermisos(); setShowModalEditar(false); }}
       />
       <ModalEliminarPermiso
         showModal={showModalEliminar}
         setShowModal={setShowModalEliminar}
         permisoSeleccionado={permisoSeleccionado}
-        onSuccess={fetchPermisos}
+        onSuccess={() => { fetchPermisos(); setShowModalEliminar(false); }}
       />
       <ModalVerPermiso
         showModal={showModalVer}

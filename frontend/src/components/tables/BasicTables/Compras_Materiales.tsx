@@ -52,14 +52,14 @@ export default function ComprasMateriales() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8080/api/compra-material/${id_comp}`, {
+      const res = await fetch(`http://localhost:8080/api/compras-materiales/${id_comp}`, {
         method: "DELETE",
         headers,
       });
 
       if (!res.ok) throw new Error("Error al eliminar compra");
 
-      setComprasMateriales((prev) => prev.filter((comp) => comp.id_comp !== id_comp));
+      setComprasMateriales((prev) => prev.filter((comp) => (comp.id_comp || (comp as any).id) !== id_comp));
     } catch (error) {
       console.error("Error al eliminar compra:", error);
       alert("No se pudo eliminar la compra.");
@@ -144,7 +144,7 @@ export default function ComprasMateriales() {
 
                     return (
                       <motion.tr
-                        key={compra.id_comp}
+                        key={compra.id_comp || compra.id || idx}
                         initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -6 }}
@@ -221,7 +221,7 @@ export default function ComprasMateriales() {
                               },
                               {
                                 type: "delete",
-                                onClick: () => handleEliminar(compra.id_comp),
+                                onClick: () => handleEliminar(compra.id_comp || (compra as any).id),
                               },
                             ]}
                           />

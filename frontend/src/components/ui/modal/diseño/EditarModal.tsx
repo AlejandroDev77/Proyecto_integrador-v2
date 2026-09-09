@@ -205,21 +205,19 @@ const ModalEditarDiseño: React.FC<Props> = ({
   const fetchCotizaciones = useCallback(async (page = 1, search = "") => {
     setLoadingCot(true);
     try {
-      const url = `http://localhost:8080/api/cotizacion?page=${page}&per_page=6${
+      const url = `http://localhost:8080/api/cotizaciones?page=${page}&per_page=6${
         search ? `&search=${encodeURIComponent(search)}` : ""
       }`;
       const res = await fetch(url);
       const payload = await res.json();
-      if (payload?.data) {
-        setCotizaciones(payload.data);
-        setCotPagination({
-          currentPage: payload.current_page || 1,
-          lastPage: payload.last_page || 1,
-          total: payload.total || 0,
-        });
-      } else {
-        setCotizaciones(Array.isArray(payload) ? payload : []);
-      }
+      const realData = payload?.data && payload?.success !== undefined ? payload.data : payload;
+      const items = realData?.content || realData?.data || (Array.isArray(realData) ? realData : []);
+      setCotizaciones(Array.isArray(items) ? items : []);
+      setCotPagination({
+        currentPage: realData?.page ?? realData?.current_page ?? page,
+        lastPage: realData?.total_pages ?? realData?.last_page ?? 1,
+        total: realData?.totalElements ?? realData?.total ?? items.length,
+      });
     } catch {
       setCotizaciones([]);
     } finally {
@@ -240,16 +238,17 @@ const ModalEditarDiseño: React.FC<Props> = ({
   useEffect(() => {
     if (diseñoSeleccionado) {
       setForm({
-        nombre: diseñoSeleccionado.nom_dis || "",
-        descripcion: diseñoSeleccionado.desc_dis || "",
+        nombre: diseñoSeleccionado.nom_dis || (diseñoSeleccionado as any).nomDis || "",
+        descripcion: diseñoSeleccionado.desc_dis || (diseñoSeleccionado as any).descDis || "",
       });
-      setCurrentImgUrl(diseñoSeleccionado.img_dis || "");
-      setCurrent3dUrl(diseñoSeleccionado.archivo_3d || "");
+      setCurrentImgUrl(diseñoSeleccionado.img_dis || (diseñoSeleccionado as any).imgDis || "");
+      setCurrent3dUrl(diseñoSeleccionado.archivo_3d || (diseñoSeleccionado as any).archivo3d || "");
       setArchivo3dFile(null);
       setImgDisFile(null);
-      if (diseñoSeleccionado.id_cot) {
+      const idCot = diseñoSeleccionado.id_cot || (diseñoSeleccionado.cotizacion as any)?.id;
+      if (idCot) {
         fetch(
-          `http://localhost:8080/api/cotizacion/${diseñoSeleccionado.id_cot}`
+          `http://localhost:8080/api/cotizaciones/${idCot}`
         )
           .then((r) => r.json())
           .then((c) => setSelectedCotizacion(c?.data ?? c))
@@ -299,8 +298,7 @@ const ModalEditarDiseño: React.FC<Props> = ({
       const formData = new FormData();
       formData.append("nom_dis", form.nombre);
       formData.append("desc_dis", form.descripcion);
-      formData.append("id_cot", selectedCotizacion.id_cot.toString());
-      formData.append("_method", "PUT");
+      formData.append("id_cot", (selectedCotizacion.id_cot || (selectedCotizacion as any).id).toString());
       if (imgDisFile) {
         formData.append("img_dis", imgDisFile);
       }
@@ -321,8 +319,8 @@ const ModalEditarDiseño: React.FC<Props> = ({
       }
 
       const res = await fetch(
-        `http://localhost:8080/api/diseño/${diseñoSeleccionado.id_dis}`,
-        { method: "POST", headers, body: formData }
+        `http://localhost:8080/api/disenos/${diseñoSeleccionado.id_dis || (diseñoSeleccionado as any).id}`,
+        { method: "PUT", headers, body: formData }
       );
 
       if (!res.ok) {
@@ -337,7 +335,7 @@ const ModalEditarDiseño: React.FC<Props> = ({
       const payload: any = await res.json();
       const data = payload?.data ?? payload;
       setDiseños((prev) =>
-        prev.map((d) => (d.id_dis === data.id_dis ? data : d))
+        prev.map((d) => ((d.id_dis || (d as any).id) === (data.id_dis || data.id) ? data : d))
       );
       Swal.fire({
         icon: "success",
@@ -484,11 +482,11 @@ const ModalEditarDiseño: React.FC<Props> = ({
                     Cargando...
                   </div>
                 ) : (
-                  cotizaciones.map((c) => (
+                  cotizaciones.map((c, idx) => (
                     <CotizacionCard
-                      key={c.id_cot}
+                      key={c.id_cot || c.id || idx}
                       cotizacion={c}
-                      isSelected={selectedCotizacion?.id_cot === c.id_cot}
+                      isSelected={(selectedCotizacion?.id_cot || (selectedCotizacion as any)?.id) === (c.id_cot || c.id)}
                       onSelect={() => setSelectedCotizacion(c)}
                     />
                   ))

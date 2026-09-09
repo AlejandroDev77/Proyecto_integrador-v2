@@ -1,6 +1,6 @@
 import axiosClient from "../api/axios";
 
-const API_URL = "/api/clientes";
+const API_URL = "/api/cliente";
 
 // Get auth headers from localStorage
 function getAuthHeaders() {

@@ -4,19 +4,18 @@ public class Categoria {
 
     private Long id;
     private String nombre;
+    private String descripcion;
+    private String codigo;
     private Boolean estado;
 
     public Categoria() {
     }
 
-    public Categoria(Long id, String nombre) {
+    public Categoria(Long id, String nombre, String descripcion, String codigo, Boolean estado) {
         this.id = id;
         this.nombre = nombre;
-    }
-
-    public Categoria(Long id, String nombre, Boolean estado) {
-        this.id = id;
-        this.nombre = nombre;
+        this.descripcion = descripcion;
+        this.codigo = codigo;
         this.estado = estado;
     }
 
@@ -34,6 +33,22 @@ public class Categoria {
 
     public void setNombre(String nombre) {
         this.nombre = nombre;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
+    }
+
+    public String getCodigo() {
+        return codigo;
+    }
+
+    public void setCodigo(String codigo) {
+        this.codigo = codigo;
     }
 
     public Boolean getEstado() {
@@ -62,6 +77,8 @@ public class Categoria {
         return "Categoria{" +
                 "id=" + id +
                 ", nombre='" + nombre + '\'' +
+                ", descripcion='" + descripcion + '\'' +
+                ", codigo='" + codigo + '\'' +
                 ", estado=" + estado +
                 '}';
     }

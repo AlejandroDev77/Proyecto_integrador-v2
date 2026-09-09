@@ -8,16 +8,21 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import com.changuitostudio.backend.application.gateway.StorageGateway;
 
+import java.util.Map;
 @RestController
 @RequestMapping("/api/materiales")
 public class MaterialController {
 
     private final ManageMaterialUseCase manageMaterialUseCase;
+    private final StorageGateway storageGateway;
 
-    public MaterialController(ManageMaterialUseCase manageMaterialUseCase) {
+    public MaterialController(ManageMaterialUseCase manageMaterialUseCase, StorageGateway storageGateway) {
         this.manageMaterialUseCase = manageMaterialUseCase;
+        this.storageGateway = storageGateway;
     }
 
     @GetMapping
@@ -55,14 +60,61 @@ public class MaterialController {
                         .body(ApiResponse.error("Material no encontrado", HttpStatus.NOT_FOUND.value())));
     }
 
-    @PostMapping
-    public ResponseEntity<ApiResponse<Material>> crear(@RequestBody Material material) {
+    @PostMapping(consumes = {"multipart/form-data"})
+    public ResponseEntity<ApiResponse<Material>> crear(
+            @RequestParam("nom_mat") String nomMat,
+            @RequestParam("desc_mat") String descMat,
+            @RequestParam("stock_mat") Double stockMat,
+            @RequestParam("stock_min") Double stockMin,
+            @RequestParam("unidad_medida") String unidadMedida,
+            @RequestParam("costo_mat") Double costoMat,
+            @RequestParam(value = "est_mat", defaultValue = "1") String estMat,
+            @RequestParam(value = "img_mat", required = false) MultipartFile imgMat
+    ) {
+        Material material = new Material();
+        material.setNomMat(nomMat);
+        material.setDescMat(descMat);
+        material.setStockMat(stockMat);
+        material.setStockMin(stockMin);
+        material.setUnidadMedida(unidadMedida);
+        material.setCostoMat(costoMat);
+        material.setEstMat("1".equals(estMat));
+
+        if (imgMat != null && !imgMat.isEmpty()) {
+            String url = storageGateway.save(imgMat, "materiales");
+            material.setImgMat(url);
+        }
+
         Material creado = manageMaterialUseCase.crear(material);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(creado));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<Material>> actualizar(@PathVariable Long id, @RequestBody Material material) {
+    @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
+    public ResponseEntity<ApiResponse<Material>> actualizar(
+            @PathVariable Long id,
+            @RequestParam("nom_mat") String nomMat,
+            @RequestParam("desc_mat") String descMat,
+            @RequestParam("stock_mat") Double stockMat,
+            @RequestParam("stock_min") Double stockMin,
+            @RequestParam("unidad_medida") String unidadMedida,
+            @RequestParam("costo_mat") Double costoMat,
+            @RequestParam(value = "est_mat", defaultValue = "1") String estMat,
+            @RequestParam(value = "img_mat", required = false) MultipartFile imgMat
+    ) {
+        Material material = new Material();
+        material.setNomMat(nomMat);
+        material.setDescMat(descMat);
+        material.setStockMat(stockMat);
+        material.setStockMin(stockMin);
+        material.setUnidadMedida(unidadMedida);
+        material.setCostoMat(costoMat);
+        material.setEstMat("1".equals(estMat));
+
+        if (imgMat != null && !imgMat.isEmpty()) {
+            String url = storageGateway.save(imgMat, "materiales");
+            material.setImgMat(url);
+        }
+
         Material actualizado = manageMaterialUseCase.actualizar(id, material);
         return ResponseEntity.ok(ApiResponse.success(actualizado));
     }

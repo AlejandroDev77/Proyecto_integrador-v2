@@ -252,10 +252,10 @@ const ModalVerDiseño: React.FC<ModalVerDiseñoProps> = ({
 
           {activeTab === "3D" && (
             <div className="w-full min-h-96">
-              {diseñoSeleccionado.archivo_3d ? (
+              {diseñoSeleccionado.archivo_3d || (diseñoSeleccionado as any).archivo3d ? (
                 <div className="w-full h-[500px] rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
                   <ModelContent
-                    modelPath={getFileUrl(diseñoSeleccionado.archivo_3d) || ""}
+                    modelPath={getFileUrl(diseñoSeleccionado.archivo_3d || (diseñoSeleccionado as any).archivo3d) || ""}
                   />
                 </div>
               ) : (

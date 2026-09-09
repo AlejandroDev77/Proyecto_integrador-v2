@@ -117,7 +117,6 @@ export default function ModalEditarMaterial({
       formData.append("unidad_medida", form.unidad_medida);
       formData.append("costo_mat", String(Number(form.costo_mat) || 0));
       formData.append("est_mat", form.est_mat === "1" ? "1" : "0");
-      formData.append("_method", "PUT");
       if (imgFile) {
         formData.append("img_mat", imgFile);
       }
@@ -125,7 +124,7 @@ export default function ModalEditarMaterial({
       const res = await fetch(
         `http://localhost:8080/api/materiales/${materialSeleccionado.id_mat}`,
         {
-          method: "POST",
+          method: "PUT",
           headers: {
             Accept: "application/json",
             ...(idUsuarioLocal ? { "X-USER-ID": idUsuarioLocal } : {}),
@@ -150,8 +149,9 @@ export default function ModalEditarMaterial({
         return;
       }
 
+      const materialActualizado = responseData.data || responseData;
       setMateriales((prev) =>
-        prev.map((m) => (m.id_mat === responseData.id_mat ? responseData : m))
+        prev.map((m) => (m.id_mat === materialActualizado.id_mat ? materialActualizado : m))
       );
       Swal.fire({
         icon: "success",

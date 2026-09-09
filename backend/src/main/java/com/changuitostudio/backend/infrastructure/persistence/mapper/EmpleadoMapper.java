@@ -19,7 +19,8 @@ public class EmpleadoMapper {
         domain.setCarEmp(entity.getCarEmp());
         domain.setCiEmp(entity.getCiEmp());
         if (entity.getUsuario() != null) {
-            domain.setUsuario(UsuarioMapper.toDomain(entity.getUsuario())); // ADJUST MAPPER HERE IF NEEDED
+            domain.setUsuario(UsuarioMapper.toDomain(entity.getUsuario()));
+            domain.setId_usu(entity.getUsuario().getIdUsu());
         }
         domain.setCodEmp(entity.getCodEmp());
         domain.setEstEmp(entity.getEstEmp());
@@ -40,7 +41,11 @@ public class EmpleadoMapper {
         entity.setCarEmp(domain.getCarEmp());
         entity.setCiEmp(domain.getCiEmp());
         if (domain.getUsuario() != null) {
-            entity.setUsuario(UsuarioMapper.toEntity(domain.getUsuario())); // ADJUST MAPPER HERE IF NEEDED
+            entity.setUsuario(UsuarioMapper.toEntity(domain.getUsuario()));
+        } else if (domain.getId_usu() != null) {
+            com.changuitostudio.backend.infrastructure.persistence.entity.UsuarioEntity u = new com.changuitostudio.backend.infrastructure.persistence.entity.UsuarioEntity();
+            u.setIdUsu(domain.getId_usu());
+            entity.setUsuario(u);
         }
         entity.setCodEmp(domain.getCodEmp());
         entity.setEstEmp(domain.getEstEmp());

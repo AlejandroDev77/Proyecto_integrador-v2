@@ -72,7 +72,6 @@ export default function Roles() {
                 {[
                   { label: "Nombre del Rol", field: "nom_rol" },
                   { label: "Permisos",       field: null      },
-                  { label: "Usuarios",       field: null      },
                   { label: "Acciones",       field: null      },
                 ].map(({ label, field }) => (
                   <th
@@ -94,7 +93,7 @@ export default function Roles() {
             <tbody className="divide-y divide-gray-100 dark:divide-white/4">
               {paginatedData.length === 0 ? (
                 <tr>
-                  <td colSpan={4}>
+                  <td colSpan={3}>
                     <div className="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-600">
                       <ShieldCheck size={40} strokeWidth={1.2} className="mb-3 opacity-40" />
                       <p className="text-sm font-medium">Sin roles</p>
@@ -144,20 +143,7 @@ export default function Roles() {
                         </div>
                       </td>
 
-                      {/* Usuarios stats compacto */}
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-3">
-                          <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                            {rol.usuarios?.total || 0} total
-                          </span>
-                          <span className="text-xs text-emerald-500 font-medium">
-                            {rol.usuarios?.activos || 0} activos
-                          </span>
-                          <span className="text-xs text-gray-400">
-                            {rol.usuarios?.inactivos || 0} inact.
-                          </span>
-                        </div>
-                      </td>
+
 
                       {/* Acciones */}
                       <td className="px-5 py-4">
@@ -226,13 +212,13 @@ export default function Roles() {
       <ModalAgregarRol
         showModal={showModalAgregar}
         setShowModal={setShowModalAgregarLocal}
-        onSuccess={fetchRoles}
+        onSuccess={() => { fetchRoles(); setShowModalAgregarLocal(false); }}
       />
       <ModalEditarRol
         showModal={showModalEditar}
         setShowModal={setShowModalEditar}
         rolSeleccionado={rolSeleccionado}
-        onSuccess={fetchRoles}
+        onSuccess={() => { fetchRoles(); setShowModalEditar(false); }}
       />
       <ModalEliminarRol
         showModal={showModalEliminar}
