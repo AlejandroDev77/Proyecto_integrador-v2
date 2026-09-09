@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import Swal from "sweetalert2";
 import { jwtDecode } from "jwt-decode";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import {
   Package,
   Boxes,
@@ -345,11 +347,11 @@ export default function ModalEditarMovimientoInventario({
         }`
       );
       const p = await res.json();
-      setEmpleados(p?.data || []);
+      setEmpleados(p?.data?.content || p?.data || []);
       setEmpPag({
-        currentPage: p.current_page || 1,
-        lastPage: p.last_page || 1,
-        total: p.total || 0,
+        currentPage: p?.data?.page || p.current_page || 1,
+        lastPage: p?.data?.totalPages || p?.data?.total_pages || p.last_page || 1,
+        total: p?.data?.totalElements || p?.data?.total_elements || p.total || 0,
       });
     } catch {
       setEmpleados([]);
@@ -366,11 +368,11 @@ export default function ModalEditarMovimientoInventario({
         }`
       );
       const p = await res.json();
-      setMateriales(p?.data || []);
+      setMateriales(p?.data?.content || p?.data || []);
       setMatPag({
-        currentPage: p.current_page || 1,
-        lastPage: p.last_page || 1,
-        total: p.total || 0,
+        currentPage: p?.data?.page || p.current_page || 1,
+        lastPage: p?.data?.totalPages || p?.data?.total_pages || p.last_page || 1,
+        total: p?.data?.totalElements || p?.data?.total_elements || p.total || 0,
       });
     } catch {
       setMateriales([]);
@@ -387,11 +389,11 @@ export default function ModalEditarMovimientoInventario({
         }`
       );
       const p = await res.json();
-      setMuebles(p?.data || []);
+      setMuebles(p?.data?.content || p?.data || []);
       setMuePag({
-        currentPage: p.current_page || 1,
-        lastPage: p.last_page || 1,
-        total: p.total || 0,
+        currentPage: p?.data?.page || p.current_page || 1,
+        lastPage: p?.data?.totalPages || p?.data?.total_pages || p.last_page || 1,
+        total: p?.data?.totalElements || p?.data?.total_elements || p.total || 0,
       });
     } catch {
       setMuebles([]);
@@ -424,29 +426,36 @@ export default function ModalEditarMovimientoInventario({
     if (movimientoSeleccionado) {
       setForm({
         tipo_mov: movimientoSeleccionado.tipo_mov || "Entrada",
-        fecha_mov: movimientoSeleccionado.fecha_mov || "",
+        fecha_mov: movimientoSeleccionado.fecha_mov ? movimientoSeleccionado.fecha_mov.split("T")[0] : "",
         cantidad: movimientoSeleccionado.cantidad || 0,
         stock_anterior: movimientoSeleccionado.stock_anterior || 0,
         stock_posterior: movimientoSeleccionado.stock_posterior || 0,
         motivo: movimientoSeleccionado.motivo || "",
       });
-      setSelectedEmpleado({
-        id_emp: movimientoSeleccionado.id_emp,
-        nom_emp: movimientoSeleccionado.empleado?.nom_emp || "",
-        ap_pat_emp: movimientoSeleccionado.empleado?.ap_pat_emp || "",
-      });
-      if (movimientoSeleccionado.id_mat) {
+      setSelectedEmpleado(
+        movimientoSeleccionado.empleado
+          ? {
+              id_emp: (movimientoSeleccionado.empleado as any).id,
+              nom_emp: movimientoSeleccionado.empleado.nom_emp || "",
+              ap_pat_emp: movimientoSeleccionado.empleado.ap_pat_emp || "",
+            }
+          : null
+      );
+      if (movimientoSeleccionado.material) {
         setProductType("material");
         setSelectedMaterial({
-          id_mat: movimientoSeleccionado.id_mat,
-          nom_mat: movimientoSeleccionado.material?.nom_mat || "",
+          id_mat: (movimientoSeleccionado.material as any).id,
+          nom_mat: movimientoSeleccionado.material.nom_mat || "",
         });
         setSelectedMueble(null);
-      } else if (movimientoSeleccionado.id_mue) {
+      } else if (movimientoSeleccionado.mueble) {
         setProductType("mueble");
         setSelectedMueble({
-          id_mue: movimientoSeleccionado.id_mue,
-          nom_mue: movimientoSeleccionado.mueble?.nom_mue || "",
+          id_mue: (movimientoSeleccionado.mueble as any).id,
+          nom_mue:
+            movimientoSeleccionado.mueble.nombre ||
+            movimientoSeleccionado.mueble.nom_mue ||
+            "",
         });
         setSelectedMaterial(null);
       }
@@ -472,7 +481,7 @@ export default function ModalEditarMovimientoInventario({
     } catch {}
     try {
       const res = await fetch(
-        `http://localhost:8080/api/movimiento-inventario/${movimientoSeleccionado.id_mov}`,
+        `http://localhost:8080/api/movimientos-inventario/${movimientoSeleccionado.id_mov || (movimientoSeleccionado as any).id}`,
         {
           method: "PUT",
           headers: {
@@ -481,14 +490,14 @@ export default function ModalEditarMovimientoInventario({
           },
           body: JSON.stringify({
             tipo_mov: form.tipo_mov,
-            fecha_mov: form.fecha_mov,
+            fecha_mov: form.fecha_mov ? form.fecha_mov + "T12:00:00" : null,
             cantidad: form.cantidad,
             stock_anterior: form.stock_anterior,
             stock_posterior: form.stock_posterior,
             motivo: form.motivo,
-            id_emp: selectedEmpleado.id_emp,
-            id_mat: selectedMaterial?.id_mat || null,
-            id_mue: selectedMueble?.id_mue || null,
+            empleado: selectedEmpleado ? { id: selectedEmpleado.id_emp || (selectedEmpleado as any).id } : null,
+            material: selectedMaterial ? { id: selectedMaterial.id_mat || (selectedMaterial as any).id } : null,
+            mueble: selectedMueble ? { id: selectedMueble.id_mue || (selectedMueble as any).id } : null,
           }),
         }
       );
@@ -502,19 +511,26 @@ export default function ModalEditarMovimientoInventario({
       const data = (await res.json())?.data;
       setMovimientosInventarios((prev) =>
         prev.map((m) =>
-          m.id_mov === movimientoSeleccionado.id_mov
+          (m.id_mov || (m as any).id) === (movimientoSeleccionado.id_mov || (movimientoSeleccionado as any).id)
             ? {
                 ...data,
                 empleado: {
+                  id: selectedEmpleado.id_emp || (selectedEmpleado as any).id,
                   nom_emp: selectedEmpleado.nom_emp,
                   ap_pat_emp: selectedEmpleado.ap_pat_emp,
                   ap_mat_emp: "",
                 },
                 material: selectedMaterial
-                  ? { nom_mat: selectedMaterial.nom_mat }
+                  ? { 
+                      id: selectedMaterial.id_mat || (selectedMaterial as any).id,
+                      nom_mat: selectedMaterial.nom_mat 
+                    }
                   : null,
                 mueble: selectedMueble
-                  ? { nom_mue: selectedMueble.nom_mue }
+                  ? { 
+                      id: selectedMueble.id_mue || (selectedMueble as any).id,
+                      nom_mue: selectedMueble.nom_mue 
+                    }
                   : null,
               }
             : m
@@ -610,13 +626,17 @@ export default function ModalEditarMovimientoInventario({
                     <Calendar className="w-4 h-4 text-violet-500" />
                     Fecha
                   </label>
-                  <input
-                    type="date"
-                    value={form.fecha_mov}
-                    onChange={(e) =>
-                      setForm({ ...form, fecha_mov: e.target.value })
+                  <DatePicker
+                    selected={form.fecha_mov ? new Date(form.fecha_mov + "T12:00:00") : null}
+                    onChange={(date: Date | null) =>
+                      setForm({
+                        ...form,
+                        fecha_mov: date ? date.toISOString().split("T")[0] : "",
+                      })
                     }
+                    dateFormat="yyyy-MM-dd"
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-violet-500"
+                    placeholderText="Seleccionar fecha"
                   />
                 </div>
                 <div>
@@ -734,9 +754,9 @@ export default function ModalEditarMovimientoInventario({
                     {empleados.length > 0 ? (
                       empleados.map((e) => (
                         <EmpleadoCard
-                          key={e.id_emp}
+                          key={e.id_emp || (e as any).id}
                           empleado={e}
-                          isSelected={selectedEmpleado?.id_emp === e.id_emp}
+                          isSelected={(selectedEmpleado?.id_emp || (selectedEmpleado as any)?.id) === (e.id_emp || (e as any).id)}
                           onSelect={() => setSelectedEmpleado(e)}
                         />
                       ))
@@ -806,9 +826,9 @@ export default function ModalEditarMovimientoInventario({
                         {materiales.length > 0 ? (
                           materiales.map((m) => (
                             <MaterialCard
-                              key={m.id_mat}
+                              key={m.id_mat || (m as any).id}
                               material={m}
-                              isSelected={selectedMaterial?.id_mat === m.id_mat}
+                              isSelected={(selectedMaterial?.id_mat || (selectedMaterial as any)?.id) === (m.id_mat || (m as any).id)}
                               onSelect={() => setSelectedMaterial(m)}
                             />
                           ))
@@ -844,9 +864,9 @@ export default function ModalEditarMovimientoInventario({
                         {muebles.length > 0 ? (
                           muebles.map((m) => (
                             <MuebleCard
-                              key={m.id_mue}
+                              key={m.id_mue || (m as any).id}
                               mueble={m}
-                              isSelected={selectedMueble?.id_mue === m.id_mue}
+                              isSelected={(selectedMueble?.id_mue || (selectedMueble as any)?.id) === (m.id_mue || (m as any).id)}
                               onSelect={() => setSelectedMueble(m)}
                             />
                           ))

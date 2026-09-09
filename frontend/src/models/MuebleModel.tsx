@@ -11,13 +11,13 @@ function FallbackModel() {
   );
 }
 
+import { useMemo } from "react";
+import { SkeletonUtils } from "three-stdlib";
+
 function Model() {
-  try {
-    const gltf = useGLTF("/models/mueble2.glb");
-    return <primitive object={gltf.scene} scale={1.7} position={[0, 0, 0]} />;
-  } catch (e) {
-    return <FallbackModel />;
-  }
+  const gltf = useGLTF("/models/mueble2.glb");
+  const clone = useMemo(() => SkeletonUtils.clone(gltf.scene), [gltf.scene]);
+  return <primitive object={clone} scale={1.7} position={[0, 0, 0]} />;
 }
 
 export function MuebleModel() {
@@ -28,9 +28,3 @@ export function MuebleModel() {
   );
 }
 
-
-try {
-  useGLTF.preload("/models/mueble2.glb");
-} catch (e) {
-  console.warn("archivo no encontrado");
-}

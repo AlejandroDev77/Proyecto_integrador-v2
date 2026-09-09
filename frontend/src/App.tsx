@@ -59,6 +59,8 @@ import Negocio from "./pages/Tables/Negocio";
 import CostosCotizacion from "./pages/Tables/CostosCotizacion";
 import EvidenciasProduccion from "./pages/Tables/EvidenciasProduccion";
 import GeneracionIA from "./pages/IA/GeneracionIA";
+import ChatbotPage from "./pages/IA/ChatbotPage";
+import Reportes from "./pages/Tables/Reportes";
 
 // Client Portal Pages
 import MisCotizaciones from "./pages/ClientPortal/MisCotizaciones";
@@ -134,6 +136,7 @@ export default function App() {
                   <Route path="/negocio" element={<Negocio />} />
 
                   {/* Tables */}
+                  <Route path="/reportes" element={<Reportes />} />
                   <Route path="/usuarios" element={<Usuarios />} />
                   <Route path="/clientes" element={<Clientes />} />
                   <Route path="/empleados" element={<Empleados />} />
@@ -204,6 +207,7 @@ export default function App() {
                     element={<EvidenciasProduccion />}
                   />
                   <Route path="/generacion-ia" element={<GeneracionIA />} />
+                  <Route path="/chatbot" element={<ChatbotPage />} />
                   <Route
                     path="/logs"
                     element={

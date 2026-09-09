@@ -7,6 +7,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,6 +29,9 @@ public class ClientePortalController {
     private final PagoJpaRepository pagoJpaRepository;
     private final MovimientoInventarioJpaRepository movimientoInventarioJpaRepository;
     private final EmpleadoJpaRepository empleadoJpaRepository;
+    private final CotizacionJpaRepository cotizacionJpaRepository;
+    private final DetalleCotizacionJpaRepository detalleCotizacionJpaRepository;
+    private final ProduccionJpaRepository produccionJpaRepository;
     private final CodigoGeneratorService codigoGenerator;
 
     public ClientePortalController(
@@ -33,6 +42,9 @@ public class ClientePortalController {
             PagoJpaRepository pagoJpaRepository,
             MovimientoInventarioJpaRepository movimientoInventarioJpaRepository,
             EmpleadoJpaRepository empleadoJpaRepository,
+            CotizacionJpaRepository cotizacionJpaRepository,
+            DetalleCotizacionJpaRepository detalleCotizacionJpaRepository,
+            ProduccionJpaRepository produccionJpaRepository,
             CodigoGeneratorService codigoGenerator
     ) {
         this.clienteJpaRepository = clienteJpaRepository;
@@ -42,13 +54,52 @@ public class ClientePortalController {
         this.pagoJpaRepository = pagoJpaRepository;
         this.movimientoInventarioJpaRepository = movimientoInventarioJpaRepository;
         this.empleadoJpaRepository = empleadoJpaRepository;
+        this.cotizacionJpaRepository = cotizacionJpaRepository;
+        this.detalleCotizacionJpaRepository = detalleCotizacionJpaRepository;
+        this.produccionJpaRepository = produccionJpaRepository;
         this.codigoGenerator = codigoGenerator;
     }
 
-    /**
-     * GET /api/cliente/por-usuario/{idUsu}
-     * Get client data by user ID (replicates old Laravel endpoint)
-     */
+    private ClienteEntity getAuthenticatedCliente() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return null;
+        }
+        try {
+            Long userId = Long.parseLong(auth.getName());
+            return clienteJpaRepository.findByUsuarioIdUsu(userId).orElse(null);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    // ==========================================
+    // PERFIL
+    // ==========================================
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getClienteActual() {
+        ClienteEntity cliente = getAuthenticatedCliente();
+        if (cliente == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Usuario no autenticado o no es cliente"));
+        }
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("id_cli", cliente.getId());
+        data.put("nom_cli", cliente.getNomCli());
+        data.put("ap_pat_cli", cliente.getApPatCli());
+        data.put("ap_mat_cli", cliente.getApMatCli());
+        data.put("cel_cli", cliente.getCelCli());
+        data.put("dir_cli", cliente.getDirCli());
+        data.put("img_cli", cliente.getImgCli());
+        data.put("cod_cli", cliente.getCodCli());
+        if (cliente.getUsuario() != null) {
+            data.put("email_usu", cliente.getUsuario().getEmailUsu());
+        }
+
+        return ResponseEntity.ok(data);
+    }
+
     @GetMapping("/por-usuario/{idUsu}")
     public ResponseEntity<?> getClienteByUsuario(@PathVariable Long idUsu) {
         return clienteJpaRepository.findByUsuarioIdUsu(idUsu)
@@ -68,73 +119,216 @@ public class ClientePortalController {
                         .body(Map.of("message", "No se encontró perfil de cliente asociado")));
     }
 
-    /**
-     * POST /api/cliente/compra-directa
-     * Client purchases items from cart (replicates old Laravel endpoint)
-     */
+    // ==========================================
+    // COTIZACIONES
+    // ==========================================
+
+    @GetMapping("/cotizaciones")
+    public ResponseEntity<?> getMisCotizaciones(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int per_page) {
+        
+        ClienteEntity cliente = getAuthenticatedCliente();
+        if (cliente == null) return ResponseEntity.status(401).body(Map.of("message", "No autenticado"));
+
+        Pageable pageable = PageRequest.of(page - 1, per_page, Sort.by(Sort.Direction.DESC, "fecCot"));
+        Page<CotizacionEntity> paginated = cotizacionJpaRepository.findByClienteId(cliente.getId(), pageable);
+        
+        return ResponseEntity.ok(formatPaginatedResponse(paginated));
+    }
+
+    @GetMapping("/cotizaciones/{id}")
+    public ResponseEntity<?> verCotizacion(@PathVariable Long id) {
+        ClienteEntity cliente = getAuthenticatedCliente();
+        if (cliente == null) return ResponseEntity.status(401).body(Map.of("message", "No autenticado"));
+
+        return cotizacionJpaRepository.findById(id)
+                .filter(c -> c.getCliente().getId().equals(cliente.getId()))
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(404).body((CotizacionEntity) null));
+    }
+
+    @PostMapping("/cotizaciones/solicitar")
+    @Transactional
+    public ResponseEntity<?> solicitarCotizacion(@RequestBody Map<String, Object> body) {
+        ClienteEntity cliente = getAuthenticatedCliente();
+        if (cliente == null) return ResponseEntity.status(401).body(Map.of("message", "No autenticado"));
+
+        try {
+            String tipoProyecto = (String) body.get("tipo_proyecto");
+            Double presupuesto = toDouble(body.get("presupuesto_cliente"));
+            Integer plazo = toInt(body.get("plazo_esperado"));
+            String direccion = (String) body.get("direccion_instalacion");
+            String notas = (String) body.get("notas");
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> productos = (List<Map<String, Object>>) body.get("productos");
+
+            if (tipoProyecto == null || productos == null || productos.isEmpty()) {
+                return badRequest("Faltan campos requeridos o productos.");
+            }
+
+            String codCot = codigoGenerator.generateUniqueCode("COT", cotizacionJpaRepository::existsByCodCot);
+
+            EmpleadoEntity defaultEmpleado = empleadoJpaRepository.findById(1L)
+                    .orElseGet(() -> empleadoJpaRepository.findAll().stream().findFirst().orElse(null));
+
+            CotizacionEntity cotizacion = new CotizacionEntity();
+            cotizacion.setCodCot(codCot);
+            cotizacion.setFecCot(LocalDate.now());
+            cotizacion.setEstCot("Pendiente");
+            cotizacion.setValidezDias(15);
+            cotizacion.setTotalCot(0.0);
+            cotizacion.setDescuento(0.0);
+            cotizacion.setCliente(cliente);
+            cotizacion.setEmpleado(defaultEmpleado);
+            cotizacion.setNotas(notas);
+            cotizacion.setTipoProyecto(tipoProyecto);
+            cotizacion.setPresupuestoCliente(presupuesto);
+            cotizacion.setPlazoEsperado(plazo);
+            cotizacion.setDireccionInstalacion(direccion);
+
+            cotizacion = cotizacionJpaRepository.save(cotizacion);
+
+            double total = 0;
+            for (Map<String, Object> prod : productos) {
+                Long idMue = toLong(prod.get("id_mue"));
+                int cantidad = toInt(prod.get("cantidad"));
+                String personalizacion = (String) prod.get("personalizacion");
+
+                MuebleEntity mueble = (idMue != null && idMue > 0) ? muebleJpaRepository.findById(idMue).orElse(null) : null;
+                
+                String nombreMueble = mueble != null ? mueble.getNomMue() : "Mueble Personalizado";
+                if (personalizacion != null && personalizacion.contains("[PERSONALIZADO]")) {
+                    String[] parts = personalizacion.split("\\[PERSONALIZADO\\]");
+                    if (parts.length > 1 && !parts[1].trim().isEmpty()) {
+                        nombreMueble = parts[1].trim().split("\n")[0].trim();
+                    }
+                }
+
+                double precioUnitario = mueble != null && mueble.getPrecioVenta() != null ? mueble.getPrecioVenta() : 0.0;
+                double subtotal = precioUnitario * cantidad;
+                total += subtotal;
+
+                DetalleCotizacionEntity detalle = new DetalleCotizacionEntity();
+                detalle.setCodDetCot(codigoGenerator.generateUniqueCode("DCOT", detalleCotizacionJpaRepository::existsByCodDetCot));
+                detalle.setCotizacion(cotizacion);
+                detalle.setMueble(mueble);
+                detalle.setCantidad(cantidad);
+                detalle.setPrecioUnitario(precioUnitario);
+                detalle.setSubtotal(subtotal);
+                detalle.setDescPersonalizacion(personalizacion);
+                detalle.setNombreMueble(nombreMueble);
+
+                detalleCotizacionJpaRepository.save(detalle);
+            }
+
+            cotizacion.setTotalCot(total);
+            cotizacionJpaRepository.save(cotizacion);
+
+            return ResponseEntity.status(201).body(Map.of(
+                    "message", "Solicitud de cotización enviada correctamente",
+                    "cotizacion", cotizacion
+            ));
+        } catch (Exception e) {
+            return badRequest(e.getMessage());
+        }
+    }
+
+    @PostMapping("/cotizaciones/{id}/cancelar")
+    public ResponseEntity<?> cancelarCotizacion(@PathVariable Long id) {
+        ClienteEntity cliente = getAuthenticatedCliente();
+        if (cliente == null) return ResponseEntity.status(401).body(Map.of("message", "No autenticado"));
+
+        return cotizacionJpaRepository.findById(id)
+                .filter(c -> c.getCliente().getId().equals(cliente.getId()))
+                .map(cotizacion -> {
+                    if (!"Pendiente".equalsIgnoreCase(cotizacion.getEstCot())) {
+                        return badRequest("Solo se pueden cancelar cotizaciones pendientes");
+                    }
+                    cotizacion.setEstCot("Cancelado");
+                    cotizacionJpaRepository.save(cotizacion);
+                    return ResponseEntity.ok(Map.of("message", "Cotización cancelada", "cotizacion", cotizacion));
+                })
+                .orElse(ResponseEntity.status(404).body(Map.of("message", "Cotización no encontrada")));
+    }
+
+    // ==========================================
+    // PEDIDOS (VENTAS)
+    // ==========================================
+
+    @GetMapping("/pedidos")
+    public ResponseEntity<?> getMisPedidos(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int per_page) {
+        
+        ClienteEntity cliente = getAuthenticatedCliente();
+        if (cliente == null) return ResponseEntity.status(401).body(Map.of("message", "No autenticado"));
+
+        Pageable pageable = PageRequest.of(page - 1, per_page, Sort.by(Sort.Direction.DESC, "fecVen"));
+        Page<VentaEntity> paginated = ventaJpaRepository.findByClienteId(cliente.getId(), pageable);
+        
+        return ResponseEntity.ok(formatPaginatedResponse(paginated));
+    }
+
+    @GetMapping("/pedidos/{id}")
+    public ResponseEntity<?> verPedido(@PathVariable Long id) {
+        ClienteEntity cliente = getAuthenticatedCliente();
+        if (cliente == null) return ResponseEntity.status(401).body(Map.of("message", "No autenticado"));
+
+        return ventaJpaRepository.findById(id)
+                .filter(v -> v.getCliente().getId().equals(cliente.getId()))
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(404).body((VentaEntity) null));
+    }
+
+    // ==========================================
+    // COMPRA DIRECTA
+    // ==========================================
+
     @PostMapping("/compra-directa")
     @Transactional
     public ResponseEntity<?> compraDirecta(@RequestBody Map<String, Object> body) {
         try {
-            // Validate required fields
             Long idCli = toLong(body.get("id_cli"));
+            if (idCli == null) {
+                ClienteEntity authCliente = getAuthenticatedCliente();
+                if (authCliente != null) {
+                    idCli = authCliente.getId();
+                }
+            }
+            if (idCli == null) return badRequest("Cliente es requerido.");
+
             String metodoPago = (String) body.get("metodo_pago");
             String direccionEntrega = (String) body.get("direccion_entrega");
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> detalles = (List<Map<String, Object>>) body.get("detalles");
 
-            if (idCli == null) {
-                return badRequest("Cliente es requerido.");
-            }
-            if (metodoPago == null || metodoPago.isBlank()) {
-                return badRequest("Método de pago es requerido.");
-            }
-            if (direccionEntrega == null || direccionEntrega.length() < 5) {
-                return badRequest("Dirección de entrega es requerida.");
-            }
-            if (detalles == null || detalles.isEmpty()) {
-                return badRequest("Debe incluir al menos un producto.");
-            }
+            if (metodoPago == null || metodoPago.isBlank()) return badRequest("Método de pago es requerido.");
+            if (direccionEntrega == null || direccionEntrega.length() < 5) return badRequest("Dirección de entrega es requerida.");
+            if (detalles == null || detalles.isEmpty()) return badRequest("Debe incluir al menos un producto.");
 
-            // Find client
-            ClienteEntity cliente = clienteJpaRepository.findById(idCli)
-                    .orElse(null);
-            if (cliente == null) {
-                return badRequest("Cliente no encontrado.");
-            }
+            ClienteEntity cliente = clienteJpaRepository.findById(idCli).orElse(null);
+            if (cliente == null) return badRequest("Cliente no encontrado.");
 
-            // Find a default employee (required by database constraint in movimientos_inventario)
-            // We try ID 1 first (usually admin), if not, the first one found.
             EmpleadoEntity defaultEmpleado = empleadoJpaRepository.findById(1L)
                     .orElseGet(() -> empleadoJpaRepository.findAll().stream().findFirst().orElse(null));
 
-            if (defaultEmpleado == null) {
-                return badRequest("No se puede procesar la compra: No hay empleados registrados para autorizar el movimiento de inventario.");
-            }
+            if (defaultEmpleado == null) return badRequest("No hay empleados registrados para autorizar.");
 
-            // Verify stock for all items first
             for (Map<String, Object> det : detalles) {
                 Long idMue = toLong(det.get("id_mue"));
                 int cantidad = toInt(det.get("cantidad"));
-                MuebleEntity mueble = muebleJpaRepository.findById(idMue)
-                        .orElseThrow(() -> new RuntimeException("Mueble no encontrado: " + idMue));
-                if (mueble.getStock() < cantidad) {
-                    return badRequest("Stock insuficiente para " + mueble.getNomMue() + ". Disponible: " + mueble.getStock());
-                }
+                MuebleEntity mueble = muebleJpaRepository.findById(idMue).orElseThrow();
+                if (mueble.getStock() < cantidad) return badRequest("Stock insuficiente para " + mueble.getNomMue());
             }
 
-            // Calculate total
             double total = 0;
             for (Map<String, Object> det : detalles) {
-                double precioUnitario = toDouble(det.get("precio_unitario"));
-                int cantidad = toInt(det.get("cantidad"));
-                total += precioUnitario * cantidad;
+                total += toDouble(det.get("precio_unitario")) * toInt(det.get("cantidad"));
             }
 
-            // Generate sale code
             String codVen = codigoGenerator.generateUniqueCode("VEN", ventaJpaRepository::existsByCodVen);
 
-            // Create Venta
             VentaEntity venta = new VentaEntity();
             venta.setCodVen(codVen);
             venta.setFecVen(LocalDate.now());
@@ -142,60 +336,45 @@ public class ClientePortalController {
             venta.setEstVen("Pendiente");
             venta.setDescuento(0.0);
             venta.setCliente(cliente);
-            // No employee for client portal purchases
-            venta.setEmpleado(null);
-            venta.setNotas("Compra directa desde portal cliente. Entrega: " + direccionEntrega);
-
+            venta.setNotas("Compra portal cliente. Entrega: " + direccionEntrega);
             venta = ventaJpaRepository.save(venta);
 
-            // Create DetalleVenta entries
             for (Map<String, Object> det : detalles) {
                 Long idMue = toLong(det.get("id_mue"));
                 int cantidad = toInt(det.get("cantidad"));
-                double precioUnitario = toDouble(det.get("precio_unitario"));
-                double subtotal = precioUnitario * cantidad;
-
+                double precio = toDouble(det.get("precio_unitario"));
                 MuebleEntity mueble = muebleJpaRepository.findById(idMue).orElseThrow();
-
-                String codDetVen = codigoGenerator.generateUniqueCode("DVEN", detalleVentaJpaRepository::existsByCodDetVen);
-
+                
                 DetalleVentaEntity detalleVenta = new DetalleVentaEntity();
-                detalleVenta.setCodDetVen(codDetVen);
+                detalleVenta.setCodDetVen(codigoGenerator.generateUniqueCode("DVEN", detalleVentaJpaRepository::existsByCodDetVen));
                 detalleVenta.setVenta(venta);
                 detalleVenta.setMueble(mueble);
                 detalleVenta.setCantidad(cantidad);
-                detalleVenta.setPrecioUnitario(precioUnitario);
+                detalleVenta.setPrecioUnitario(precio);
+                detalleVenta.setSubtotal(precio * cantidad);
                 detalleVenta.setDescuentoItem(0.0);
-                detalleVenta.setSubtotal(subtotal);
-
                 detalleVentaJpaRepository.save(detalleVenta);
 
-                // Decrease stock + inventory movement
-                int stockAnterior = mueble.getStock();
-                int stockPosterior = stockAnterior - cantidad;
+                int stockAnt = mueble.getStock();
+                int stockPost = stockAnt - cantidad;
 
-                String codMov = codigoGenerator.generateUniqueCode("MOV", movimientoInventarioJpaRepository::existsByCodMov);
+                MovimientoInventarioEntity mov = new MovimientoInventarioEntity();
+                mov.setCodMov(codigoGenerator.generateUniqueCode("MOV", movimientoInventarioJpaRepository::existsByCodMov));
+                mov.setTipoMov("SALIDA");
+                mov.setCantidad((double) cantidad);
+                mov.setFechaMov(LocalDateTime.now());
+                mov.setMueble(mueble);
+                mov.setVenta(venta);
+                mov.setEmpleado(defaultEmpleado);
+                mov.setMotivo(String.format("Venta %s", codVen));
+                mov.setStockAnterior((double) stockAnt);
+                mov.setStockPosterior((double) stockPost);
+                movimientoInventarioJpaRepository.save(mov);
 
-                MovimientoInventarioEntity movimiento = new MovimientoInventarioEntity();
-                movimiento.setCodMov(codMov);
-                movimiento.setTipoMov("SALIDA");
-                movimiento.setCantidad((double) cantidad);
-                movimiento.setFechaMov(LocalDateTime.now());
-                movimiento.setMueble(mueble);
-                movimiento.setVenta(venta);
-                movimiento.setEmpleado(defaultEmpleado);
-                movimiento.setMotivo(String.format("Venta %s - %s", codVen, mueble.getNomMue()));
-                movimiento.setStockAnterior((double) stockAnterior);
-                movimiento.setStockPosterior((double) stockPosterior);
-
-                movimientoInventarioJpaRepository.save(movimiento);
-
-                // Update stock
-                mueble.setStock(stockPosterior);
+                mueble.setStock(stockPost);
                 muebleJpaRepository.save(mueble);
             }
 
-            // Create Pago
             String metPago = switch (metodoPago) {
                 case "efectivo" -> "Efectivo";
                 case "transferencia" -> "Transferencia";
@@ -203,39 +382,62 @@ public class ClientePortalController {
                 default -> "Efectivo";
             };
 
-            String codPag = codigoGenerator.generateUniqueCode("PAG", pagoJpaRepository::existsByCodPag);
-
             PagoEntity pago = new PagoEntity();
-            pago.setCodPag(codPag);
+            pago.setCodPag(codigoGenerator.generateUniqueCode("PAG", pagoJpaRepository::existsByCodPag));
             pago.setMonto(total);
             pago.setFecPag(LocalDate.now());
             pago.setMetodoPag(metPago);
-            pago.setReferenciaPag("Compra portal cliente - " + direccionEntrega);
+            pago.setReferenciaPag("Portal - " + direccionEntrega);
             pago.setVenta(venta);
-
             pagoJpaRepository.save(pago);
 
-            // Success response (same shape as old Laravel)
-            Map<String, Object> response = new LinkedHashMap<>();
-            response.put("success", true);
-            response.put("message", "Compra registrada exitosamente");
-            response.put("id_ven", venta.getId());
-            response.put("cod_ven", venta.getCodVen());
-            response.put("total", total);
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Compra registrada exitosamente",
+                "id_ven", venta.getId(),
+                "cod_ven", venta.getCodVen(),
+                "total", total
+            ));
 
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("success", false, "message", e.getMessage()));
+            return badRequest(e.getMessage());
         }
+    }
+
+    // ==========================================
+    // PRODUCCIONES
+    // ==========================================
+
+    @GetMapping("/producciones")
+    public ResponseEntity<?> getMisProducciones(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int per_page) {
+        
+        ClienteEntity cliente = getAuthenticatedCliente();
+        if (cliente == null) return ResponseEntity.status(401).body(Map.of("message", "No autenticado"));
+
+        Pageable pageable = PageRequest.of(page - 1, per_page, Sort.by(Sort.Direction.DESC, "fecIni"));
+        Page<ProduccionEntity> paginated = produccionJpaRepository.findByClienteId(cliente.getId(), pageable);
+        
+        return ResponseEntity.ok(formatPaginatedResponse(paginated));
+    }
+
+    @GetMapping("/producciones/{id}")
+    public ResponseEntity<?> verProduccion(@PathVariable Long id) {
+        ClienteEntity cliente = getAuthenticatedCliente();
+        if (cliente == null) return ResponseEntity.status(401).body(Map.of("message", "No autenticado"));
+
+        return produccionJpaRepository.findById(id)
+                .filter(p -> (p.getCotizacion() != null && p.getCotizacion().getCliente().getId().equals(cliente.getId())) ||
+                             (p.getVenta() != null && p.getVenta().getCliente().getId().equals(cliente.getId())))
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(404).body((ProduccionEntity) null));
     }
 
     // --- Helpers ---
 
     private ResponseEntity<?> badRequest(String message) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(Map.of("success", false, "message", message));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("success", false, "message", message));
     }
 
     private Long toLong(Object val) {
@@ -254,5 +456,14 @@ public class ClientePortalController {
         if (val == null) return 0.0;
         if (val instanceof Number) return ((Number) val).doubleValue();
         try { return Double.parseDouble(val.toString()); } catch (NumberFormatException e) { return 0.0; }
+    }
+
+    private Map<String, Object> formatPaginatedResponse(Page<?> page) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("data", page.getContent());
+        map.put("current_page", page.getNumber() + 1);
+        map.put("last_page", page.getTotalPages());
+        map.put("total", page.getTotalElements());
+        return map;
     }
 }

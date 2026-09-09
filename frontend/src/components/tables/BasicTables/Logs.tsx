@@ -12,9 +12,20 @@ function renderChangedValues(oldValues: string | null, newValues: string | null)
   try { if (newValues) newParsed = JSON.parse(newValues); } catch {}
 
   const allKeys = Array.from(new Set([...Object.keys(oldParsed), ...Object.keys(newParsed)]));
-  const changedKeys = allKeys.filter((key) => oldParsed[key] !== newParsed[key]);
+  
+  const changedKeys = allKeys.filter((key) => {
+    const oldStr = typeof oldParsed[key] === 'object' ? JSON.stringify(oldParsed[key]) : oldParsed[key];
+    const newStr = typeof newParsed[key] === 'object' ? JSON.stringify(newParsed[key]) : newParsed[key];
+    return oldStr !== newStr;
+  });
 
   if (changedKeys.length === 0) return <span className="text-gray-400">—</span>;
+
+  const formatValue = (val: any) => {
+    if (val === undefined || val === null) return "—";
+    if (typeof val === 'object') return JSON.stringify(val);
+    return String(val);
+  };
 
   return (
     <ul className="space-y-1.5 w-full">
@@ -25,12 +36,12 @@ function renderChangedValues(oldValues: string | null, newValues: string | null)
               {key}:
             </span>
             <div className="flex items-center gap-2 text-xs">
-              <span className="bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 px-2 py-0.5 rounded-md line-through truncate max-w-[150px]">
-                {oldParsed[key] !== undefined ? String(oldParsed[key]) : "—"}
+              <span className="bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 px-2 py-0.5 rounded-md line-through truncate max-w-[150px]" title={formatValue(oldParsed[key])}>
+                {formatValue(oldParsed[key])}
               </span>
               <span className="text-gray-400">→</span>
-              <span className="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 px-2 py-0.5 rounded-md font-medium truncate max-w-[150px]">
-                {newParsed[key] !== undefined ? String(newParsed[key]) : "—"}
+              <span className="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 px-2 py-0.5 rounded-md font-medium truncate max-w-[150px]" title={formatValue(newParsed[key])}>
+                {formatValue(newParsed[key])}
               </span>
             </div>
           </div>
@@ -137,7 +148,7 @@ export default function LogsTable() {
                         {/* Tabla */}
                         <td className="px-5 py-4">
                           <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400">
-                            {log.table_name}
+                            {log.table_name} {log.record_id ? `#${log.record_id}` : ""}
                           </span>
                         </td>
 

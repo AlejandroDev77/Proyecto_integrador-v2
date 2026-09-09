@@ -51,14 +51,14 @@ export default function Diseños() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8080/api/diseño/${id_dis}`, {
+      const res = await fetch(`http://localhost:8080/api/disenos/${id_dis}`, {
         method: "DELETE",
         headers,
       });
 
       if (!res.ok) throw new Error("Error al eliminar diseño");
 
-      setDiseños((prev) => prev.filter((dis) => dis.id_dis !== id_dis));
+      setDiseños((prev) => prev.filter((dis) => (dis.id_dis || (dis as any).id) !== id_dis));
     } catch (error) {
       console.error("Error al eliminar diseño:", error);
       alert("No se pudo eliminar el diseño.");
@@ -136,7 +136,7 @@ export default function Diseños() {
                 <AnimatePresence initial={false}>
                   {paginatedData.map((dis, idx) => (
                     <motion.tr
-                      key={dis.id_dis}
+                      key={dis.id_dis || (dis as any).id || idx}
                       initial={{ opacity: 0, y: 6 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -6 }}
@@ -181,9 +181,9 @@ export default function Diseños() {
 
                       {/* Archivos Base */}
                       <td className="px-5 py-4">
-                        {dis.archivo_3d ? (
+                        {dis.archivo_3d || (dis as any).archivo3d ? (
                           <a
-                            href={dis.archivo_3d.startsWith("http") ? dis.archivo_3d : `http://localhost:8080/storage/${dis.archivo_3d.replace("public/", "")}`}
+                            href={(dis.archivo_3d || (dis as any).archivo3d).startsWith("http") ? (dis.archivo_3d || (dis as any).archivo3d) : `http://localhost:8080/storage/${(dis.archivo_3d || (dis as any).archivo3d).replace("public/", "")}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center gap-1.5 w-fit px-2 py-1 bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 rounded text-xs font-medium hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-colors"
@@ -229,7 +229,7 @@ export default function Diseños() {
                             },
                             {
                               type: "delete",
-                              onClick: () => handleEliminar(dis.id_dis),
+                              onClick: () => handleEliminar(dis.id_dis || (dis as any).id),
                             },
                           ]}
                         />

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { EyeIcon } from "../../../../icons";
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
-import { Image as ImageIcon, Box, Package, DollarSign, Tag, X, Grid3x3 } from 'lucide-react';
+import { Image as ImageIcon, Box, Package, DollarSign, Tag, X, Grid3x3, Layers } from 'lucide-react';
 
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -72,9 +72,30 @@ function MuebleModelContent({ modelPath }: { modelPath: string }) {
 }
 
 const ModalVerMueble: React.FC<ModalVerMuebleProps> = ({ showModal, setShowModal, muebleSeleccionado }) => {
-  const [activeTab, setActiveTab] = useState<'DETALLES' | '2D' | '3D'>('DETALLES');
+  const [activeTab, setActiveTab] = useState<'DETALLES' | '2D' | '3D' | 'MATERIALES'>('DETALLES');
+  const [materiales, setMateriales] = useState<any[]>([]);
+  const [loadingMateriales, setLoadingMateriales] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === 'MATERIALES' && muebleSeleccionado?.id_mue) {
+      setLoadingMateriales(true);
+      fetch(`http://localhost:8080/api/mueble-materiales?filter[mueble.id_mue]=${muebleSeleccionado.id_mue}&per_page=100`)
+        .then(res => res.json())
+        .then(data => {
+          const arr = data?.data?.content || data?.data || [];
+          setMateriales(Array.isArray(arr) ? arr : []);
+          setLoadingMateriales(false);
+        })
+        .catch(err => {
+          console.error(err);
+          setLoadingMateriales(false);
+        });
+    }
+  }, [activeTab, muebleSeleccionado]);
 
   if (!showModal || !muebleSeleccionado) return null;
+
+  const totalCostoMateriales = materiales.reduce((acc, mm) => acc + (mm.cantidad * (mm.material?.costo_mat || 0)), 0);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
@@ -96,20 +117,23 @@ const ModalVerMueble: React.FC<ModalVerMuebleProps> = ({ showModal, setShowModal
 
         {/* Tabs Navigation */}
         <div className="flex border-b border-gray-200 bg-white">
-          {(['DETALLES', '2D', '3D'] as const).map((tab) => (
+          {(['DETALLES', 'MATERIALES', '2D', '3D'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-1 px-4 sm:px-6 py-4 font-semibold text-center transition-all duration-300 flex items-center justify-center gap-2 border-b-2 ${
+              className={`flex-1 px-2 sm:px-4 py-4 font-semibold text-center transition-all duration-300 flex items-center justify-center gap-2 border-b-2 ${
                 activeTab === tab
                   ? 'text-blue-600 border-blue-600 bg-gray-50'
                   : 'text-gray-600 hover:text-gray-900 border-transparent'
               }`}
             >
               {tab === 'DETALLES' && <Package className="w-5 h-5" />}
+              {tab === 'MATERIALES' && <Layers className="w-5 h-5" />}
               {tab === '2D' && <ImageIcon className="w-5 h-5" />}
               {tab === '3D' && <Box className="w-5 h-5" />}
-              <span className="hidden sm:inline">{tab === 'DETALLES' ? 'Detalles' : tab === '2D' ? 'Imagen' : 'Modelo 3D'}</span>
+              <span className="hidden sm:inline">
+                {tab === 'DETALLES' ? 'Detalles' : tab === 'MATERIALES' ? 'Fórmula' : tab === '2D' ? 'Imagen' : 'Modelo 3D'}
+              </span>
             </button>
           ))}
         </div>
@@ -138,6 +162,69 @@ const ModalVerMueble: React.FC<ModalVerMuebleProps> = ({ showModal, setShowModal
                   </span>
                 </div>
               </div>
+            </div>
+          )}
+
+          {activeTab === 'MATERIALES' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-gray-900">Materiales Requeridos</h3>
+                <div className="px-4 py-2 bg-blue-50 text-blue-700 font-bold rounded-lg border border-blue-200">
+                  Costo Total: Bs. {totalCostoMateriales.toFixed(2)}
+                </div>
+              </div>
+              
+              {loadingMateriales ? (
+                <div className="flex justify-center items-center py-12">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+                </div>
+              ) : materiales.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <Layers className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                  <p>Este mueble aún no tiene materiales asignados en su fórmula.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto rounded-xl border border-gray-200">
+                  <table className="min-w-full text-sm text-left">
+                    <thead className="bg-gray-50 text-gray-600 font-semibold border-b border-gray-200">
+                      <tr>
+                        <th className="px-4 py-3">Código</th>
+                        <th className="px-4 py-3">Material</th>
+                        <th className="px-4 py-3 text-right">Cantidad</th>
+                        <th className="px-4 py-3 text-right">Costo Unit.</th>
+                        <th className="px-4 py-3 text-right">Subtotal</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {materiales.map((mm) => (
+                        <tr key={mm.id_mue_mat} className="hover:bg-gray-50/50">
+                          <td className="px-4 py-3 font-mono text-xs text-gray-500">
+                            {mm.codMueMat || mm.cod_mue_mat || "—"}
+                          </td>
+                          <td className="px-4 py-3 font-medium text-gray-900">
+                            {mm.material?.nom_mat || "—"}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            {mm.cantidad} {mm.material?.unidad_medida || "u"}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            Bs. {mm.material?.costo_mat || 0}
+                          </td>
+                          <td className="px-4 py-3 text-right font-semibold text-gray-700">
+                            Bs. {(mm.cantidad * (mm.material?.costo_mat || 0)).toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot className="bg-gray-50 border-t border-gray-200 font-bold text-gray-900">
+                      <tr>
+                        <td colSpan={4} className="px-4 py-3 text-right uppercase text-xs tracking-wider">Costo Total de Producción</td>
+                        <td className="px-4 py-3 text-right text-blue-700">Bs. {totalCostoMateriales.toFixed(2)}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              )}
             </div>
           )}
 

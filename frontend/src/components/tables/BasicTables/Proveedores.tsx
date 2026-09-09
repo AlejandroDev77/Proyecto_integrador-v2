@@ -141,7 +141,7 @@ export default function Proveedores() {
                 <AnimatePresence initial={false}>
                   {paginatedData.map((proveedor, idx) => (
                     <motion.tr
-                      key={proveedor.id_prov}
+                      key={proveedor.id_prov || proveedor.id || `prov-${idx}`}
                       initial={{ opacity: 0, y: 6 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -6 }}
@@ -206,7 +206,7 @@ export default function Proveedores() {
                             },
                             {
                               type: "toggle",
-                              onClick: () => abrirModalEstado(proveedor.id_prov, proveedor.est_prov),
+                              onClick: () => abrirModalEstado(proveedor.id_prov || proveedor.id, proveedor.est_prov),
                               isActive: proveedor.est_prov,
                               activeLabel: "Baja",
                               inactiveLabel: "Alta",
@@ -217,7 +217,7 @@ export default function Proveedores() {
                             },
                             {
                               type: "delete",
-                              onClick: () => handleEliminar(proveedor.id_prov),
+                              onClick: () => handleEliminar(proveedor.id_prov || proveedor.id),
                             },
                           ]}
                         />

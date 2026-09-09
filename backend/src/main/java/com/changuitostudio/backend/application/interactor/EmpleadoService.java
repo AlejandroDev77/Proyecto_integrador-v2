@@ -31,14 +31,31 @@ public class EmpleadoService implements ManageEmpleadoUseCase {
 
     @Override
     public Empleado crear(Empleado empleado) {
-        return repository.guardar(empleado);
+        Empleado guardado = repository.guardar(empleado);
+        if (guardado.getCodEmp() == null || guardado.getCodEmp().trim().isEmpty()) {
+            guardado.setCodEmp("EMP-" + guardado.getId());
+            guardado = repository.guardar(guardado);
+        }
+        return guardado;
     }
 
     @Override
     public Empleado actualizar(Long id, Empleado empleado) {
         return repository.obtenerPorId(id).map(existing -> {
-            empleado.setId(id);
-            return repository.guardar(empleado);
+            if (empleado.getNomEmp() != null) existing.setNomEmp(empleado.getNomEmp());
+            if (empleado.getApPatEmp() != null) existing.setApPatEmp(empleado.getApPatEmp());
+            if (empleado.getApMatEmp() != null) existing.setApMatEmp(empleado.getApMatEmp());
+            if (empleado.getCelEmp() != null) existing.setCelEmp(empleado.getCelEmp());
+            if (empleado.getDirEmp() != null) existing.setDirEmp(empleado.getDirEmp());
+            if (empleado.getFecNacEmp() != null) existing.setFecNacEmp(empleado.getFecNacEmp());
+            if (empleado.getImgEmp() != null && !empleado.getImgEmp().isEmpty()) existing.setImgEmp(empleado.getImgEmp());
+            if (empleado.getCarEmp() != null) existing.setCarEmp(empleado.getCarEmp());
+            if (empleado.getCiEmp() != null) existing.setCiEmp(empleado.getCiEmp());
+            if (empleado.getId_usu() != null) existing.setId_usu(empleado.getId_usu());
+            if (empleado.getEstEmp() != null) existing.setEstEmp(empleado.getEstEmp());
+            if (empleado.getCodEmp() != null) existing.setCodEmp(empleado.getCodEmp());
+
+            return repository.guardar(existing);
         }).orElseThrow(() -> new EmpleadoNoEncontradoException("Empleado no encontrado con ID: " + id));
     }
 

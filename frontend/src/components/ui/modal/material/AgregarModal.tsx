@@ -130,7 +130,8 @@ export default function ModalAgregarMaterial({
         return;
       }
 
-      setMateriales((prev) => [...prev, responseData]);
+      const nuevoMaterial = responseData.data || responseData;
+      setMateriales((prev) => [...prev, nuevoMaterial]);
       Swal.fire({
         icon: "success",
         title: "¡Material creado!",

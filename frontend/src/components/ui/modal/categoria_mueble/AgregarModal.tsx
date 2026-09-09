@@ -78,7 +78,8 @@ export default function ModalAgregarCategoriaMueble({
         return;
       }
 
-      setCategoriasMuebles((prev) => [...prev, responseData]);
+      const nuevaCategoria = responseData.data || responseData;
+      setCategoriasMuebles((prev) => [...prev, nuevaCategoria]);
       Swal.fire({
         icon: "success",
         title: "¡Categoría creada!",

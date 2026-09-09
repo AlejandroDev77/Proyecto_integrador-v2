@@ -10,10 +10,15 @@ function FallbackModel() {
   );
 }
 
+import { useMemo } from "react";
+import { SkeletonUtils } from "three-stdlib";
+
 function Model() {
   const gltf = useGLTF("/models/outdoor_couch.glb");
+  const clone = useMemo(() => SkeletonUtils.clone(gltf.scene), [gltf.scene]);
+
   // Aumentar escala para que se vea más cerca
-  return <primitive object={gltf.scene} scale={2.2} position={[0, -1.0, 0]} />;
+  return <primitive object={clone} scale={2.2} position={[0, -1.0, 0]} />;
 }
 
 export function AuthModel() {
@@ -24,4 +29,4 @@ export function AuthModel() {
   );
 }
 
-useGLTF.preload("/models/outdoor_couch.glb");
+

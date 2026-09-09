@@ -22,6 +22,9 @@ public class ProveedorJpaAdapter implements ProveedorRepository {
 
     private final ProveedorJpaRepository repository;
 
+    @jakarta.persistence.PersistenceContext
+    private jakarta.persistence.EntityManager entityManager;
+
     public ProveedorJpaAdapter(ProveedorJpaRepository repository) {
         this.repository = repository;
     }
@@ -56,9 +59,12 @@ public class ProveedorJpaAdapter implements ProveedorRepository {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public Proveedor guardar(Proveedor proveedor) {
         ProveedorEntity entity = ProveedorMapper.toEntity(proveedor);
-        return ProveedorMapper.toDomain(repository.save(entity));
+        ProveedorEntity saved = repository.saveAndFlush(entity);
+        entityManager.refresh(saved);
+        return ProveedorMapper.toDomain(saved);
     }
 
     @Override

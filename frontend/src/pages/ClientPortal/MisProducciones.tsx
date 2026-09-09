@@ -37,7 +37,8 @@ interface ProduccionEtapa {
 }
 
 interface Produccion {
-  id_pro: number;
+  id?: number;
+  id_pro?: number;
   cod_pro: string;
   fec_ini: string;
   fec_fin_estimada: string;
@@ -107,7 +108,8 @@ export default function MisProducciones() {
     fetchProducciones();
   }, []);
 
-  const handleViewDetail = async (id: number) => {
+  const handleViewDetail = async (id: number | undefined) => {
+    if (!id) return;
     try {
       const detail = await getProduccionDetalle(id);
       setSelectedProduccion(detail);
@@ -160,7 +162,7 @@ export default function MisProducciones() {
           <div className="space-y-4">
             {producciones.map((prod) => (
               <div
-                key={prod.id_pro}
+                key={prod.id_pro || prod.id}
                 className="bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-all group"
               >
                 <div className="flex flex-col md:flex-row md:items-center gap-4">
@@ -235,7 +237,7 @@ export default function MisProducciones() {
 
                   {/* Action */}
                   <button
-                    onClick={() => handleViewDetail(prod.id_pro)}
+                    onClick={() => handleViewDetail(prod.id_pro || prod.id)}
                     className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 text-[#7c5e3c] text-sm font-medium hover:bg-white transition"
                   >
                     <Eye className="w-4 h-4" />

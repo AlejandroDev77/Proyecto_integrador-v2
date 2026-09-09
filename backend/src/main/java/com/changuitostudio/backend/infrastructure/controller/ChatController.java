@@ -32,7 +32,7 @@ public class ChatController {
     public ResponseEntity<?> sendMessageToAI(@RequestBody ChatRequest request, HttpServletRequest httpServletRequest) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        String rol = "NO_REGISTRADO";
+        String rol = "GUEST";
         Long userId = null;
         String nomUsu = "Visitante";
 
@@ -67,7 +67,7 @@ public class ChatController {
                     }
                 }
             } catch (NumberFormatException e) {
-                // El principal no era un ID numérico, ignoramos y queda como NO_REGISTRADO
+                // El principal no era un ID numérico, ignoramos y queda como GUEST
             }
         }
 
@@ -81,7 +81,7 @@ public class ChatController {
 
         // Llamada al webhook de n8n (Apunta a la IP de tu Máquina Virtual en
         // producción)
-        String n8nWebhookUrl = "http://100.94.160.54:5678/webhook/chat-ia";
+        String n8nWebhookUrl = "https://n8n-server.taila404c6.ts.net/webhook/chat-ia";
 
         try {
             // Se hace la petición POST a n8n

@@ -15,6 +15,8 @@ public class CategoriaMapper {
         return new Categoria(
                 entity.getIdCat(),
                 entity.getNomCat(),
+                entity.getDescCat(),
+                entity.getCodCat(),
                 entity.getEstCat()
         );
     }
@@ -27,6 +29,8 @@ public class CategoriaMapper {
         CategoriaEntity entity = new CategoriaEntity();
         entity.setIdCat(domain.getId());
         entity.setNomCat(domain.getNombre());
+        entity.setDescCat(domain.getDescripcion());
+        entity.setCodCat(domain.getCodigo());
         entity.setEstCat(domain.getEstado());
         return entity;
     }

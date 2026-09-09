@@ -11,6 +11,8 @@ public interface JwtProvider {
 
     String getSubjectFromToken(String token);
 
+    Long getRoleIdFromToken(String token);
+
     boolean validateToken(String token);
 }
 

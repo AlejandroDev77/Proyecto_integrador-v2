@@ -9,6 +9,7 @@ import { Plus, ListOrdered, ChevronLeft, ChevronRight, Calendar, Armchair } from
 import Badge from "../../ui/badge/Badge";
 import SortableTableHeader from "../../ui/SortableTableHeader";
 import DetalleVentasAdvancedFilters from "../../filters/DetalleVentasAdvancedFilters";
+import Swal from "sweetalert2";
 
 export default function DetallesVentas() {
   const {
@@ -36,8 +37,19 @@ export default function DetallesVentas() {
   };
 
   const handleEliminar = async (id_det_ven: number) => {
-    const confirm = window.confirm("¿Estás seguro de eliminar este detalle de venta?");
-    if (!confirm) return;
+    const result = await Swal.fire({
+      title: "¿Estás seguro?",
+      text: "¡No podrás revertir esto y el mueble regresará al stock!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#f97316", // orange-500
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar"
+    });
+
+    if (!result.isConfirmed) return;
+
     let idUsuarioLocal = null;
     try {
       const userObj = JSON.parse(localStorage.getItem("user") || "null");
@@ -52,17 +64,25 @@ export default function DetallesVentas() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8080/api/detalle-venta/${id_det_ven}`, {
+      const res = await fetch(`http://localhost:8080/api/detalle-ventas/${id_det_ven}`, {
         method: "DELETE",
         headers,
       });
 
       if (!res.ok) throw new Error("Error al eliminar Venta");
 
-      setDetallesVentas((prev) => prev.filter((det) => det.id_det_ven !== id_det_ven));
+      setDetallesVentas((prev) => prev.filter((det) => (det.id_det_ven || (det as any).id) !== id_det_ven));
+
+      Swal.fire({
+        title: "¡Eliminado!",
+        text: "El detalle de venta ha sido eliminado.",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false
+      });
     } catch (error) {
       console.error("Error al eliminar:", error);
-      alert("No se pudo eliminar el detalle.");
+      Swal.fire("Error", "No se pudo eliminar el detalle.", "error");
     }
   };
 
@@ -143,7 +163,7 @@ export default function DetallesVentas() {
 
                     return (
                       <motion.tr
-                        key={detalle.id_det_ven}
+                        key={detalle.id_det_ven || (detalle as any).id || idx}
                         initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -6 }}
@@ -226,7 +246,7 @@ export default function DetallesVentas() {
                               },
                               {
                                 type: "delete",
-                                onClick: () => handleEliminar(detalle.id_det_ven),
+                                onClick: () => handleEliminar(detalle.id_det_ven || (detalle as any).id),
                               },
                             ]}
                           />

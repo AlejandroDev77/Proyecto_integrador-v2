@@ -265,11 +265,11 @@ export default function ModalAgregarEmpleado({
         }`
       );
       const p = await res.json();
-      setUsuarios(p?.data || []);
+      setUsuarios(p?.content || p?.data || []);
       setUsuPag({
-        currentPage: p.current_page || 1,
-        lastPage: p.last_page || 1,
-        total: p.total || 0,
+        currentPage: p.page || p.current_page || 1,
+        lastPage: p.totalPages || p.last_page || 1,
+        total: p.totalElements || p.total || 0,
       });
     } catch {
       setUsuarios([]);
@@ -336,7 +336,11 @@ export default function ModalAgregarEmpleado({
           Accept: "application/json",
           ...(uid ? { "X-USER-ID": uid } : {}),
         },
-        body: JSON.stringify({ ...form, id_usu: selectedUsuario.id_usu }),
+        body: JSON.stringify({
+          ...form,
+          cel_emp: form.cel_emp ? parseInt(form.cel_emp) : null,
+          id_usu: selectedUsuario.id_usu,
+        }),
       });
 
       let responseData;
@@ -356,10 +360,10 @@ export default function ModalAgregarEmpleado({
         return;
       }
 
-      const data = responseData?.data || responseData;
+      const actualData = responseData?.data || responseData;
       setEmpleados((prev) => [
         ...prev,
-        { ...data, usuario: { nom_usu: selectedUsuario.nom_usu } },
+        { ...actualData, usuario: { nom_usu: selectedUsuario.nom_usu } },
       ]);
       Swal.fire({
         icon: "success",

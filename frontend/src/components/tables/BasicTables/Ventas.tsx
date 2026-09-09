@@ -52,14 +52,14 @@ export default function Ventas() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8080/api/venta/${id_ven}`, {
+      const res = await fetch(`http://localhost:8080/api/ventas/${id_ven}`, {
         method: "DELETE",
         headers,
       });
 
       if (!res.ok) throw new Error("Error al eliminar Venta");
 
-      setVentas((prev) => prev.filter((ven) => ven.id_ven !== id_ven));
+      setVentas((prev) => prev.filter((c) => (c.id_ven || (c as any).id) !== id_ven));
     } catch (error) {
       console.error("Error al eliminar Venta:", error);
       alert("No se pudo eliminar la Venta.");
@@ -68,7 +68,7 @@ export default function Ventas() {
 
   const generarReporte = async () => {
     try {
-      const response = await fetch(`http://localhost:8080/api/reporte-Ventas`, {
+      const response = await fetch(`http://localhost:8080/api/reporte-ventas`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });
@@ -173,7 +173,7 @@ export default function Ventas() {
 
                     return (
                       <motion.tr
-                        key={venta.id_ven}
+                        key={venta.id_ven || (venta as any).id}
                         initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -6 }}
@@ -258,7 +258,7 @@ export default function Ventas() {
                               },
                               {
                                 type: "delete",
-                                onClick: () => handleEliminar(venta.id_ven),
+                                onClick: () => handleEliminar(venta.id_ven || (venta as any).id),
                               },
                             ]}
                           />

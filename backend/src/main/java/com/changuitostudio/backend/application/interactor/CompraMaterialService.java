@@ -31,14 +31,23 @@ public class CompraMaterialService implements ManageCompraMaterialUseCase {
 
     @Override
     public CompraMaterial crear(CompraMaterial compramaterial) {
-        return repository.guardar(compramaterial);
+        CompraMaterial guardado = repository.guardar(compramaterial);
+        if (guardado.getCodComp() == null || guardado.getCodComp().trim().isEmpty()) {
+            guardado.setCodComp("COMP-" + guardado.getId());
+            return repository.guardar(guardado);
+        }
+        return guardado;
     }
 
     @Override
     public CompraMaterial actualizar(Long id, CompraMaterial compramaterial) {
         return repository.obtenerPorId(id).map(existing -> {
-            compramaterial.setId(id);
-            return repository.guardar(compramaterial);
+            existing.setFecComp(compramaterial.getFecComp());
+            existing.setEstComp(compramaterial.getEstComp());
+            existing.setTotalComp(compramaterial.getTotalComp());
+            existing.setProveedor(compramaterial.getProveedor());
+            existing.setEmpleado(compramaterial.getEmpleado());
+            return repository.guardar(existing);
         }).orElseThrow(() -> new CompraMaterialNoEncontradoException("CompraMaterial no encontrado con ID: " + id));
     }
 

@@ -1,18 +1,43 @@
 package com.changuitostudio.backend.infrastructure.controller.dto.MuebleDTO;
 
 import com.changuitostudio.backend.infrastructure.controller.dto.CategoriaDTO.CategoriaResponseDTO;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class MuebleResponseDTO {
 
     private Long id;
+    
+    @JsonProperty("cod_mue")
     private String cod_mue;
+    
+    @JsonProperty("nom_mue")
     private String nom_mue;
+    
+    @JsonProperty("img_mue")
     private String img_mue;
+    
+    @JsonProperty("precio_venta")
     private Double precio_venta;
+    
+    @JsonProperty("precio_costo")
+    private Double precio_costo;
+    
+    @JsonProperty("desc_mue")
     private String desc_mue;
+    
+    @JsonProperty("stock")
     private Integer stock;
+    
+    @JsonProperty("stock_min")
+    private Integer stock_min;
+    
+    @JsonProperty("modelo_3d")
     private String modelo_3d;
+    
+    @JsonProperty("dimensiones")
     private String dimensiones;
+    
+    @JsonProperty("est_mue")
     private Boolean est_mue;
     private CategoriaResponseDTO categoria;
 
@@ -113,5 +138,21 @@ public class MuebleResponseDTO {
 
     public void setCategoria(CategoriaResponseDTO categoria) {
         this.categoria = categoria;
+    }
+
+    public Double getPrecio_costo() {
+        return precio_costo;
+    }
+
+    public void setPrecio_costo(Double precio_costo) {
+        this.precio_costo = precio_costo;
+    }
+
+    public Integer getStock_min() {
+        return stock_min;
+    }
+
+    public void setStock_min(Integer stock_min) {
+        this.stock_min = stock_min;
     }
 }

@@ -51,14 +51,14 @@ export default function DetallesCompras() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8080/api/detalle-compra/${id_det_comp}`, {
+      const res = await fetch(`http://localhost:8080/api/detalle-compras/${id_det_comp}`, {
         method: "DELETE",
         headers,
       });
 
       if (!res.ok) throw new Error("Error al eliminar Detalle");
 
-      setDetallesCompra((prev) => prev.filter((det) => det.id_det_comp !== id_det_comp));
+      setDetallesCompra((prev) => prev.filter((det) => (det.id_det_comp || (det as any).id) !== id_det_comp));
     } catch (error) {
       console.error("Error al eliminar Detalle:", error);
       alert("No se pudo eliminar el Detalle.");
@@ -142,7 +142,7 @@ export default function DetallesCompras() {
 
                     return (
                       <motion.tr
-                        key={detalle.id_det_comp}
+                        key={detalle.id_det_comp || (detalle as any).id || idx}
                         initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -6 }}
@@ -209,7 +209,7 @@ export default function DetallesCompras() {
                               },
                               {
                                 type: "delete",
-                                onClick: () => handleEliminar(detalle.id_det_comp),
+                                onClick: () => handleEliminar(detalle.id_det_comp || (detalle as any).id),
                               },
                             ]}
                           />

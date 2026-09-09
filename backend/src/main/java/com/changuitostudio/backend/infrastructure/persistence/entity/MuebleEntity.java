@@ -24,11 +24,17 @@ public class MuebleEntity {
     @Column(name = "precio_venta", nullable = false)
     private Double precioVenta;
 
+    @Column(name = "precio_costo")
+    private Double precioCosto = 0.0;
+
     @Column(name = "desc_mue", columnDefinition = "TEXT")
     private String descMue;
 
     @Column(name = "stock")
     private Integer stock = 0;
+
+    @Column(name = "stock_min")
+    private Integer stockMin = 0;
 
     @Column(name = "modelo_3d")
     private String modelo3d;
@@ -132,5 +138,21 @@ public class MuebleEntity {
 
     public void setCategoria(CategoriaEntity categoria) {
         this.categoria = categoria;
+    }
+
+    public Double getPrecioCosto() {
+        return precioCosto;
+    }
+
+    public void setPrecioCosto(Double precioCosto) {
+        this.precioCosto = precioCosto;
+    }
+
+    public Integer getStockMin() {
+        return stockMin;
+    }
+
+    public void setStockMin(Integer stockMin) {
+        this.stockMin = stockMin;
     }
 }

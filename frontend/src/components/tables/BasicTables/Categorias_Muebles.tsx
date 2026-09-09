@@ -230,7 +230,7 @@ export default function CategoriasMuebles() {
       <ModalEditarCategoriaMueble
         showModal={showModalEditar}
         setShowModal={setShowModalEditar}
-        categoriamuebleSeleccionado={categoriamuebleSeleccionado}
+        categoriaSeleccionada={categoriamuebleSeleccionado}
         setCategoriasMuebles={setCategoriasMuebles}
       />
       <ModalVerCategoriaMueble

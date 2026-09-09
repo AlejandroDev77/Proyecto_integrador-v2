@@ -259,20 +259,22 @@ const ModalEditarCompraMaterial: React.FC<Props> = ({
   const fetchProveedores = useCallback(async (page = 1, search = "") => {
     setLoadingProv(true);
     try {
-      const url = `http://localhost:8080/api/proveedor?page=${page}&per_page=6${
+      const url = `http://localhost:8080/api/proveedores?page=${page}&per_page=6${
         search ? `&search=${encodeURIComponent(search)}` : ""
       }`;
       const res = await fetch(url);
       const payload = await res.json();
-      if (payload?.data) {
-        setProveedores(payload.data);
+      const realData = payload?.data && payload?.success !== undefined ? payload.data : payload;
+      const items = realData?.content || realData?.data || (Array.isArray(realData) ? realData : []);
+      if (items.length >= 0) {
+        setProveedores(items);
+      }
+      if (payload?.data?.total_pages !== undefined || payload?.total_pages !== undefined || payload?.meta || payload?.last_page) {
         setProvPagination({
-          currentPage: payload.current_page || 1,
-          lastPage: payload.last_page || 1,
-          total: payload.total || 0,
+          currentPage: payload?.data?.page ?? payload?.page ?? payload?.meta?.current_page ?? payload?.current_page ?? page,
+          lastPage: payload?.data?.total_pages ?? payload?.total_pages ?? payload?.meta?.last_page ?? payload?.last_page ?? 1,
+          total: payload?.data?.total ?? payload?.total ?? payload?.meta?.total ?? items.length,
         });
-      } else {
-        setProveedores(Array.isArray(payload) ? payload : []);
       }
     } catch {
       setProveedores([]);
@@ -289,15 +291,17 @@ const ModalEditarCompraMaterial: React.FC<Props> = ({
       }`;
       const res = await fetch(url);
       const payload = await res.json();
-      if (payload?.data) {
-        setEmpleados(payload.data);
+      const realData = payload?.data && payload?.success !== undefined ? payload.data : payload;
+      const items = realData?.content || realData?.data || (Array.isArray(realData) ? realData : []);
+      if (items.length >= 0) {
+        setEmpleados(items);
+      }
+      if (payload?.data?.total_pages !== undefined || payload?.total_pages !== undefined || payload?.meta || payload?.last_page) {
         setEmpPagination({
-          currentPage: payload.current_page || 1,
-          lastPage: payload.last_page || 1,
-          total: payload.total || 0,
+          currentPage: payload?.data?.page ?? payload?.page ?? payload?.meta?.current_page ?? payload?.current_page ?? page,
+          lastPage: payload?.data?.total_pages ?? payload?.total_pages ?? payload?.meta?.last_page ?? payload?.last_page ?? 1,
+          total: payload?.data?.total ?? payload?.total ?? payload?.meta?.total ?? items.length,
         });
-      } else {
-        setEmpleados(Array.isArray(payload) ? payload : []);
       }
     } catch {
       setEmpleados([]);
@@ -331,19 +335,19 @@ const ModalEditarCompraMaterial: React.FC<Props> = ({
         estado: compramaterialSeleccionado.est_comp || "",
         total: compramaterialSeleccionado.total_comp || 0,
       });
+      // Extraer IDs
+      const provId = compramaterialSeleccionado.proveedor?.id_prov || compramaterialSeleccionado.proveedor?.id || compramaterialSeleccionado.id_prov;
+      const empId = compramaterialSeleccionado.empleado?.id_emp || compramaterialSeleccionado.empleado?.id || compramaterialSeleccionado.id_emp;
+
       // Preseleccionar proveedor y empleado
-      if (compramaterialSeleccionado.id_prov) {
-        fetch(
-          `http://localhost:8080/api/proveedor/${compramaterialSeleccionado.id_prov}`
-        )
+      if (provId) {
+        fetch(`http://localhost:8080/api/proveedores/${provId}`)
           .then((r) => r.json())
           .then((p) => setSelectedProveedor(p?.data ?? p))
           .catch(() => {});
       }
-      if (compramaterialSeleccionado.id_emp) {
-        fetch(
-          `http://localhost:8080/api/empleados/${compramaterialSeleccionado.id_emp}`
-        )
+      if (empId) {
+        fetch(`http://localhost:8080/api/empleados/${empId}`)
           .then((r) => r.json())
           .then((e) => setSelectedEmpleado(e?.data ?? e))
           .catch(() => {});
@@ -376,7 +380,7 @@ const ModalEditarCompraMaterial: React.FC<Props> = ({
 
     try {
       const res = await fetch(
-        `http://localhost:8080/api/compra-material/${compramaterialSeleccionado.id_comp}`,
+        `http://localhost:8080/api/compras-materiales/${compramaterialSeleccionado.id_comp}`,
         {
           method: "PUT",
           headers: {
@@ -387,8 +391,8 @@ const ModalEditarCompraMaterial: React.FC<Props> = ({
             fec_comp: form.fecha,
             est_comp: form.estado,
             total_comp: form.total,
-            id_prov: selectedProveedor.id_prov,
-            id_emp: selectedEmpleado.id_emp,
+            proveedor: { id: selectedProveedor.id_prov || selectedProveedor.id },
+            empleado: { id: selectedEmpleado.id_emp || selectedEmpleado.id },
           }),
         }
       );
@@ -398,14 +402,18 @@ const ModalEditarCompraMaterial: React.FC<Props> = ({
         setErrorMsg(e.message || "Error");
         return;
       }
-      const data = await res.json();
+      const rawData = await res.json();
+      const data = rawData?.data ?? rawData;
       setComprasMateriales((prev) =>
         prev.map((c) =>
-          c.id_comp === data.id_comp
+          c.id_comp === data.id_comp || c.id === data.id
             ? {
-                ...data,
-                proveedor: { nom_prov: selectedProveedor.nom_prov },
-                empleado: { nom_emp: selectedEmpleado.nom_emp },
+                ...c,
+                fec_comp: form.fecha,
+                est_comp: form.estado,
+                total_comp: form.total,
+                proveedor: { nom_prov: selectedProveedor.nom_prov || (selectedProveedor as any).nomProv || "Desconocido" },
+                empleado: { nom_emp: selectedEmpleado.nom_emp || (selectedEmpleado as any).nomEmp || "Desconocido" },
               }
             : c
         )
@@ -614,14 +622,24 @@ const ModalEditarCompraMaterial: React.FC<Props> = ({
                     Cargando...
                   </div>
                 ) : (
-                  proveedores.map((p) => (
+                  <>
+                    {selectedProveedor && !proveedores.some(p => (p.id_prov || (p as any).id) === (selectedProveedor.id_prov || (selectedProveedor as any).id)) && (
+                      <ProveedorCard
+                        key="selected-prov"
+                        proveedor={selectedProveedor}
+                        isSelected={true}
+                        onSelect={() => setSelectedProveedor(selectedProveedor)}
+                      />
+                    )}
+                  {proveedores.map((p, i) => (
                     <ProveedorCard
-                      key={p.id_prov}
+                      key={p.id_prov || (p as any).id || i}
                       proveedor={p}
-                      isSelected={selectedProveedor?.id_prov === p.id_prov}
+                      isSelected={!!selectedProveedor && (selectedProveedor.id_prov || (selectedProveedor as any).id) === (p.id_prov || (p as any).id)}
                       onSelect={() => setSelectedProveedor(p)}
                     />
-                  ))
+                  ))}
+                  </>
                 )}
               </div>
               <MiniPagination
@@ -645,14 +663,24 @@ const ModalEditarCompraMaterial: React.FC<Props> = ({
                     Cargando...
                   </div>
                 ) : (
-                  empleados.map((e) => (
+                  <>
+                    {selectedEmpleado && !empleados.some(e => (e.id_emp || (e as any).id) === (selectedEmpleado.id_emp || (selectedEmpleado as any).id)) && (
+                      <EmpleadoCard
+                        key="selected-emp"
+                        empleado={selectedEmpleado}
+                        isSelected={true}
+                        onSelect={() => setSelectedEmpleado(selectedEmpleado)}
+                      />
+                    )}
+                  {empleados.map((e, i) => (
                     <EmpleadoCard
-                      key={e.id_emp}
+                      key={e.id_emp || (e as any).id || i}
                       empleado={e}
-                      isSelected={selectedEmpleado?.id_emp === e.id_emp}
+                      isSelected={!!selectedEmpleado && (selectedEmpleado.id_emp || (selectedEmpleado as any).id) === (e.id_emp || (e as any).id)}
                       onSelect={() => setSelectedEmpleado(e)}
                     />
-                  ))
+                  ))}
+                  </>
                 )}
               </div>
               <MiniPagination

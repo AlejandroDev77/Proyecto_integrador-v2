@@ -33,6 +33,12 @@ public class MuebleService implements ManageMuebleUseCase {
 
     @Override
     public Mueble crear(Mueble mueble) {
+        if (mueble.getCodigo() == null || mueble.getCodigo().trim().isEmpty()) {
+            mueble.setCodigo("TEMP-" + System.currentTimeMillis()); // Temporary code to pass NotNull
+            Mueble guardado = muebleRepository.guardar(mueble);
+            guardado.setCodigo("MUE-" + guardado.getId());
+            return muebleRepository.guardar(guardado);
+        }
         return muebleRepository.guardar(mueble);
     }
 
@@ -57,12 +63,20 @@ public class MuebleService implements ManageMuebleUseCase {
             existente.setPrecioVenta(mueble.getPrecioVenta());
         }
 
+        if (mueble.getPrecioCosto() != null) {
+            existente.setPrecioCosto(mueble.getPrecioCosto());
+        }
+
         if (mueble.getDescripcion() != null) {
             existente.setDescripcion(mueble.getDescripcion());
         }
 
         if (mueble.getStock() != null) {
             existente.setStock(mueble.getStock());
+        }
+
+        if (mueble.getStockMinimo() != null) {
+            existente.setStockMinimo(mueble.getStockMinimo());
         }
 
         if (mueble.getModelo3d() != null) {

@@ -9,6 +9,7 @@ import { Plus, CreditCard, ChevronLeft, ChevronRight, Hash, DollarSign, Calendar
 import Badge from "../../ui/badge/Badge";
 import SortableTableHeader from "../../ui/SortableTableHeader";
 import PagosAdvancedFilters from "../../filters/PagosAdvancedFilters";
+import Swal from "sweetalert2";
 
 export default function Pagos() {
   const {
@@ -36,8 +37,19 @@ export default function Pagos() {
   };
 
   const handleEliminar = async (id_pag: number) => {
-    const confirm = window.confirm("¿Estás seguro de eliminar este pago?");
-    if (!confirm) return;
+    const result = await Swal.fire({
+      title: "¿Estás seguro?",
+      text: "¡No podrás revertir esto!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#f97316", // orange-500
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar"
+    });
+
+    if (!result.isConfirmed) return;
+
     let idUsuarioLocal = null;
     try {
       const userObj = JSON.parse(localStorage.getItem("user") || "null");
@@ -52,17 +64,25 @@ export default function Pagos() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8080/api/pago/${id_pag}`, {
+      const res = await fetch(`http://localhost:8080/api/pagos/${id_pag}`, {
         method: "DELETE",
         headers,
       });
 
       if (!res.ok) throw new Error("Error al eliminar pago");
 
-      setPagos((prev) => prev.filter((pag) => pag.id_pag !== id_pag));
+      setPagos((prev) => prev.filter((p) => (p.id_pag || (p as any).id) !== id_pag));
+
+      Swal.fire({
+        title: "¡Eliminado!",
+        text: "El pago ha sido eliminado.",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false
+      });
     } catch (error) {
-      console.error("Error al eliminar pago:", error);
-      alert("No se pudo eliminar el pago.");
+      console.error("Error al eliminar:", error);
+      Swal.fire("Error", "No se pudo eliminar el pago.", "error");
     }
   };
 
@@ -144,7 +164,7 @@ export default function Pagos() {
 
                     return (
                       <motion.tr
-                        key={pago.id_pag}
+                        key={pago.id_pag || (pago as any).id || idx}
                         initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -6 }}
@@ -227,7 +247,7 @@ export default function Pagos() {
                               },
                               {
                                 type: "delete",
-                                onClick: () => handleEliminar(pago.id_pag),
+                                onClick: () => handleEliminar(pago.id_pag || (pago as any).id),
                               },
                             ]}
                           />

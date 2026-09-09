@@ -559,16 +559,14 @@ export default function ModalAgregarVenta({
         if (search) params.append("filter[nom_cli]", search);
         const res = await fetch(`http://localhost:8080/api/clientes?${params}`);
         const payload = await res.json();
-        const items = payload?.data ?? payload;
+        const pageResult = payload?.data;
+        const items = pageResult?.content || pageResult || [];
         setClientes(Array.isArray(items) ? items : []);
-        if (payload?.meta || payload?.last_page) {
-          setClientesPagination({
-            currentPage:
-              payload?.meta?.current_page ?? payload?.current_page ?? page,
-            lastPage: payload?.meta?.last_page ?? payload?.last_page ?? 1,
-            total: payload?.meta?.total ?? payload?.total ?? items.length,
-          });
-        }
+        setClientesPagination({
+          currentPage: pageResult?.page || payload.current_page || 1,
+          lastPage: pageResult?.totalPages || pageResult?.total_pages || payload.last_page || 1,
+          total: pageResult?.totalElements || pageResult?.total_elements || payload.total || 0,
+        });
       } catch (error) {
         setClientes([]);
       } finally {
@@ -591,16 +589,14 @@ export default function ModalAgregarVenta({
           `http://localhost:8080/api/empleados?${params}`
         );
         const payload = await res.json();
-        const items = payload?.data ?? payload;
+        const pageResult = payload?.data;
+        const items = pageResult?.content || pageResult || [];
         setEmpleados(Array.isArray(items) ? items : []);
-        if (payload?.meta || payload?.last_page) {
-          setEmpleadosPagination({
-            currentPage:
-              payload?.meta?.current_page ?? payload?.current_page ?? page,
-            lastPage: payload?.meta?.last_page ?? payload?.last_page ?? 1,
-            total: payload?.meta?.total ?? payload?.total ?? items.length,
-          });
-        }
+        setEmpleadosPagination({
+          currentPage: pageResult?.page || payload.current_page || 1,
+          lastPage: pageResult?.totalPages || pageResult?.total_pages || payload.last_page || 1,
+          total: pageResult?.totalElements || pageResult?.total_elements || payload.total || 0,
+        });
       } catch (error) {
         setEmpleados([]);
       } finally {
@@ -621,16 +617,14 @@ export default function ModalAgregarVenta({
         if (search) params.append("filter[nom_mue]", search);
         const res = await fetch(`http://localhost:8080/api/mueble?${params}`);
         const payload = await res.json();
-        const items = payload?.data ?? payload;
+        const pageResult = payload?.data;
+        const items = pageResult?.content || pageResult || [];
         setMuebles(Array.isArray(items) ? items : []);
-        if (payload?.meta || payload?.last_page) {
-          setMueblesPagination({
-            currentPage:
-              payload?.meta?.current_page ?? payload?.current_page ?? page,
-            lastPage: payload?.meta?.last_page ?? payload?.last_page ?? 1,
-            total: payload?.meta?.total ?? payload?.total ?? items.length,
-          });
-        }
+        setMueblesPagination({
+          currentPage: pageResult?.page || payload.current_page || 1,
+          lastPage: pageResult?.totalPages || pageResult?.total_pages || payload.last_page || 1,
+          total: pageResult?.totalElements || pageResult?.total_elements || payload.total || 0,
+        });
       } catch (error) {
         setMuebles([]);
       } finally {
@@ -765,16 +759,16 @@ export default function ModalAgregarVenta({
     try {
       // Create venta
       const ventaData = {
-        fec_ven: form.fec_ven,
+        fec_ven: form.fec_ven ? form.fec_ven + "T12:00:00" : null,
         est_ven: form.est_ven,
         total_ven: calcularTotal(),
         descuento: form.descuento,
         notas: form.notas,
-        id_cli: selectedCliente.id_cli,
-        id_emp: selectedEmpleado.id_emp,
+        cliente: { id: selectedCliente.id_cli || (selectedCliente as any).id },
+        empleado: { id: selectedEmpleado.id_emp || (selectedEmpleado as any).id },
       };
 
-      const res = await fetch("http://localhost:8080/api/venta", {
+      const res = await fetch("http://localhost:8080/api/ventas", {
         method: "POST",
         headers: { ...headers, Accept: "application/json" },
         body: JSON.stringify(ventaData),
@@ -801,14 +795,14 @@ export default function ModalAgregarVenta({
       // Create detalles
       for (const det of detalles) {
         const detalleData = {
-          id_ven: ventaCreada.id_ven,
-          id_mue: det.id_mue,
+          venta: { id: ventaCreada.id || ventaCreada.id_ven },
+          mueble: { id: det.id_mue || (det as any).id },
           cantidad: det.cantidad,
           precio_unitario: det.precio,
-          descuento: det.descuento,
+          descuento_item: det.descuento,
           subtotal: det.subtotal,
         };
-        await fetch("http://localhost:8080/api/detalle-venta", {
+        await fetch("http://localhost:8080/api/detalle-ventas", {
           method: "POST",
           headers: { ...headers, Accept: "application/json" },
           body: JSON.stringify(detalleData),
@@ -818,13 +812,13 @@ export default function ModalAgregarVenta({
       // Create pago
       if (pago.metodo_pag && pago.monto > 0) {
         const pagoData = {
-          id_ven: ventaCreada.id_ven,
-          fec_pag: pago.fec_pag,
+          venta: { id: ventaCreada.id || ventaCreada.id_ven },
+          fec_pag: pago.fec_pag ? pago.fec_pag + "T12:00:00" : null,
           metodo_pag: pago.metodo_pag,
           referencia_pag: pago.referencia_pag,
           monto: pago.monto,
         };
-        await fetch("http://localhost:8080/api/pago", {
+        await fetch("http://localhost:8080/api/pagos", {
           method: "POST",
           headers: { ...headers, Accept: "application/json" },
           body: JSON.stringify(pagoData),
@@ -832,9 +826,10 @@ export default function ModalAgregarVenta({
       }
 
       // Refresh ventas
-      const updatedRes = await fetch("http://localhost:8080/api/venta");
+      const updatedRes = await fetch("http://localhost:8080/api/ventas");
       const updatedPayload: any = await updatedRes.json();
-      const updatedItems = updatedPayload?.data ?? updatedPayload;
+      const pageResult = updatedPayload?.data;
+      const updatedItems = pageResult?.content || pageResult || [];
       setVentas(Array.isArray(updatedItems) ? updatedItems : []);
 
       Swal.fire({
@@ -932,7 +927,7 @@ export default function ModalAgregarVenta({
                     {clientes.length > 0 ? (
                       clientes.map((c) => (
                         <ClienteCard
-                          key={c.id_cli}
+                          key={c.id_cli || (c as any).id || idx}
                           cliente={c}
                           isSelected={selectedCliente?.id_cli === c.id_cli}
                           onSelect={() => setSelectedCliente(c)}
@@ -977,7 +972,7 @@ export default function ModalAgregarVenta({
                     {empleados.length > 0 ? (
                       empleados.map((e) => (
                         <EmpleadoCard
-                          key={e.id_emp}
+                          key={e.id_emp || (e as any).id || idx}
                           empleado={e}
                           isSelected={selectedEmpleado?.id_emp === e.id_emp}
                           onSelect={() => setSelectedEmpleado(e)}
@@ -1023,7 +1018,7 @@ export default function ModalAgregarVenta({
                       {muebles.length > 0 ? (
                         muebles.map((m) => (
                           <MuebleCard
-                            key={m.id_mue}
+                            key={m.id_mue || (m as any).id || idx}
                             mueble={m}
                             isAdded={detalles.some(
                               (d) => d.id_mue === m.id_mue
@@ -1055,7 +1050,7 @@ export default function ModalAgregarVenta({
                   {detalles.length > 0 ? (
                     detalles.map((d) => (
                       <DetalleCard
-                        key={d.id_mue}
+                        key={d.id_mue || (d as any).id || idx}
                         detalle={d}
                         onRemove={() => removeDetalle(d.id_mue)}
                         onUpdate={(field, value) =>
@@ -1260,7 +1255,7 @@ export default function ModalAgregarVenta({
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                     {detalles.map((d) => (
-                      <tr key={d.id_mue}>
+                      <tr key={d.id_mue || (d as any).id || index}>
                         <td className="px-4 py-2 text-gray-900 dark:text-white">
                           {d.nom_mue}
                         </td>
