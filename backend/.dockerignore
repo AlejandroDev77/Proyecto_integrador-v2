@@ -1,0 +1,6 @@
+.git
+.mvn
+target
+storage
+*.log
+*.jar

@@ -1,0 +1,4 @@
+.env
+backups/
+frontend/node_modules/
+backend/target/
