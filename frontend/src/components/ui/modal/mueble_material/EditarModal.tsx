@@ -372,16 +372,14 @@ export default function ModalEditarMuebleMaterial({
   useEffect(() => {
     if (showModal && mueblematerialSeleccionado) {
       setFormData({
-        id_mue_mat: mueblematerialSeleccionado.id_mue_mat,
-        id_mue: mueblematerialSeleccionado.id_mue,
-        id_mat: mueblematerialSeleccionado.id_mat,
+        id_mue_mat: mueblematerialSeleccionado.id_mue_mat || mueblematerialSeleccionado.id,
+        id_mue: mueblematerialSeleccionado.id_mue || mueblematerialSeleccionado.mueble?.id_mue || mueblematerialSeleccionado.mueble?.id,
+        id_mat: mueblematerialSeleccionado.id_mat || mueblematerialSeleccionado.material?.id_mat || mueblematerialSeleccionado.material?.id,
         cantidad: mueblematerialSeleccionado.cantidad,
       });
 
-      fetchMuebles(1, "");
-      fetchMateriales(1, "");
     }
-  }, [showModal, mueblematerialSeleccionado, fetchMuebles, fetchMateriales]);
+  }, [showModal, mueblematerialSeleccionado]);
 
   // Debounce search para muebles
   useEffect(() => {
@@ -448,8 +446,8 @@ export default function ModalEditarMuebleMaterial({
           method: "PUT",
           headers,
           body: JSON.stringify({
-            id_mue: formData.id_mue,
-            id_mat: formData.id_mat,
+            mueble: { id: formData.id_mue },
+            material: { id: formData.id_mat },
             cantidad: formData.cantidad,
           }),
         }
@@ -462,7 +460,10 @@ export default function ModalEditarMuebleMaterial({
         "http://localhost:8080/api/mueble-material"
       );
       const updatedPayload: any = await updatedRes.json();
-      const updatedItems = updatedPayload?.data ?? updatedPayload;
+      
+      const realData = updatedPayload?.data && updatedPayload?.success !== undefined ? updatedPayload.data : updatedPayload;
+      const updatedItems = realData?.content || realData?.data || (Array.isArray(realData) ? realData : []);
+      
       setMueblesMateriales(Array.isArray(updatedItems) ? updatedItems : []);
 
       Swal.fire({
@@ -496,7 +497,7 @@ export default function ModalEditarMuebleMaterial({
         <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-5 flex items-center justify-between">
           <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-3">
             <Layers className="w-7 h-7" />
-            Editar Asignación de Material
+            Editar Cantidad de Material
           </h2>
           <button
             onClick={() => setShowModal(false)}
@@ -509,99 +510,70 @@ export default function ModalEditarMuebleMaterial({
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Panel Mueble */}
+            
+            {/* Mueble Actual */}
             <div className="space-y-3">
               <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                 <Package className="w-5 h-5 text-blue-600" />
-                Seleccionar Mueble
+                Mueble
               </h3>
-              <SearchInput
-                value={searchMueble}
-                onChange={setSearchMueble}
-                placeholder="Buscar mueble..."
-              />
-
-              {mueblesLoading ? (
-                <div className="flex flex-col items-center justify-center h-32">
-                  <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                </div>
-              ) : (
-                <>
-                  <div className="space-y-2 max-h-[250px] overflow-y-auto pr-2">
-                    {muebles.length > 0 ? (
-                      muebles.map((mueble) => (
-                        <MuebleSelectCard
-                          key={mueble.id_mue}
-                          mueble={mueble}
-                          isSelected={formData.id_mue === mueble.id_mue}
-                          onSelect={() =>
-                            setFormData({ ...formData, id_mue: mueble.id_mue })
-                          }
-                        />
-                      ))
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                <div className="flex gap-4">
+                  <div className="w-16 h-16 rounded-lg overflow-hidden bg-white dark:bg-gray-700 flex-shrink-0">
+                    {mueblematerialSeleccionado.mueble?.imagen || mueblematerialSeleccionado.mueble?.img_mue ? (
+                      <img
+                        src={mueblematerialSeleccionado.mueble?.imagen || mueblematerialSeleccionado.mueble?.img_mue}
+                        alt="Mueble"
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
-                      <div className="flex flex-col items-center justify-center py-8 text-gray-500 dark:text-gray-400">
-                        <AlertCircle className="w-10 h-10 mb-2 opacity-50" />
-                        <p>No se encontraron muebles</p>
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Package className="w-8 h-8 text-gray-400" />
                       </div>
                     )}
                   </div>
-                  <MiniPagination
-                    pagination={mueblesPagination}
-                    onPageChange={handleMueblePageChange}
-                    isLoading={mueblesLoading}
-                  />
-                </>
-              )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-gray-500 font-mono mb-1">{mueblematerialSeleccionado.mueble?.codigo || mueblematerialSeleccionado.mueble?.cod_mue || "Sin código"}</p>
+                    <h4 className="font-bold text-gray-900 dark:text-white truncate">
+                      {mueblematerialSeleccionado.mueble?.nombre || mueblematerialSeleccionado.mueble?.nom_mue}
+                    </h4>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Panel Material */}
+            {/* Material Actual */}
             <div className="space-y-3">
               <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                 <Box className="w-5 h-5 text-green-600" />
-                Seleccionar Material
+                Material Asignado
               </h3>
-              <SearchInput
-                value={searchMaterial}
-                onChange={setSearchMaterial}
-                placeholder="Buscar material..."
-              />
-
-              {materialesLoading ? (
-                <div className="flex flex-col items-center justify-center h-32">
-                  <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
-                </div>
-              ) : (
-                <>
-                  <div className="space-y-2 max-h-[250px] overflow-y-auto pr-2">
-                    {materiales.length > 0 ? (
-                      materiales.map((material) => (
-                        <MaterialSelectCard
-                          key={material.id_mat}
-                          material={material}
-                          isSelected={formData.id_mat === material.id_mat}
-                          onSelect={() =>
-                            setFormData({
-                              ...formData,
-                              id_mat: material.id_mat,
-                            })
-                          }
-                        />
-                      ))
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                <div className="flex gap-4">
+                  <div className="w-16 h-16 rounded-lg overflow-hidden bg-white dark:bg-gray-700 flex-shrink-0">
+                    {mueblematerialSeleccionado.material?.img_mat ? (
+                      <img
+                        src={mueblematerialSeleccionado.material?.img_mat}
+                        alt="Material"
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
-                      <div className="flex flex-col items-center justify-center py-8 text-gray-500 dark:text-gray-400">
-                        <AlertCircle className="w-10 h-10 mb-2 opacity-50" />
-                        <p>No se encontraron materiales</p>
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Box className="w-8 h-8 text-gray-400" />
                       </div>
                     )}
                   </div>
-                  <MiniPagination
-                    pagination={materialesPagination}
-                    onPageChange={handleMaterialPageChange}
-                    isLoading={materialesLoading}
-                  />
-                </>
-              )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-gray-500 font-mono mb-1">{mueblematerialSeleccionado.material?.cod_mat || "Sin código"}</p>
+                    <h4 className="font-bold text-gray-900 dark:text-white truncate">
+                      {mueblematerialSeleccionado.material?.nom_mat}
+                    </h4>
+                    <span className="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full font-medium">
+                      {mueblematerialSeleccionado.material?.costo_mat} Bs. / {mueblematerialSeleccionado.material?.unidad_medida}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Panel Cantidad (ocupa todo el ancho) */}
@@ -628,26 +600,26 @@ export default function ModalEditarMuebleMaterial({
                       }
                       className="w-32 text-center py-2 px-4 text-lg font-semibold rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
-                    {selectedMaterial && (
-                      <span className="ml-3 text-gray-500 dark:text-gray-400">
-                        {selectedMaterial.unidad_medida}
+                    {mueblematerialSeleccionado.material && (
+                      <span className="ml-3 text-gray-500 dark:text-gray-400 font-medium">
+                        {mueblematerialSeleccionado.material?.unidad_medida || "unidades"}
                       </span>
                     )}
                   </div>
                   {/* Resumen de selección */}
-                  {selectedMueble && selectedMaterial && (
+                  {mueblematerialSeleccionado.mueble && mueblematerialSeleccionado.material && (
                     <div className="flex-1 text-right">
                       <p className="text-sm text-gray-500 dark:text-gray-400">
                         Resumen:
                       </p>
                       <p className="text-gray-900 dark:text-white font-medium">
-                        {formData.cantidad} {selectedMaterial.unidad_medida} de{" "}
-                        <span className="text-green-600 dark:text-green-400">
-                          {selectedMaterial.nom_mat}
+                        {formData.cantidad} {mueblematerialSeleccionado.material?.unidad_medida} de{" "}
+                        <span className="text-green-600 dark:text-green-400 font-bold">
+                          {mueblematerialSeleccionado.material?.nom_mat}
                         </span>{" "}
-                        para{" "}
-                        <span className="text-blue-600 dark:text-blue-400">
-                          {selectedMueble.nom_mue}
+                        para el mueble{" "}
+                        <span className="text-blue-600 dark:text-blue-400 font-bold">
+                          {mueblematerialSeleccionado.mueble?.nombre || mueblematerialSeleccionado.mueble?.nom_mue}
                         </span>
                       </p>
                     </div>
@@ -668,7 +640,7 @@ export default function ModalEditarMuebleMaterial({
           </button>
           <button
             onClick={handleSubmit}
-            disabled={isSubmitting || !formData.id_mue || !formData.id_mat}
+            disabled={isSubmitting}
             className="flex items-center gap-2 px-6 py-2.5 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-colors shadow-lg shadow-amber-500/30"
           >
             {isSubmitting ? (

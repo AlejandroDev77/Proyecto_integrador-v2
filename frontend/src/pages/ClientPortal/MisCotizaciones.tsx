@@ -22,7 +22,8 @@ import {
 import { Link } from "react-router-dom";
 
 interface Cotizacion {
-  id_cot: number;
+  id?: number;
+  id_cot?: number;
   cod_cot: string;
   fec_cot: string;
   est_cot: string;
@@ -82,7 +83,8 @@ export default function MisCotizaciones() {
     fetchCotizaciones();
   }, []);
 
-  const handleViewDetail = async (id: number) => {
+  const handleViewDetail = async (id: number | undefined) => {
+    if (!id) return;
     try {
       const detail = await getCotizacionDetalle(id);
       setSelectedCotizacion(detail);
@@ -99,7 +101,9 @@ export default function MisCotizaciones() {
 
     try {
       setCancelling(true);
-      await cancelarCotizacion(selectedCotizacion.id_cot);
+      const targetId = selectedCotizacion.id_cot || selectedCotizacion.id;
+      if (!targetId) return;
+      await cancelarCotizacion(targetId);
       setShowModal(false);
       fetchCotizaciones(pagination.current_page);
     } catch (err: any) {
@@ -205,7 +209,7 @@ export default function MisCotizaciones() {
               const priceInfo = getDisplayPrice(cot);
               return (
                 <div
-                  key={cot.id_cot}
+                  key={cot.id_cot || cot.id}
                   className="bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-all group"
                 >
                   <div className="flex flex-col md:flex-row md:items-center gap-4">
@@ -260,7 +264,7 @@ export default function MisCotizaciones() {
                     </div>
 
                     <button
-                      onClick={() => handleViewDetail(cot.id_cot)}
+                      onClick={() => handleViewDetail(cot.id_cot || cot.id)}
                       className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 text-[#7c5e3c] text-sm font-medium hover:bg-white transition"
                     >
                       <Eye className="w-4 h-4" />

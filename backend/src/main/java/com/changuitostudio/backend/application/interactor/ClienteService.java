@@ -31,14 +31,30 @@ public class ClienteService implements ManageClienteUseCase {
 
     @Override
     public Cliente crear(Cliente cliente) {
-        return repository.guardar(cliente);
+        Cliente guardado = repository.guardar(cliente);
+        if (guardado.getCodCli() == null || guardado.getCodCli().trim().isEmpty()) {
+            guardado.setCodCli("CLI-" + guardado.getId());
+            guardado = repository.guardar(guardado);
+        }
+        return guardado;
     }
 
     @Override
     public Cliente actualizar(Long id, Cliente cliente) {
         return repository.obtenerPorId(id).map(existing -> {
-            cliente.setId(id);
-            return repository.guardar(cliente);
+            if (cliente.getNomCli() != null) existing.setNomCli(cliente.getNomCli());
+            if (cliente.getApPatCli() != null) existing.setApPatCli(cliente.getApPatCli());
+            if (cliente.getApMatCli() != null) existing.setApMatCli(cliente.getApMatCli());
+            if (cliente.getCelCli() != null) existing.setCelCli(cliente.getCelCli());
+            if (cliente.getDirCli() != null) existing.setDirCli(cliente.getDirCli());
+            if (cliente.getFecNacCli() != null) existing.setFecNacCli(cliente.getFecNacCli());
+            if (cliente.getCiCli() != null) existing.setCiCli(cliente.getCiCli());
+            if (cliente.getImgCli() != null && !cliente.getImgCli().isEmpty()) existing.setImgCli(cliente.getImgCli());
+            if (cliente.getId_usu() != null) existing.setId_usu(cliente.getId_usu());
+            if (cliente.getEstCli() != null) existing.setEstCli(cliente.getEstCli());
+            if (cliente.getCodCli() != null) existing.setCodCli(cliente.getCodCli());
+
+            return repository.guardar(existing);
         }).orElseThrow(() -> new ClienteNoEncontradoException("Cliente no encontrado con ID: " + id));
     }
 

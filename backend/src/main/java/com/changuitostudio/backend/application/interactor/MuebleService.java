@@ -33,6 +33,12 @@ public class MuebleService implements ManageMuebleUseCase {
 
     @Override
     public Mueble crear(Mueble mueble) {
+        if (mueble.getCodigo() == null || mueble.getCodigo().trim().isEmpty()) {
+            mueble.setCodigo("TEMP-" + System.currentTimeMillis()); // Temporary code to pass NotNull
+            Mueble guardado = muebleRepository.guardar(mueble);
+            guardado.setCodigo("MUE-" + guardado.getId());
+            return muebleRepository.guardar(guardado);
+        }
         return muebleRepository.guardar(mueble);
     }
 
@@ -57,6 +63,10 @@ public class MuebleService implements ManageMuebleUseCase {
             existente.setPrecioVenta(mueble.getPrecioVenta());
         }
 
+        if (mueble.getPrecioCosto() != null) {
+            existente.setPrecioCosto(mueble.getPrecioCosto());
+        }
+
         if (mueble.getDescripcion() != null) {
             existente.setDescripcion(mueble.getDescripcion());
         }
@@ -65,12 +75,20 @@ public class MuebleService implements ManageMuebleUseCase {
             existente.setStock(mueble.getStock());
         }
 
+        if (mueble.getStockMinimo() != null) {
+            existente.setStockMinimo(mueble.getStockMinimo());
+        }
+
         if (mueble.getModelo3d() != null) {
             existente.setModelo3d(mueble.getModelo3d());
         }
 
         if (mueble.getDimensiones() != null) {
             existente.setDimensiones(mueble.getDimensiones());
+        }
+
+        if (mueble.getEstado() != null) {
+            existente.setEstado(mueble.getEstado());
         }
 
         if (mueble.getCategoria() != null) {
@@ -85,5 +103,13 @@ public class MuebleService implements ManageMuebleUseCase {
         muebleRepository.buscarPorId(id)
                 .orElseThrow(() -> new MuebleNoEncontradoException("Mueble no encontrado con ID: " + id));
         muebleRepository.eliminarPorId(id);
+    }
+
+    @Override
+    public void cambiarEstado(Long id, boolean estado) {
+        Mueble existente = muebleRepository.buscarPorId(id)
+                .orElseThrow(() -> new MuebleNoEncontradoException("Mueble no encontrado con ID: " + id));
+        existente.setEstado(estado);
+        muebleRepository.guardar(existente);
     }
 }

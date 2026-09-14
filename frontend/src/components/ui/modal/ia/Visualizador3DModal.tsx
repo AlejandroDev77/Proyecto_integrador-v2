@@ -1,7 +1,8 @@
-import { Suspense, useState, useRef } from "react";
+import { Suspense, useState, useCallback, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Environment, ContactShadows } from "@react-three/drei";
-import { X, Maximize, Minimize, Box, RotateCcw } from "lucide-react";
+import { OrbitControls, Environment, ContactShadows, Center } from "@react-three/drei";
+import { X, Maximize2, Minimize2, RefreshCw, RotateCcw, Grid3x3, Loader2, Download } from "lucide-react";
 import ModelEnhanced from "../../../Diseño3D/Model/ModelEnhanced";
 
 interface Props {
@@ -11,114 +12,194 @@ interface Props {
   title: string;
 }
 
+// ── Botón de control flotante ─────────────────────────────────────────────────
+function ToolBtn({ onClick, title, active, children }: {
+  onClick: () => void; title: string; active?: boolean; children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      className={`flex items-center justify-center w-8 h-8 rounded-lg transition-all ${
+        active
+          ? "bg-orange-500 text-white shadow-sm shadow-orange-500/30"
+          : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/[0.07] hover:text-gray-700 dark:hover:text-white"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+// ── Modal principal ───────────────────────────────────────────────────────────
 export default function Visualizador3DModal({ isOpen, onClose, modelUrl, title }: Props) {
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [autoRotate, setAutoRotate] = useState(false);
-  const orbitControlsRef = useRef<any>(null);
+  const [autoRotate, setAutoRotate]     = useState(false);
+  const [showGrid, setShowGrid]         = useState(false);
+  const [canvasKey, setCanvasKey]       = useState(0);
 
-  if (!isOpen) return null;
+  const orbitRef = useRef<any>(null);
 
-  const resetView = () => {
-    if (orbitControlsRef.current) {
-      orbitControlsRef.current.reset();
+  const handleDownload = async () => {
+    if (!modelUrl) return;
+    try {
+      const response = await fetch(modelUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = url;
+      const safeTitle = title ? title.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'modelo_3d';
+      a.download = `${safeTitle}.glb`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Error al descargar el modelo:", error);
     }
   };
 
+  const resetCamera = useCallback(() => orbitRef.current?.reset(), []);
+
+  // Desmontar todo cuando no está abierto.
+  // Esto libera el Canvas de React Three Fiber y elimina el div bloqueante.
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-      <div className={`bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden flex flex-col transition-all duration-300 ${
-        isFullscreen ? "w-full h-full" : "w-full max-w-4xl h-[80vh]"
-      }`}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.18 }}
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.97, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.97, y: 10 }}
+        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+        className={`relative flex flex-col overflow-hidden rounded-2xl border border-gray-200 dark:border-white/[0.07] bg-white dark:bg-gray-900 shadow-2xl transition-[width,height] duration-300 ${
+          isFullscreen ? "w-full h-full" : "w-full max-w-4xl h-[82vh]"
+        }`}
+      >
         {/* Header */}
-        <div className="px-6 py-4 flex items-center justify-between border-b dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-lg">
-              <Box size={20} />
-            </div>
-            <div>
-              <h3 className="font-bold text-gray-900 dark:text-white">{title}</h3>
-              <p className="text-xs text-gray-500">Visualizador 3D IA</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={() => setIsFullscreen(!isFullscreen)}
-              className="p-2 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 dark:border-white/[0.05] flex-shrink-0">
+          <p className="text-sm font-semibold text-gray-800 dark:text-white truncate">{title}</p>
+          <div className="flex items-center gap-1 ml-3">
+            <ToolBtn onClick={handleDownload} title="Descargar modelo .GLB">
+              <Download size={15} />
+            </ToolBtn>
+            <div className="w-px h-4 bg-gray-200 dark:bg-white/10 mx-1" />
+            <ToolBtn
+              onClick={() => setIsFullscreen((f) => !f)}
               title={isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
             >
-              {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
-            </button>
-            <button 
+              {isFullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
+            </ToolBtn>
+            <button
               onClick={onClose}
-              className="p-2 text-gray-500 hover:bg-red-100 hover:text-red-600 rounded-lg transition-colors"
+              className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/[0.07] transition-colors"
             >
-              <X size={20} />
+              <X size={15} />
             </button>
           </div>
         </div>
 
-        {/* Canvas */}
-        <div className="flex-1 relative bg-gradient-to-b from-gray-100 to-gray-200 dark:from-gray-950 dark:to-gray-900">
-          <Suspense fallback={
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-              <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-              <p className="text-gray-500 animate-pulse">Cargando modelo 3D...</p>
-            </div>
-          }>
-            <Canvas camera={{ position: [3, 3, 3], fov: 45 }}>
-              <ambientLight intensity={0.7} />
-              <directionalLight position={[10, 10, 10]} intensity={1} castShadow />
-              <Environment preset="studio" />
-              <ContactShadows position={[0, -0.8, 0]} opacity={0.4} scale={10} blur={2} />
-              
-              <ModelEnhanced 
-                url={modelUrl} 
-                onPartClick={() => {}}
-                reset={false}
-                makeWhite={false}
-                showWireframe={false}
-                showDimensions={false}
-                showGrid={true}
-                showAxes={false}
-                autoRotate={autoRotate}
-                rotationSpeed={1}
-                selectedPart={null}
-              />
+        {/* Canvas area */}
+        <div className="relative flex-1 overflow-hidden bg-gray-50 dark:bg-gray-950/40">
+          <Suspense
+            fallback={
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                <Loader2 size={26} className="text-orange-400 animate-spin" />
+                <p className="text-xs text-gray-400">Cargando modelo...</p>
+              </div>
+            }
+          >
+            <Canvas
+              key={`viewer-canvas-${canvasKey}`} // Cambiar key fuerza el desmontaje y montaje
+              onCreated={({ gl }) => {
+                // Manejar la pérdida de contexto para recargar automáticamente el canvas
+                gl.domElement.addEventListener("webglcontextlost", (e) => {
+                  e.preventDefault();
+                  console.warn("Contexto WebGL perdido, recargando Canvas...");
+                  setCanvasKey((prev) => prev + 1);
+                });
+              }}
+              camera={{ position: [3, 2.5, 3], fov: 45 }}
+              gl={{ antialias: true, powerPreference: "high-performance", alpha: true }}
+              frameloop="demand"
+              style={{ width: "100%", height: "100%" }}
+            >
+              <ambientLight intensity={0.8} />
+              <directionalLight position={[8, 10, 6]} intensity={1.2} castShadow />
+              <directionalLight position={[-5, 4, -4]} intensity={0.3} color="#c7d9ff" />
+              <Environment preset="apartment" />
+              <ContactShadows position={[0, -1.2, 0]} opacity={0.3} scale={12} blur={2.5} />
 
-              <OrbitControls 
-                ref={orbitControlsRef}
-                enableDamping={true}
-                dampingFactor={0.05}
+              <Center>
+                {modelUrl && (
+                  <ModelEnhanced
+                    key={modelUrl}
+                    url={modelUrl}
+                    onPartClick={() => {}}
+                    reset={false}
+                    makeWhite={false}
+                    showWireframe={false}
+                    showDimensions={false}
+                    showGrid={showGrid}
+                    showAxes={false}
+                    autoRotate={autoRotate}
+                    rotationSpeed={0.6}
+                    selectedPart={null}
+                  />
+                )}
+              </Center>
+
+              <OrbitControls
+                ref={orbitRef}
+                enableDamping
+                dampingFactor={0.06}
+                minDistance={1}
+                maxDistance={20}
                 makeDefault
               />
             </Canvas>
           </Suspense>
 
-          {/* Floating Controls */}
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 px-4 py-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-full shadow-lg border dark:border-gray-700">
-            <button 
-              onClick={() => setAutoRotate(!autoRotate)}
-              className={`p-2 rounded-lg transition-colors ${autoRotate ? "text-blue-600 bg-blue-50 dark:bg-blue-900/20" : "text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"}`}
-              title="Auto Rotación"
+          {/* Controles flotantes */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-0.5 px-2 py-1.5 rounded-xl bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200 dark:border-white/[0.07] shadow-lg">
+            <ToolBtn onClick={resetCamera} title="Resetear cámara">
+              <RotateCcw size={14} />
+            </ToolBtn>
+            <div className="w-px h-4 bg-gray-200 dark:bg-white/10 mx-1" />
+            <ToolBtn
+              onClick={() => setAutoRotate((r) => !r)}
+              title="Rotación automática"
+              active={autoRotate}
             >
-              <RotateCcw size={20} className={autoRotate ? "animate-spin-slow" : ""} />
-            </button>
-            <div className="w-px h-6 bg-gray-300 dark:bg-gray-600" />
-            <button 
-              onClick={resetView}
-              className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              title="Resetear Cámara"
+              <RefreshCw size={14} className={autoRotate ? "animate-spin" : ""} />
+            </ToolBtn>
+            <ToolBtn
+              onClick={() => setShowGrid((g) => !g)}
+              title="Grilla"
+              active={showGrid}
             >
-              <Box size={20} />
-            </button>
+              <Grid3x3 size={14} />
+            </ToolBtn>
           </div>
+
+          {/* Hint */}
+          <p className="absolute top-2 right-3 text-[10px] text-gray-400 dark:text-gray-600 text-right leading-relaxed select-none pointer-events-none">
+            Arrastra — Rotar &nbsp;·&nbsp; Scroll — Zoom
+          </p>
         </div>
-        
-        {/* Help text */}
-        <div className="px-6 py-2 bg-white dark:bg-gray-900 border-t dark:border-gray-800 text-[10px] text-gray-400 text-center">
-          Usa el ratón para rotar • Scroll para zoom • Click derecho para desplazar
-        </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

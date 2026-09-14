@@ -74,6 +74,17 @@ public class JwtUtil implements JwtProvider {
     }
 
     @Override
+    public Long getRoleIdFromToken(String token) {
+        Object roleId = Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("id_rol");
+        return roleId instanceof Number ? ((Number) roleId).longValue() : null;
+    }
+
+    @Override
     public boolean validateToken(String token) {
         try {
             Jwts.parser()

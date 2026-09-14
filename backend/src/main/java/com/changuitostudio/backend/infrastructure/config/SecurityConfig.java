@@ -45,6 +45,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/usuarios").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/permisos").permitAll()
                         .requestMatchers("/api/chat/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/backup").hasRole("ADMIN")
                         .requestMatchers("/api/reportes/**").permitAll()
                         .requestMatchers("/error").permitAll()
 

@@ -31,14 +31,27 @@ public class ProveedorService implements ManageProveedorUseCase {
 
     @Override
     public Proveedor crear(Proveedor proveedor) {
-        return repository.guardar(proveedor);
+        Proveedor guardado = repository.guardar(proveedor);
+        if (guardado.getCodProv() == null || guardado.getCodProv().trim().isEmpty()) {
+            guardado.setCodProv("PROV-" + guardado.getId());
+            guardado = repository.guardar(guardado);
+        }
+        return guardado;
     }
 
     @Override
     public Proveedor actualizar(Long id, Proveedor proveedor) {
         return repository.obtenerPorId(id).map(existing -> {
-            proveedor.setId(id);
-            return repository.guardar(proveedor);
+            if (proveedor.getNomProv() != null) existing.setNomProv(proveedor.getNomProv());
+            if (proveedor.getContactoProv() != null) existing.setContactoProv(proveedor.getContactoProv());
+            if (proveedor.getTelProv() != null) existing.setTelProv(proveedor.getTelProv());
+            if (proveedor.getEmailProv() != null) existing.setEmailProv(proveedor.getEmailProv());
+            if (proveedor.getDirProv() != null) existing.setDirProv(proveedor.getDirProv());
+            if (proveedor.getNitProv() != null) existing.setNitProv(proveedor.getNitProv());
+            if (proveedor.getEstProv() != null) existing.setEstProv(proveedor.getEstProv());
+            if (proveedor.getCodProv() != null) existing.setCodProv(proveedor.getCodProv());
+
+            return repository.guardar(existing);
         }).orElseThrow(() -> new ProveedorNoEncontradoException("Proveedor no encontrado con ID: " + id));
     }
 

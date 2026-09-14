@@ -16,7 +16,8 @@ import {
 } from "lucide-react";
 
 interface Proveedor {
-  id_prov: number;
+  id_prov?: number;
+  id?: number;
   cod_prov?: string;
   nom_prov: string;
   contacto_prov: string;
@@ -90,8 +91,9 @@ export default function ModalEditarProveedor({
     }
 
     try {
+      const proveedorId = proveedorSeleccionado.id_prov || proveedorSeleccionado.id;
       const res = await fetch(
-        `http://localhost:8080/api/proveedor/${proveedorSeleccionado.id_prov}`,
+        `http://localhost:8080/api/proveedores/${proveedorId}`,
         {
           method: "PUT",
           headers: {
@@ -119,8 +121,13 @@ export default function ModalEditarProveedor({
         return;
       }
 
+      const updatedProveedor = responseData?.data ?? responseData;
       setProveedores((prev) =>
-        prev.map((p) => (p.id_prov === responseData.id_prov ? responseData : p))
+        prev.map((p) =>
+          (p.id_prov || p.id) === (updatedProveedor.id_prov || updatedProveedor.id)
+            ? updatedProveedor
+            : p
+        )
       );
       Swal.fire({
         icon: "success",

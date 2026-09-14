@@ -41,6 +41,5 @@ export async function getMateriales(
 }
 
 export const cambiarEstadoMaterial = async (id: number, nuevoEstado: boolean) => {
-  const estadoNumerico = nuevoEstado ? 1 : 0;
-  await axiosClient.put(`${API_URL}/${id}/estado`, { est_mat: estadoNumerico });
+  await axiosClient.put(`${API_URL}/${id}/estado`, { est_mat: nuevoEstado });
 };

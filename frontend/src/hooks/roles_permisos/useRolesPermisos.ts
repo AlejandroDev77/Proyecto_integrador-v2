@@ -48,11 +48,40 @@ export const useRolesPermisos = () => {
       }
 
       const response = await axios.get(`${API_URL}?${params.toString()}`);
-        const realData = response.data && response.success !== undefined ? response.data : response;
-        const itemsArray = realData.content || realData.data || (Array.isArray(realData) ? realData : []);
+        const responseBody = response.data;
+        
+        let rawArray: any[] = [];
+        if (Array.isArray(responseBody)) {
+          rawArray = responseBody;
+        } else if (responseBody.content && Array.isArray(responseBody.content)) {
+          rawArray = responseBody.content;
+        } else if (responseBody.data && Array.isArray(responseBody.data)) {
+          rawArray = responseBody.data;
+        } else if (responseBody.data && responseBody.data.content && Array.isArray(responseBody.data.content)) {
+          rawArray = responseBody.data.content;
+        }
+
+        const itemsArray = rawArray.map((item: any) => ({
+          ...item,
+          nom_rol: item.nom_rol || item.rol?.nom_rol || "",
+          nom_permiso: item.nom_permiso || item.permiso?.nom_permiso || item.permiso?.nombre || "",
+          descripcion: item.descripcion || item.permiso?.descripcion || "",
+        }));
         setRolesPermisos(itemsArray);
-        setTotalPages(realData.totalPages || realData.total_pages || realData.last_page || 1);
-        setTotalItems(realData.totalElements || realData.total_elements || realData.total || itemsArray.length);
+        
+        // Extract pagination info robustly
+        let totalP = 1;
+        let totalI = itemsArray.length;
+        if (responseBody.data) {
+          totalP = responseBody.data.totalPages || responseBody.data.total_pages || responseBody.data.last_page || 1;
+          totalI = responseBody.data.totalElements || responseBody.data.total_elements || responseBody.data.total || itemsArray.length;
+        } else {
+          totalP = responseBody.totalPages || responseBody.total_pages || responseBody.last_page || 1;
+          totalI = responseBody.totalElements || responseBody.total_elements || responseBody.total || itemsArray.length;
+        }
+        
+        setTotalPages(totalP);
+        setTotalItems(totalI);
       setError(null);
     } catch (err) {
       console.error("Error al cargar roles-permisos:", err);
@@ -199,9 +228,12 @@ export const useRolesPermisos = () => {
 
   // Filtrado y paginación
   const filteredData = rolesPermisos.filter((rp) => {
+    const nomRol = rp.nom_rol || "";
+    const nomPermiso = rp.nom_permiso || "";
+    
     const matchSearch =
-      rp.nom_rol.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      rp.nom_permiso.toLowerCase().includes(searchTerm.toLowerCase());
+      nomRol.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      nomPermiso.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchRolFilter = !filterRol || rp.id_rol === filterRol;
     const matchPermisoFilter = !filterPermiso || rp.id_permiso === filterPermiso;

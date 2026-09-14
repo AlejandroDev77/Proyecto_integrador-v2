@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/cliente/favoritos")
+@RequestMapping({"/api/cliente/favoritos", "/api/favoritos"})
 public class FavoritoController {
 
     private final FavoritoJpaRepository favoritoRepository;
@@ -30,8 +30,11 @@ public class FavoritoController {
      */
     @GetMapping("")
     public ResponseEntity<List<Map<String, Object>>> getFavoritos(
-            @RequestHeader(value = "X-USER-ID", required = false) Integer idUsu) {
+            @RequestHeader(value = "X-USER-ID", required = false) Integer headerIdUsu,
+            @RequestParam(value = "filter[id_usu]", required = false) Integer filterIdUsu) {
         try {
+            Integer idUsu = headerIdUsu != null ? headerIdUsu : filterIdUsu;
+
             if (idUsu == null) {
                 return ResponseEntity.badRequest()
                         .body(List.of());

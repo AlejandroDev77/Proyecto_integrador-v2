@@ -31,13 +31,24 @@ public class MaterialService implements ManageMaterialUseCase {
 
     @Override
     public Material crear(Material material) {
-        return repository.guardar(material);
+        Material guardado = repository.guardar(material);
+        if (guardado.getCodMat() == null || guardado.getCodMat().trim().isEmpty()) {
+            guardado.setCodMat("MAT-" + guardado.getId());
+            guardado = repository.guardar(guardado);
+        }
+        return guardado;
     }
 
     @Override
     public Material actualizar(Long id, Material material) {
         return repository.obtenerPorId(id).map(existing -> {
             material.setId(id);
+            if (material.getCodMat() == null) {
+                material.setCodMat(existing.getCodMat());
+            }
+            if (material.getImgMat() == null) {
+                material.setImgMat(existing.getImgMat());
+            }
             return repository.guardar(material);
         }).orElseThrow(() -> new MaterialNoEncontradoException("Material no encontrado con ID: " + id));
     }
@@ -48,5 +59,13 @@ public class MaterialService implements ManageMaterialUseCase {
             throw new MaterialNoEncontradoException("Material no encontrado con ID: " + id);
         }
         repository.eliminar(id);
+    }
+
+    @Override
+    public void cambiarEstado(Long id, boolean estado) {
+        repository.obtenerPorId(id).map(existing -> {
+            existing.setEstMat(estado);
+            return repository.guardar(existing);
+        }).orElseThrow(() -> new MaterialNoEncontradoException("Material no encontrado con ID: " + id));
     }
 }

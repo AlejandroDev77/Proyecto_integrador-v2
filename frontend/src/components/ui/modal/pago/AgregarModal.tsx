@@ -144,7 +144,6 @@ function MiniPagination({
   onPageChange: (page: number) => void;
   isLoading: boolean;
 }) {
-  if (pagination.lastPage <= 1) return null;
   return (
     <div className="flex items-center justify-center gap-1 mt-3 pt-2 border-t border-gray-200 dark:border-gray-700">
       <button
@@ -350,18 +349,19 @@ export default function ModalAgregarPago({
       const params = new URLSearchParams({
         page: page.toString(),
         per_page: "6",
+        "filter[est_ven]": "Pendiente",
       });
       if (search) params.append("filter[cod_ven]", search);
-      const res = await fetch(`http://localhost:8080/api/venta?${params}`);
+      const res = await fetch(`http://localhost:8080/api/ventas?${params}`);
       const payload = await res.json();
-      const items = payload?.data ?? payload;
+      const data = payload?.data ?? payload;
+      const items = data?.content ?? data?.data ?? data;
       setVentas(Array.isArray(items) ? items : []);
-      if (payload?.meta || payload?.last_page) {
+      if (data) {
         setVentasPagination({
-          currentPage:
-            payload?.meta?.current_page ?? payload?.current_page ?? page,
-          lastPage: payload?.meta?.last_page ?? payload?.last_page ?? 1,
-          total: payload?.meta?.total ?? payload?.total ?? items.length,
+          currentPage: data.page ?? data.current_page ?? page,
+          lastPage: data.total_pages ?? data.last_page ?? 1,
+          total: data.total_elements ?? data.total ?? (Array.isArray(items) ? items.length : 0),
         });
       }
     } catch {
@@ -420,11 +420,13 @@ export default function ModalAgregarPago({
     setGeneralError(null);
     try {
       const pagoData = {
-        ...form,
+        fec_pag: form.fec_pag,
+        metodo_pag: form.metodo_pag,
+        referencia_pag: form.referencia_pag,
         monto: parseFloat(form.monto),
-        id_ven: selectedVenta.id_ven,
+        venta: { id: selectedVenta.id_ven || (selectedVenta as any).id },
       };
-      const res = await fetch("http://localhost:8080/api/pago", {
+      const res = await fetch("http://localhost:8080/api/pagos", {
         method: "POST",
         headers,
         body: JSON.stringify(pagoData),
@@ -447,10 +449,17 @@ export default function ModalAgregarPago({
         return;
       }
 
-      const updatedRes = await fetch("http://localhost:8080/api/pago");
-      const updatedPayload: any = await updatedRes.json();
-      const updatedItems = updatedPayload?.data ?? updatedPayload;
-      setPagos(Array.isArray(updatedItems) ? updatedItems : []);
+      const data = responseData?.data ?? responseData;
+      setPagos((prev) => [
+        {
+          ...data,
+          venta: {
+            est_ven: selectedVenta.est_ven,
+            total_ven: selectedVenta.total_ven,
+          },
+        },
+        ...prev,
+      ]);
 
       Swal.fire({
         icon: "success",
@@ -538,10 +547,13 @@ export default function ModalAgregarPago({
                     {ventas.length > 0 ? (
                       ventas.map((v) => (
                         <VentaCard
-                          key={v.id_ven}
+                          key={v.id_ven || (v as any).id}
                           venta={v}
-                          isSelected={selectedVenta?.id_ven === v.id_ven}
-                          onSelect={() => setSelectedVenta(v)}
+                          isSelected={!!selectedVenta && (selectedVenta.id_ven || (selectedVenta as any).id) === (v.id_ven || (v as any).id)}
+                          onSelect={() => {
+                            setSelectedVenta(v);
+                            setForm({ ...form, monto: String(v.total_ven || 0) });
+                          }}
                         />
                       ))
                     ) : (
@@ -629,13 +641,9 @@ export default function ModalAgregarPago({
                     <input
                       type="number"
                       value={form.monto}
-                      onChange={(e) =>
-                        setForm({ ...form, monto: e.target.value })
-                      }
-                      placeholder="0.00"
-                      step="0.01"
-                      min="0"
-                      className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-lg font-semibold focus:ring-2 focus:ring-emerald-500"
+                      readOnly
+                      disabled
+                      className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-lg font-semibold cursor-not-allowed"
                     />
                   </div>
                 </div>

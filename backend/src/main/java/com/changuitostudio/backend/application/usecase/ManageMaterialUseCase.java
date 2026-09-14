@@ -12,4 +12,5 @@ public interface ManageMaterialUseCase {
     Material crear(Material material);
     Material actualizar(Long id, Material material);
     void eliminar(Long id);
+    void cambiarEstado(Long id, boolean estado);
 }

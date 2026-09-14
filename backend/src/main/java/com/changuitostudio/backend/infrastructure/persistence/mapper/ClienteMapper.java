@@ -18,7 +18,8 @@ public class ClienteMapper {
         domain.setImgCli(entity.getImgCli());
         domain.setCiCli(entity.getCiCli());
         if (entity.getUsuario() != null) {
-            domain.setUsuario(UsuarioMapper.toDomain(entity.getUsuario())); // ADJUST MAPPER HERE IF NEEDED
+            domain.setUsuario(UsuarioMapper.toDomain(entity.getUsuario()));
+            domain.setId_usu(entity.getUsuario().getIdUsu());
         }
         domain.setCodCli(entity.getCodCli());
         domain.setEstCli(entity.getEstCli());
@@ -38,7 +39,11 @@ public class ClienteMapper {
         entity.setImgCli(domain.getImgCli());
         entity.setCiCli(domain.getCiCli());
         if (domain.getUsuario() != null) {
-            entity.setUsuario(UsuarioMapper.toEntity(domain.getUsuario())); // ADJUST MAPPER HERE IF NEEDED
+            entity.setUsuario(UsuarioMapper.toEntity(domain.getUsuario()));
+        } else if (domain.getId_usu() != null) {
+            com.changuitostudio.backend.infrastructure.persistence.entity.UsuarioEntity u = new com.changuitostudio.backend.infrastructure.persistence.entity.UsuarioEntity();
+            u.setIdUsu(domain.getId_usu());
+            entity.setUsuario(u);
         }
         entity.setCodCli(domain.getCodCli());
         entity.setEstCli(domain.getEstCli());

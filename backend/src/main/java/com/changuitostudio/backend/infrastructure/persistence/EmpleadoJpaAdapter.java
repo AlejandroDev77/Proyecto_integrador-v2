@@ -22,6 +22,9 @@ public class EmpleadoJpaAdapter implements EmpleadoRepository {
 
     private final EmpleadoJpaRepository repository;
 
+    @jakarta.persistence.PersistenceContext
+    private jakarta.persistence.EntityManager entityManager;
+
     public EmpleadoJpaAdapter(EmpleadoJpaRepository repository) {
         this.repository = repository;
     }
@@ -56,9 +59,12 @@ public class EmpleadoJpaAdapter implements EmpleadoRepository {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public Empleado guardar(Empleado empleado) {
         EmpleadoEntity entity = EmpleadoMapper.toEntity(empleado);
-        return EmpleadoMapper.toDomain(repository.save(entity));
+        EmpleadoEntity saved = repository.saveAndFlush(entity);
+        entityManager.refresh(saved);
+        return EmpleadoMapper.toDomain(saved);
     }
 
     @Override

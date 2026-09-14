@@ -15,6 +15,7 @@ public class Cliente {
     private Usuario usuario;
     private String codCli;
     private Boolean estCli;
+    private Long id_usu;
 
     public Cliente() {
     }
@@ -110,5 +111,11 @@ public class Cliente {
 
     public void setEstCli(Boolean estCli) {
         this.estCli = estCli;
+    }
+    public Long getId_usu() {
+        return id_usu;
+    }
+    public void setId_usu(Long id_usu) {
+        this.id_usu = id_usu;
     }
 }

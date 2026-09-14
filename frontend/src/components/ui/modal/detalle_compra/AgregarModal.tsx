@@ -124,42 +124,54 @@ function MiniPagination({
   isLoading,
 }: {
   pagination: PaginationInfo;
-  onPageChange: (p: number) => void;
+  onPageChange: (page: number) => void;
   isLoading: boolean;
 }) {
   if (pagination.lastPage <= 1) return null;
+
   return (
-    <div className="flex items-center justify-center gap-1 mt-3 pt-2 border-t border-gray-200 dark:border-gray-700">
+    <div className="flex items-center justify-center gap-2 mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
       <button
         onClick={() => onPageChange(1)}
-        disabled={isLoading}
-        className="p-1 rounded bg-gray-100 dark:bg-gray-700 disabled:opacity-50"
+        disabled={pagination.currentPage === 1 || isLoading}
+        className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 dark:text-gray-300 transition-colors"
+        title="Primera página"
       >
-        <ChevronsLeft className="w-3.5 h-3.5" />
+        <ChevronsLeft className="w-4 h-4" />
       </button>
       <button
         onClick={() => onPageChange(pagination.currentPage - 1)}
-        disabled={isLoading}
-        className="p-1 rounded bg-gray-100 dark:bg-gray-700 disabled:opacity-50"
+        disabled={pagination.currentPage === 1 || isLoading}
+        className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 dark:text-gray-300 transition-colors"
+        title="Página anterior"
       >
-        <ChevronLeft className="w-3.5 h-3.5" />
+        <ChevronLeft className="w-4 h-4" />
       </button>
-      <span className="text-xs px-2">
-        {pagination.currentPage}/{pagination.lastPage}
+      <span className="text-sm text-gray-600 dark:text-gray-400 px-3">
+        <span className="font-semibold text-gray-900 dark:text-white">
+          {pagination.currentPage}
+        </span>
+        {" / "}
+        <span className="font-semibold text-gray-900 dark:text-white">
+          {pagination.lastPage}
+        </span>
+        <span className="ml-2 text-xs">({pagination.total} items)</span>
       </span>
       <button
         onClick={() => onPageChange(pagination.currentPage + 1)}
-        disabled={isLoading}
-        className="p-1 rounded bg-gray-100 dark:bg-gray-700 disabled:opacity-50"
+        disabled={pagination.currentPage === pagination.lastPage || isLoading}
+        className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 dark:text-gray-300 transition-colors"
+        title="Página siguiente"
       >
-        <ChevronRight className="w-3.5 h-3.5" />
+        <ChevronRight className="w-4 h-4" />
       </button>
       <button
         onClick={() => onPageChange(pagination.lastPage)}
-        disabled={isLoading}
-        className="p-1 rounded bg-gray-100 dark:bg-gray-700 disabled:opacity-50"
+        disabled={pagination.currentPage === pagination.lastPage || isLoading}
+        className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 dark:text-gray-300 transition-colors"
+        title="Última página"
       >
-        <ChevronsRight className="w-3.5 h-3.5" />
+        <ChevronsRight className="w-4 h-4" />
       </button>
     </div>
   );
@@ -297,16 +309,18 @@ export default function ModalAgregarDetalleCompra({
     setLoadingCompra(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/compra-material?page=${page}&per_page=8${
+        `http://localhost:8080/api/compras-materiales?page=${page}&per_page=8${
           search ? `&search=${encodeURIComponent(search)}` : ""
         }`
       );
       const p = await res.json();
-      setCompras(p?.data || []);
+      const realData = p?.data && p?.success !== undefined ? p.data : p;
+      const items = realData?.content || realData?.data || (Array.isArray(realData) ? realData : []);
+      setCompras(Array.isArray(items) ? items : []);
       setCompraPag({
-        currentPage: p.current_page || 1,
-        lastPage: p.last_page || 1,
-        total: p.total || 0,
+        currentPage: realData?.page ?? realData?.current_page ?? p.current_page ?? 1,
+        lastPage: realData?.total_pages ?? realData?.last_page ?? p.last_page ?? 1,
+        total: realData?.total ?? p.total ?? items.length,
       });
     } catch {
       setCompras([]);
@@ -323,11 +337,13 @@ export default function ModalAgregarDetalleCompra({
         }`
       );
       const p = await res.json();
-      setMateriales(p?.data || []);
+      const realData = p?.data && p?.success !== undefined ? p.data : p;
+      const items = realData?.content || realData?.data || (Array.isArray(realData) ? realData : []);
+      setMateriales(Array.isArray(items) ? items : []);
       setMaterialPag({
-        currentPage: p.current_page || 1,
-        lastPage: p.last_page || 1,
-        total: p.total || 0,
+        currentPage: realData?.page ?? realData?.current_page ?? p.current_page ?? 1,
+        lastPage: realData?.total_pages ?? realData?.last_page ?? p.last_page ?? 1,
+        total: realData?.total ?? p.total ?? items.length,
       });
     } catch {
       setMateriales([]);
@@ -387,7 +403,7 @@ export default function ModalAgregarDetalleCompra({
       }
     } catch {}
     try {
-      const res = await fetch("http://localhost:8080/api/detalle-compra", {
+      const res = await fetch("http://localhost:8080/api/detalle-compras", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -398,8 +414,8 @@ export default function ModalAgregarDetalleCompra({
           cantidad: form.cantidad,
           precio_unitario: form.precio_unitario,
           subtotal,
-          id_comp: selectedCompra.id_comp,
-          id_mat: selectedMaterial.id_mat,
+          compra: { id: selectedCompra.id_comp || (selectedCompra as any).id },
+          material: { id: selectedMaterial.id_mat || (selectedMaterial as any).id },
         }),
       });
 
@@ -503,15 +519,25 @@ export default function ModalAgregarDetalleCompra({
               ) : (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto">
-                    {compras.length > 0 ? (
-                      compras.map((c) => (
+                    {compras.length > 0 || selectedCompra ? (
+                      <>
+                        {selectedCompra && !compras.some(c => (c.id_comp || (c as any).id) === (selectedCompra.id_comp || (selectedCompra as any).id)) && (
+                          <CompraCard
+                            key="selected-comp"
+                            compra={selectedCompra}
+                            isSelected={true}
+                            onSelect={() => setSelectedCompra(selectedCompra)}
+                          />
+                        )}
+                      {compras.map((c, i) => (
                         <CompraCard
-                          key={c.id_comp}
+                          key={c.id_comp || (c as any).id || i}
                           compra={c}
-                          isSelected={selectedCompra?.id_comp === c.id_comp}
+                          isSelected={!!selectedCompra && (selectedCompra.id_comp || (selectedCompra as any).id) === (c.id_comp || (c as any).id)}
                           onSelect={() => setSelectedCompra(c)}
                         />
-                      ))
+                      ))}
+                      </>
                     ) : (
                       <div className="col-span-2 flex flex-col items-center py-8 text-gray-500">
                         <AlertCircle className="w-12 h-12 mb-2 opacity-50" />
@@ -547,15 +573,25 @@ export default function ModalAgregarDetalleCompra({
               ) : (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto">
-                    {materiales.length > 0 ? (
-                      materiales.map((m) => (
+                    {materiales.length > 0 || selectedMaterial ? (
+                      <>
+                        {selectedMaterial && !materiales.some(m => (m.id_mat || (m as any).id) === (selectedMaterial.id_mat || (selectedMaterial as any).id)) && (
+                          <MaterialCard
+                            key="selected-mat"
+                            material={selectedMaterial}
+                            isSelected={true}
+                            onSelect={() => setSelectedMaterial(selectedMaterial)}
+                          />
+                        )}
+                      {materiales.map((m, i) => (
                         <MaterialCard
-                          key={m.id_mat}
+                          key={m.id_mat || (m as any).id || i}
                           material={m}
-                          isSelected={selectedMaterial?.id_mat === m.id_mat}
+                          isSelected={!!selectedMaterial && (selectedMaterial.id_mat || (selectedMaterial as any).id) === (m.id_mat || (m as any).id)}
                           onSelect={() => setSelectedMaterial(m)}
                         />
-                      ))
+                      ))}
+                      </>
                     ) : (
                       <div className="col-span-2 flex flex-col items-center py-8 text-gray-500">
                         <AlertCircle className="w-12 h-12 mb-2 opacity-50" />

@@ -76,6 +76,7 @@ public class CategoriaController {
     public ResponseEntity<CategoriaResponseDTO> store(@Valid @RequestBody CategoriaRequestDTO request) {
         Categoria dominio = new Categoria();
         dominio.setNombre(request.getNom_cat());
+        dominio.setDescripcion(request.getDesc_cat());
         dominio.setEstado(request.getEst_cat() != null ? request.getEst_cat() : true);
         Categoria creado = manageCategoriaUseCase.crear(dominio);
         return ResponseEntity.status(HttpStatus.CREATED).body(toResponseDTO(creado));
@@ -86,6 +87,7 @@ public class CategoriaController {
             @Valid @RequestBody CategoriaRequestDTO request) {
         Categoria dominio = new Categoria();
         dominio.setNombre(request.getNom_cat());
+        dominio.setDescripcion(request.getDesc_cat());
         dominio.setEstado(request.getEst_cat());
         Categoria actualizado = manageCategoriaUseCase.actualizar(id, dominio);
         return ResponseEntity.ok(toResponseDTO(actualizado));
@@ -98,6 +100,6 @@ public class CategoriaController {
     }
 
     private CategoriaResponseDTO toResponseDTO(Categoria categoria) {
-        return new CategoriaResponseDTO(categoria.getId(), categoria.getNombre(), categoria.getEstado());
+        return new CategoriaResponseDTO(categoria.getId(), categoria.getNombre(), categoria.getDescripcion(), categoria.getCodigo(), categoria.getEstado());
     }
 }

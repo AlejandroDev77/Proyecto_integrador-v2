@@ -145,13 +145,15 @@ export default function ModalAgregarCliente({
         return;
       }
 
+      const actualData = responseData.data || responseData;
+
       const usuario = usuariosDisponibles.find(
-        (u) => u.id_usu === responseData.id_usu
+        (u) => u.id_usu === actualData.id_usu
       );
       setClientes((prev) => [
         ...prev,
         {
-          ...responseData,
+          ...actualData,
           usuario: usuario ? { nom_usu: usuario.nom_usu } : null,
         } as any,
       ]);

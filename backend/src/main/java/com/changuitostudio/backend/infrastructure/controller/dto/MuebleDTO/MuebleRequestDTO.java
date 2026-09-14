@@ -2,6 +2,7 @@ package com.changuitostudio.backend.infrastructure.controller.dto.MuebleDTO;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class MuebleRequestDTO {
 
@@ -14,15 +15,26 @@ public class MuebleRequestDTO {
     private String img_mue;
 
     @NotNull(message = "El precio de venta es requerido")
+    @JsonProperty("precio_venta")
     private Double precio_venta;
 
+    @JsonProperty("precio_costo")
+    private Double precio_costo = 0.0;
+
+    @JsonProperty("desc_mue")
     private String desc_mue;
 
+    @JsonProperty("stock")
     private Integer stock = 0;
+
+    @JsonProperty("stock_min")
+    private Integer stock_min = 0;
 
     private String modelo_3d;
 
     private String dimensiones;
+
+    private Boolean est_mue = true;
 
     @NotNull(message = "La categoría es requerida")
     private Long id_cat;
@@ -94,11 +106,35 @@ public class MuebleRequestDTO {
         this.dimensiones = dimensiones;
     }
 
+    public Boolean getEst_mue() {
+        return est_mue;
+    }
+
+    public void setEst_mue(Boolean est_mue) {
+        this.est_mue = est_mue;
+    }
+
     public Long getId_cat() {
         return id_cat;
     }
 
     public void setId_cat(Long id_cat) {
         this.id_cat = id_cat;
+    }
+
+    public Double getPrecio_costo() {
+        return precio_costo;
+    }
+
+    public void setPrecio_costo(Double precio_costo) {
+        this.precio_costo = precio_costo;
+    }
+
+    public Integer getStock_min() {
+        return stock_min;
+    }
+
+    public void setStock_min(Integer stock_min) {
+        this.stock_min = stock_min;
     }
 }

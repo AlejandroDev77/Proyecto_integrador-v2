@@ -8,6 +8,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.web.multipart.MultipartFile;
+import com.changuitostudio.backend.application.gateway.StorageGateway;
+import com.changuitostudio.backend.domain.model.Cotizacion;
+
 import java.util.Map;
 
 @RestController
@@ -15,9 +19,11 @@ import java.util.Map;
 public class DisenoController {
 
     private final ManageDisenoUseCase manageDisenoUseCase;
+    private final StorageGateway storageGateway;
 
-    public DisenoController(ManageDisenoUseCase manageDisenoUseCase) {
+    public DisenoController(ManageDisenoUseCase manageDisenoUseCase, StorageGateway storageGateway) {
         this.manageDisenoUseCase = manageDisenoUseCase;
+        this.storageGateway = storageGateway;
     }
 
     @GetMapping
@@ -56,14 +62,57 @@ public class DisenoController {
                         .body(ApiResponse.error("Diseno no encontrado", HttpStatus.NOT_FOUND.value())));
     }
 
-    @PostMapping
-    public ResponseEntity<ApiResponse<Diseno>> crear(@RequestBody Diseno diseno) {
+    @PostMapping(consumes = {"multipart/form-data"})
+    public ResponseEntity<ApiResponse<Diseno>> crear(
+            @RequestParam("nom_dis") String nomDis,
+            @RequestParam("desc_dis") String descDis,
+            @RequestParam("id_cot") Long idCot,
+            @RequestParam(value = "img_dis", required = false) MultipartFile imgDis,
+            @RequestParam(value = "archivo_3d", required = false) MultipartFile archivo3d
+    ) {
+        Diseno diseno = new Diseno();
+        diseno.setNomDis(nomDis);
+        diseno.setDescDis(descDis);
+        
+        Cotizacion cotizacion = new Cotizacion();
+        cotizacion.setId(idCot);
+        diseno.setCotizacion(cotizacion);
+
+        if (imgDis != null && !imgDis.isEmpty()) {
+            diseno.setImgDis(storageGateway.save(imgDis, "images"));
+        }
+        if (archivo3d != null && !archivo3d.isEmpty()) {
+            diseno.setArchivo3d(storageGateway.save(archivo3d, "models"));
+        }
+
         Diseno creado = manageDisenoUseCase.crear(diseno);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(creado));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<Diseno>> actualizar(@PathVariable Long id, @RequestBody Diseno diseno) {
+    @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
+    public ResponseEntity<ApiResponse<Diseno>> actualizar(
+            @PathVariable Long id,
+            @RequestParam("nom_dis") String nomDis,
+            @RequestParam("desc_dis") String descDis,
+            @RequestParam("id_cot") Long idCot,
+            @RequestParam(value = "img_dis", required = false) MultipartFile imgDis,
+            @RequestParam(value = "archivo_3d", required = false) MultipartFile archivo3d
+    ) {
+        Diseno diseno = new Diseno();
+        diseno.setNomDis(nomDis);
+        diseno.setDescDis(descDis);
+        
+        Cotizacion cotizacion = new Cotizacion();
+        cotizacion.setId(idCot);
+        diseno.setCotizacion(cotizacion);
+
+        if (imgDis != null && !imgDis.isEmpty()) {
+            diseno.setImgDis(storageGateway.save(imgDis, "images"));
+        }
+        if (archivo3d != null && !archivo3d.isEmpty()) {
+            diseno.setArchivo3d(storageGateway.save(archivo3d, "models"));
+        }
+
         Diseno actualizado = manageDisenoUseCase.actualizar(id, diseno);
         return ResponseEntity.ok(ApiResponse.success(actualizado));
     }

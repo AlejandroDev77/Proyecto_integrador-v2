@@ -1,0 +1,747 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.role }}",
+                    "rightValue": "CLIENTE",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "CLIENTE"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.role }}",
+                    "rightValue": "ADMINISTRADOR",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ADMINISTRADOR"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.role }}",
+                    "rightValue": "GUEST",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "GUEST"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "916b5b0f-70b8-4495-9d66-d2712bb90048",
+      "name": "Switch Rol",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        -464,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat-ia",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "32375de2-4bf2-495b-ac54-481483d3c6e2",
+      "name": "Webhook1",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -752,
+        192
+      ],
+      "webhookId": "chatbot-muebleria-001"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "9cfae8e0-baaf-4ced-a0a2-9b0a65b84163",
+      "name": "Respond to Webhook1",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        704,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "options": {},
+        "promptType": "define",
+        "text": "=Eres el asistente ADMINISTRATIVO de la Mueblería. \nUsuario actual: {{.body.userName}}\n1. Tienes conexión real. Usa las tools consultar_dashboard, consultar_usuarios, consultar_producciones, y consultar_inventario según corresponda.\n2. Para gráficas, usa QuickChart (ej. ![Graf](https://quickchart.io/chart?c={...}) ).\n3. Responde de manera concisa y gerencial.\n{{.body.message}}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        64
+      ],
+      "id": "0b0dde3c-047c-4077-9c19-f24c69af5f4a",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Eres el Asistente VIRTUAL para CLIENTES de la Mueblería.\nUsuario actual: {{.body.userName}} (ID: {{.body.userId}})\n1. NO reveles información interna ni de otros clientes.\n2. Usa consultar_mis_compras y consultar_mi_carrito para responder sobre sus datos personales.\n3. Usa consultar_catalogo para recomendar productos.\nSé amable, persuasivo y muy servicial.\n{{.body.message}}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        288,
+        352
+      ],
+      "id": "2998d847-34b1-4a6a-89b5-d53156bdee85",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "options": {},
+        "promptType": "define",
+        "text": "=Eres el Asistente GUÍA de la Mueblería para visitantes.\n1. NO tienes acceso a datos de clientes porque no han iniciado sesión.\n2. Usa la base de conocimiento FAQ_Conocimiento para responder dudas de horarios, envíos y políticas.\n3. Usa consultar_catalogo para mostrarles productos.\n4. Invítalos amablemente a registrarse para comprar.\n{{.body.message}}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        288,
+        624
+      ],
+      "id": "4948a117-b690-48e9-9b40-e02a17748002",
+      "name": "AI Agent2"
+    },
+    {
+      "parameters": {
+        "toolDescription": "\"Usa esta herramienta SIEMPRE que el usuario te pregunte por métricas, reportes o estadísticas de ventas/usuarios.\" (La IA lee esta descripción para saber cuándo debe usar la herramienta).\n\nSi el usuario pide datos de un mes o año específico (ej. \"ventas de enero\", \"datos del 2024\"), DEBES usar la herramienta del dashboard enviando los parámetros de consulta correctos (ej. month=1, year=2024).\nSi el usuario te pide explícitamente \"una gráfica\", \"un gráfico\" o \"graficar\" alguna métrica, DEBES generar una imagen de QuickChart.io basada en los datos obtenidos.\nPara generar la gráfica, responde usando estrictamente este formato de Markdown: ![Título de la Gráfica](https://quickchart.io/chart?c={TU_CONFIGURACION_JSON_AQUI})\nAsegúrate de que la configuración JSON en la URL de QuickChart sea válida, usando el tipo de gráfica adecuado ('bar', 'pie', 'line'). Por ejemplo: ![Ventas](https://quickchart.io/chart?c={type:'bar',data:{labels:['Ene','Feb'],datasets:[{label:'Ventas',data:[50,60]}]}})\nPara generar la gráfica, responde usando estrictamente este formato de Markdown, envolviendo la URL en signos de menor y mayor < >: ![Título de la Gráfica](<https://quickchart.io/chart?c={TU_CONFIGURACION_JSON_AQUI}>)\nEjemplo estricto: ![Ventas](<https://quickchart.io/chart?c={type:'bar',data:{labels:['Ene','Feb'],datasets:[{label:'Ventas',data:[50,60]}]}}>)\n\"Eres el asistente inteligente del Sistema de Gestión de Muebles. SÍ TIENES CONEXIÓN EN TIEMPO REAL A LA BASE DE DATOS. Tienes acceso a la herramienta consultar_dashboard. Cada vez que el usuario te pregunte por ventas, inventario, clientes, métricas, reportes o alertas, ESTÁS OBLIGADO a usar la herramienta consultar_dashboard para obtener los datos más recientes antes de responder. Nunca digas que no tienes acceso a la base de datos.\"",
+        "url": "http://100.103.202.46:8080/api/dashboard/all",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "year",
+              "value": "={{ $fromAI('year') }}"
+            },
+            {
+              "name": "month",
+              "value": "={{ $fromAI('month') }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$json.body.token}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        656,
+        784
+      ],
+      "id": "dcb54c5b-6906-4cae-90ac-150dfbfa7605",
+      "name": "consultar_dashboard",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "28hsNq4Ioy4g5ohJ",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "SOLO DATOS DE USUARIOS LISTA O SI TE PIDE UNICAMENTE A UN USUARIO",
+        "url": "http://100.103.202.46:8080/api/usuarios",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "year",
+              "value": "={{ $fromAI('year' )}}"
+            },
+            {
+              "name": "month",
+              "value": "={{ $fromAI('month' )}}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$json.body.token}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        752,
+        544
+      ],
+      "id": "eb35235d-0867-4876-b12e-82e1ab87f300",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "28hsNq4Ioy4g5ohJ",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemma-4-31b-it",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -464,
+        576
+      ],
+      "id": "5a1957f1-f2dd-4c05-95cb-065a040544ed",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "fQPjZoV4RF6SFe2y",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "mem-admin",
+      "name": "Memory Admin",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.2,
+      "position": [
+        208,
+        264
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "mem-cliente",
+      "name": "Memory Cliente",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.2,
+      "position": [
+        288,
+        552
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "mem-guest",
+      "name": "Memory Guest",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.2,
+      "position": [
+        288,
+        824
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Usa esta herramienta para obtener el inventario (Movimientos de Inventario).",
+        "url": "http://100.103.202.46:8080/api/movimientos-inventario",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{.body.token}}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        656,
+        -100
+      ],
+      "id": "tool-admin-inv",
+      "name": "consultar_inventario",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "28hsNq4Ioy4g5ohJ",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Usa esta herramienta para obtener las producciones/fabricaciones.",
+        "url": "http://100.103.202.46:8080/api/producciones",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{.body.token}}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        656,
+        0
+      ],
+      "id": "tool-admin-prod",
+      "name": "consultar_producciones",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "28hsNq4Ioy4g5ohJ",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Usa esta herramienta OBLIGATORIAMENTE cuando el cliente pregunte por sus compras pasadas, sus ventas, sus recibos, etc.",
+        "url": "http://100.103.202.46:8080/api/ventas?filter[id_cli]={{.body.userId}}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{.body.token}}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        656,
+        350
+      ],
+      "id": "tool-cli-compras",
+      "name": "consultar_mis_compras",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "28hsNq4Ioy4g5ohJ",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Usa esta herramienta cuando el cliente quiera ver qué tiene en su carrito o favoritos.",
+        "url": "http://100.103.202.46:8080/api/favoritos?filter[id_usu]={{.body.userId}}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{.body.token}}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        656,
+        450
+      ],
+      "id": "tool-cli-carrito",
+      "name": "consultar_mi_carrito",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "28hsNq4Ioy4g5ohJ",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Base de Conocimientos. Úsala cuando el usuario pregunte por políticas, envíos, métodos de pago, devoluciones, horarios, etc.",
+        "operation": "search",
+        "documentId": {
+          "__rl": true,
+          "value": "ENTER_YOUR_SHEET_ID_HERE",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Hoja 1",
+          "mode": "name"
+        }
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.3,
+      "position": [
+        656,
+        700
+      ],
+      "id": "tool-guest-sheets",
+      "name": "FAQ_Conocimiento"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Catálogo de productos. Úsala cuando el usuario te pida ver qué muebles vendemos, precios de catálogo, etc.",
+        "url": "http://100.103.202.46:8080/api/muebles",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        656,
+        850
+      ],
+      "id": "tool-guest-catalogo",
+      "name": "consultar_catalogo"
+    }
+  ],
+  "pinData": {
+    "Webhook1": [
+      {
+        "json": {
+          "headers": {
+            "accept": "application/json, application/*+json",
+            "content-type": "application/json",
+            "user-agent": "Java/21.0.9",
+            "host": "192.168.100.36:5678",
+            "connection": "keep-alive",
+            "transfer-encoding": "chunked"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "role": "ADMINISTRADOR",
+            "message": "puedes generar un reporte del dasboard del año 2025",
+            "userName": "pakazzz",
+            "userId": 1,
+            "token": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiIxIiwiY29kX3VzdSI6IlVTVS00MiIsImVtYWlsX3VzdSI6ImNhdGxvc2xvcGV6MDRAZ21haWwuY29tIiwibm9tX3VzdSI6InBha2F6enoiLCJpZF91c3UiOjEsInBlcm1pc29zIjpbInZlcl91c3VhcmlvcyIsInZlcl9yZXBvcnRlcyIsImdlc3Rpb25hcl9wcm9kdWN0b3MiLCJnZXN0aW9uYXJfaW52ZW50YXJpbyIsImdlc3Rpb25hcl92ZW50YXMiLCJnZXN0aW9uYXJfY29tcHJhcyIsImFjY2Vzb18zZCIsImpuamJzcyIsInZlcl9jbGllbnRlcyIsInZlcl9yb2xlcyIsInZlcl9lbXBsZWFkb3MiLCJ2ZXJfcGVybWlzb3MiLCJ2ZXJfcm9sZXNfcGVybWlzb3MiLCJ2ZXJfcHJvdmVlZG9yZXMiLCJ2ZXJfbWF0ZXJpYWxlcyIsInZlcl9jYXRlZ29yaWFzX211ZWJsZXMiLCJ2ZXJfbXVlYmxlcyIsInZlcl9tdWVibGVzX21hdGVyaWFsZXMiLCJ2ZXJfZGV0YWxsZXNfY29tcHJhcyIsInZlcl92ZW50YXMiLCJ2ZXJfY290aXphY2lvbmVzIiwidmVyX2RldGFsbGVzX2NvdGl6YWNpb25lcyIsInZlciBkZXZvbHVjaW9uZXMiLCJ2ZXJfZGV0YWxsZXNfZGV2b2x1Y2lvbmVzIiwidmVyX3Byb2R1Y2Npb25lcyIsInZlcl9kZXRhbGxlc19wcm9kdWNjaW9uZXMiLCJ2ZXJfZXRhcGFzX3Byb2R1Y2Npb25lcyIsInZlcl9wcm9kdWNjaW9uZXNfZXRhcGFzIiwidmVyX2Rpc2XDsW9zIiwidmVyX2Rhc2hib2FyZCIsInZlcl9tb3ZpbWllbnRvc19pbnZlbnRhcmlvcyIsInZlcl9kZXZvbHVjaW9uZXMiLCJ2ZXJfY29tcHJhc19tYXRlcmlhbGVzIiwidmVyX25lZ29jaW8iLCJ2ZXJfZXZpZGVuY2lhc19wcm9kdWNjaW9uIiwidmVyX2Nvc3Rvc19jb3RpemFjaW9uIl0sImlkX3JvbCI6MSwiaWF0IjoxNzc3ODY5OTk4LCJleHAiOjE3Nzc4NzM1OTh9.NuGICPCyBmbXWApDyZBE_fJbQtWuYrUPFThbLu3HBeFj_BnIvZYEqdPVWxQXI0qj"
+          },
+          "webhookUrl": "http://localhost:5678/webhook/chat-ia",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Switch Rol",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Rol": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "consultar_dashboard": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memory Admin": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memory Cliente": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memory Guest": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "consultar_inventario": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "consultar_producciones": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "consultar_mis_compras": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "consultar_mi_carrito": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FAQ_Conocimiento": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "consultar_catalogo": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e8615995-6dd7-44c8-a061-6224e419a5c1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f4d350c54176d5294cba156903ed2f314f922e3a2be23d44dc0aeccdcc0f60b3"
+  },
+  "id": "12aK9icpGNuP5j6c",
+  "tags": []
+}

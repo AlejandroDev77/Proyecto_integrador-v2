@@ -22,6 +22,9 @@ public class ClienteJpaAdapter implements ClienteRepository {
 
     private final ClienteJpaRepository repository;
 
+    @jakarta.persistence.PersistenceContext
+    private jakarta.persistence.EntityManager entityManager;
+
     public ClienteJpaAdapter(ClienteJpaRepository repository) {
         this.repository = repository;
     }
@@ -56,9 +59,12 @@ public class ClienteJpaAdapter implements ClienteRepository {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public Cliente guardar(Cliente cliente) {
         ClienteEntity entity = ClienteMapper.toEntity(cliente);
-        return ClienteMapper.toDomain(repository.save(entity));
+        ClienteEntity saved = repository.saveAndFlush(entity);
+        entityManager.refresh(saved);
+        return ClienteMapper.toDomain(saved);
     }
 
     @Override

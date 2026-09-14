@@ -31,14 +31,28 @@ public class MovimientoInventarioService implements ManageMovimientoInventarioUs
 
     @Override
     public MovimientoInventario crear(MovimientoInventario movimientoinventario) {
+        if (movimientoinventario.getCodMov() == null || movimientoinventario.getCodMov().trim().isEmpty()) {
+            movimientoinventario.setCodMov("TEMP-" + System.currentTimeMillis());
+            MovimientoInventario guardado = repository.guardar(movimientoinventario);
+            guardado.setCodMov("MOV-" + guardado.getId());
+            return repository.guardar(guardado);
+        }
         return repository.guardar(movimientoinventario);
     }
 
     @Override
     public MovimientoInventario actualizar(Long id, MovimientoInventario movimientoinventario) {
         return repository.obtenerPorId(id).map(existing -> {
-            movimientoinventario.setId(id);
-            return repository.guardar(movimientoinventario);
+            existing.setTipoMov(movimientoinventario.getTipoMov());
+            existing.setFechaMov(movimientoinventario.getFechaMov());
+            existing.setCantidad(movimientoinventario.getCantidad());
+            existing.setStockAnterior(movimientoinventario.getStockAnterior());
+            existing.setStockPosterior(movimientoinventario.getStockPosterior());
+            existing.setMotivo(movimientoinventario.getMotivo());
+            existing.setEmpleado(movimientoinventario.getEmpleado());
+            existing.setMaterial(movimientoinventario.getMaterial());
+            existing.setMueble(movimientoinventario.getMueble());
+            return repository.guardar(existing);
         }).orElseThrow(() -> new MovimientoInventarioNoEncontradoException("MovimientoInventario no encontrado con ID: " + id));
     }
 

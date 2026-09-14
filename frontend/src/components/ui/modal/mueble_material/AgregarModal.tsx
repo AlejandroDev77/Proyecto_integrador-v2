@@ -441,7 +441,8 @@ export default function ModalAgregarMuebleMaterial({
         const res = await fetch(`http://localhost:8080/api/mueble?${params}`);
         const payload = await res.json();
 
-        const items = payload?.data ?? payload;
+        const realData = payload?.data && payload?.success !== undefined ? payload.data : payload;
+        const items = realData?.content || realData?.data || (Array.isArray(realData) ? realData : []);
         setMuebles(Array.isArray(items) ? items : []);
 
         if (payload?.meta || payload?.last_page) {
@@ -478,7 +479,9 @@ export default function ModalAgregarMuebleMaterial({
         );
         const payload = await res.json();
 
-        const items = payload?.data ?? payload;
+        const realData = payload?.data && payload?.success !== undefined ? payload.data : payload;
+        const items = realData?.content || realData?.data || (Array.isArray(realData) ? realData : []);
+        
         const filtered = Array.isArray(items)
           ? items.filter((m: MaterialData) => m.est_mat !== false)
           : [];
@@ -599,8 +602,8 @@ export default function ModalAgregarMuebleMaterial({
           method: "POST",
           headers,
           body: JSON.stringify({
-            id_mue: selectedMueble.id_mue,
-            id_mat: material.id_mat,
+            mueble: { id: selectedMueble.id_mue || (selectedMueble as any).id },
+            material: { id: material.id_mat || (material as any).id },
             cantidad: material.cantidad,
           }),
         });
@@ -613,7 +616,10 @@ export default function ModalAgregarMuebleMaterial({
         "http://localhost:8080/api/mueble-material"
       );
       const updatedPayload: any = await updatedRes.json();
-      const updatedItems = updatedPayload?.data ?? updatedPayload;
+      
+      const realData = updatedPayload?.data && updatedPayload?.success !== undefined ? updatedPayload.data : updatedPayload;
+      const updatedItems = realData?.content || realData?.data || (Array.isArray(realData) ? realData : []);
+      
       setMueblesMateriales(Array.isArray(updatedItems) ? updatedItems : []);
 
       Swal.fire({

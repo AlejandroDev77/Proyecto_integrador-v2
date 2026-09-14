@@ -22,7 +22,7 @@ public class EmpleadoEntity {
     private String apMatEmp;
 
     @Column(name = "cel_emp")
-    private String celEmp;
+    private Integer celEmp;
 
     @Column(name = "dir_emp")
     private String dirEmp;
@@ -62,8 +62,8 @@ public class EmpleadoEntity {
     public void setApPatEmp(String apPatEmp) { this.apPatEmp = apPatEmp; }
     public String getApMatEmp() { return apMatEmp; }
     public void setApMatEmp(String apMatEmp) { this.apMatEmp = apMatEmp; }
-    public String getCelEmp() { return celEmp; }
-    public void setCelEmp(String celEmp) { this.celEmp = celEmp; }
+    public Integer getCelEmp() { return celEmp; }
+    public void setCelEmp(Integer celEmp) { this.celEmp = celEmp; }
     public String getDirEmp() { return dirEmp; }
     public void setDirEmp(String dirEmp) { this.dirEmp = dirEmp; }
     public LocalDate getFecNacEmp() { return fecNacEmp; }

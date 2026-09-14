@@ -38,10 +38,13 @@ public class MuebleMapper {
                 entity.getNomMue(),
                 entity.getImgMue(),
                 entity.getPrecioVenta(),
+                entity.getPrecioCosto(),
                 entity.getDescMue(),
                 entity.getStock(),
+                entity.getStockMin(),
                 entity.getModelo3d(),
                 entity.getDimensiones(),
+                entity.getEstMue(),
                 categoria
         );
     }
@@ -57,10 +60,13 @@ public class MuebleMapper {
         entity.setNomMue(domain.getNombre());
         entity.setImgMue(domain.getImagen());
         entity.setPrecioVenta(domain.getPrecioVenta());
+        entity.setPrecioCosto(domain.getPrecioCosto());
         entity.setDescMue(domain.getDescripcion());
         entity.setStock(domain.getStock());
+        entity.setStockMin(domain.getStockMinimo());
         entity.setModelo3d(domain.getModelo3d());
         entity.setDimensiones(domain.getDimensiones());
+        entity.setEstMue(domain.getEstado());
         
         if (domain.getCategoria() != null) {
             entity.setCategoria(CategoriaMapper.toEntity(domain.getCategoria()));

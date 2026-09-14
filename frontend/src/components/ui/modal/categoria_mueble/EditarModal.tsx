@@ -89,8 +89,9 @@ export default function ModalEditarCategoriaMueble({
         return;
       }
 
+      const categoriaActualizada = responseData.data || responseData;
       setCategoriasMuebles((prev) =>
-        prev.map((c) => (c.id_cat === responseData.id_cat ? responseData : c))
+        prev.map((c) => (c.id_cat === categoriaActualizada.id_cat ? categoriaActualizada : c))
       );
       Swal.fire({
         icon: "success",

@@ -3,29 +3,16 @@ import { useProducciones } from "../../../hooks/producciones/useProducciones";
 import ProduccionesAdvancedFilters from "../../filters/ProduccionesAdvancedFilters";
 import SortableTableHeader from "../../ui/SortableTableHeader";
 import TableActionButtons from "../../ui/button/TableActionButtons";
-import Button from "../../ui/button/Button";
-import { Plus } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Plus, Factory, ChevronLeft, ChevronRight, Calendar, User, ShoppingBag, FileSignature, AlertCircle } from "lucide-react";
 import ModalAgregarProduccion from "../../ui/modal/produccion/AgregarModal";
 import ModalEditarProduccion from "../../ui/modal/produccion/EditarModal";
 import ModalVerProduccion from "../../ui/modal/produccion/VerDatos";
 import Badge from "../../ui/badge/Badge";
-import "react-datepicker/dist/react-datepicker.css";
-
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHeader,
-  TableRow,
-} from "../../ui/table";
-
-const textColor = "text-gray-800 dark:text-white/90";
 
 export default function Produccion() {
   const {
     setProducciones,
-    /* searchTerm,
-    setSearchTerm, */
     currentPage,
     setCurrentPage,
     itemsPerPage,
@@ -37,9 +24,9 @@ export default function Produccion() {
     setFilters,
     setSort,
   } = useProducciones();
+
   const [showModalEditar, setShowModalEditar] = useState(false);
-  const [produccionSeleccionado, setProduccionSeleccionado] =
-    useState<any>(null);
+  const [produccionSeleccionado, setProduccionSeleccionado] = useState<any>(null);
   const [showModalVer, setShowModalVer] = useState(false);
   const [currentSort, setCurrentSort] = useState<string>("");
 
@@ -47,8 +34,9 @@ export default function Produccion() {
     setCurrentSort(field);
     setSort(field);
   };
+
   const handleEliminar = async (id_pro: number) => {
-    const confirm = window.confirm("¿Estás seguro de eliminar este mueble?");
+    const confirm = window.confirm("¿Estás seguro de eliminar esta producción?");
     if (!confirm) return;
     let idUsuarioLocal = null;
     try {
@@ -64,409 +52,279 @@ export default function Produccion() {
     };
 
     try {
-      const res = await fetch(
-        `http://localhost:8080/api/produccion/${id_pro}`,
-        {
-          method: "DELETE",
-          headers,
-        }
-      );
+      const res = await fetch(`http://localhost:8080/api/produccion/${id_pro}`, {
+        method: "DELETE",
+        headers,
+      });
 
-      if (!res.ok) throw new Error("Error al eliminar mueble");
+      if (!res.ok) throw new Error("Error al eliminar producción");
 
       setProducciones((prev) => prev.filter((pro) => pro.id_pro !== id_pro));
     } catch (error) {
-      console.error("Error al eliminar mueble:", error);
-      alert("No se pudo eliminar el mueble.");
+      console.error("Error al eliminar:", error);
+      alert("No se pudo eliminar la producción.");
     }
   };
 
-  /* const descargarBackup = async () => {
-    try {
-      const response = await fetch(
-        `http://localhost:8080/api/produccion/exportar-sql`
-      );
-      if (!response.ok) throw new Error("Error al descargar el respaldo");
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "produccion-backup.sql";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Error al descargar el respaldo:", error);
-    }
-  }; */
   return (
-    <div>
-      {/* Advanced Filters */}
+    <div className="space-y-4">
       <ProduccionesAdvancedFilters onFiltersChange={setFilters} />
 
-      {/* Filtros para el reporte */}
-      {/* <div className="flex flex-wrap justify-between items-center p-4 gap-4">
-        <div className="flex flex-wrap gap-4 w-full md:w-auto"></div>
-
-        <div className="flex flex-wrap gap-4 w-full md:w-auto">
-          <button
-            onClick={generarReporte}
-            className="flex items-center gap-2 bg-teal-500 hover:bg-teal-600 text-white font-semibold px-4 py-2 rounded-md text-sm w-full md:w-auto"
-          >
-            <FaFileAlt /> Generar Reporte
-          </button>
+      {/* Barra de acciones */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-orange-500/10 text-orange-500 dark:bg-orange-400/10 dark:text-orange-400">
+            <Factory size={18} />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">Órdenes de Producción</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {paginatedData.length} registro{paginatedData.length !== 1 ? "s" : ""}
+            </p>
+          </div>
         </div>
-      </div> */}
-
-      {/* Search and Add Button */}
-      <div className="flex flex-wrap justify-between items-center p-4 gap-4">
-        <Button
+        <button
           onClick={() => setShowModalAgregar(true)}
-          startIcon={<Plus size={20} />}
-          size="sm"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 shadow-sm shadow-orange-500/20 transition-all active:scale-95"
         >
-          {""}
-        </Button>
+          <Plus size={16} />
+          Nueva orden
+        </button>
       </div>
 
-      {/* Items per page */}
-      <div className="p-4 flex flex-wrap gap-4 items-center">
-        <label
-          htmlFor="itemsPerPage"
-          className={`mr-2 ${textColor} w-full md:w-auto`}
-        >
-          Items por página:
-        </label>
-        <select
-          id="itemsPerPage"
-          value={itemsPerPage}
-          onChange={(e) => {
-            setItemsPerPage(Number(e.target.value));
-            setCurrentPage(1);
-          }}
-          className="px-2 py-1 border rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-white w-full md:w-auto"
-        >
-          <option value={5}>5</option>
-          <option value={10}>10</option>
-          <option value={20}>20</option>
-        </select>
-      </div>
-
-      {/* Table Container */}
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/5 dark:bg-white/3">
-        <div className="max-w-full overflow-x-auto">
-          <Table>
-            <TableHeader className="border-b border-gray-100 dark:border-white/5">
-              <TableRow>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="Código"
-                    sortField="cod_pro"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="Fecha Inicio"
-                    sortField="fec_ini"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="Fecha Fin"
-                    sortField="fec_fin"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  Fecha Estimada
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="Estado"
-                    sortField="est_pro"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  <SortableTableHeader
-                    label="Prioridad"
-                    sortField="prioridad"
-                    currentSort={currentSort}
-                    onSort={handleSort}
-                  />
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  Notas
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  Fecha Venta
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  Estado Venta
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  Empleado
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  Fecha Cotización
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  Estado Cotización
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className={`px-5 py-3 font-medium text-start text-theme-xs ${textColor}`}
-                >
-                  Acciones
-                </TableCell>
-              </TableRow>
-            </TableHeader>
-            <TableBody className="divide-y divide-gray-100 dark:divide-white/5">
-              {paginatedData.map((produccion) => (
-                <TableRow key={produccion.id_pro}>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {produccion.cod_pro || "sin codigo"}
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {produccion.fec_ini
-                      ? (() => {
-                          const fecha = new Date(produccion.fec_ini);
-                          fecha.setMinutes(
-                            fecha.getMinutes() + fecha.getTimezoneOffset()
-                          );
-                          return fecha.toLocaleDateString("es-ES", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          });
-                        })()
-                      : "Sin fecha"}
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {produccion.fec_fin
-                      ? (() => {
-                          const fecha = new Date(produccion.fec_fin);
-                          fecha.setMinutes(
-                            fecha.getMinutes() + fecha.getTimezoneOffset()
-                          );
-                          return fecha.toLocaleDateString("es-ES", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          });
-                        })()
-                      : "Sin fecha"}
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {produccion.fec_fin_estimada
-                      ? (() => {
-                          const fecha = new Date(produccion.fec_fin_estimada);
-                          fecha.setMinutes(
-                            fecha.getMinutes() + fecha.getTimezoneOffset()
-                          );
-                          return fecha.toLocaleDateString("es-ES", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          });
-                        })()
-                      : "Sin fecha"}
-                  </TableCell>
-                  <TableCell
-                    className={`px-4 py-3 text-start text-sm ${textColor}`}
+      {/* Tabla */}
+      <div className="overflow-hidden rounded-2xl border border-gray-200 dark:border-white/6 bg-white dark:bg-white/2">
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-100 dark:border-white/6">
+                {[
+                  { label: "Código",    field: "cod_pro" },
+                  { label: "Cronograma",field: "fec_ini" },
+                  { label: "Estado & Info", field: "est_pro" },
+                  { label: "Origen (Vta/Cot)", field: null },
+                  { label: "Responsable", field: null },
+                  { label: "Acciones",  field: null },
+                ].map(({ label, field }) => (
+                  <th
+                    key={label}
+                    className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
                   >
-                    <Badge
-                      size="sm"
-                      color={
-                        produccion.est_pro === "Completado"
-                          ? "success"
-                          : produccion.est_pro === "Cancelado"
-                          ? "error"
-                          : "warning"
-                      }
-                    >
-                      {produccion.est_pro || "Sin estado"}
-                    </Badge>
-                  </TableCell>
+                    {field ? (
+                      <SortableTableHeader
+                        label={label}
+                        sortField={field}
+                        currentSort={currentSort}
+                        onSort={handleSort}
+                      />
+                    ) : label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 dark:divide-white/4">
+              {paginatedData.length === 0 ? (
+                <tr>
+                  <td colSpan={6}>
+                    <div className="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-600">
+                      <Factory size={40} strokeWidth={1.2} className="mb-3 opacity-40" />
+                      <p className="text-sm font-medium">Sin producciones</p>
+                      <p className="text-xs mt-1 opacity-70">No se encontraron producciones con esos filtros</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                <AnimatePresence initial={false}>
+                  {paginatedData.map((pro, idx) => {
+                    const formatDate = (dateString?: string) => {
+                      if (!dateString) return "—";
+                      const date = new Date(dateString);
+                      date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+                      return date.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
+                    };
 
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {produccion.prioridad || "Sin Prioridad"}
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {produccion.notas || "Sin notas"}
-                  </TableCell>
+                    const fecIni = formatDate(pro.fec_ini);
+                    const fecFin = formatDate(pro.fec_fin);
+                    const fecEst = formatDate(pro.fec_fin_estimada);
 
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {produccion.venta?.fec_ven
-                      ? (() => {
-                          const fecha = new Date(produccion.venta?.fec_ven);
-                          fecha.setMinutes(
-                            fecha.getMinutes() + fecha.getTimezoneOffset()
-                          );
-                          return fecha.toLocaleDateString("es-ES", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          });
-                        })()
-                      : "Sin fecha"}
-                  </TableCell>
-                  <TableCell
-                    className={`px-4 py-3 text-start text-sm ${textColor}`}
-                  >
-                    <Badge
-                      size="sm"
-                      color={
-                        produccion.venta?.est_ven === "Completado"
-                          ? "success"
-                          : produccion.venta?.est_ven === "Cancelado"
-                          ? "error"
-                          : "warning"
-                      }
-                    >
-                      {produccion.venta?.est_ven || "Sin estado"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {produccion.empleado
-                      ? `${produccion.empleado.nom_emp} ${produccion.empleado.ap_pat_emp} ${produccion.empleado.ap_mat_emp}`
-                      : "Sin empleado"}
-                  </TableCell>
-                  <TableCell className={`px-5 py-4 ${textColor}`}>
-                    {produccion.cotizacion?.fec_cot
-                      ? (() => {
-                          const fecha = new Date(
-                            produccion.cotizacion?.fec_cot
-                          );
-                          fecha.setMinutes(
-                            fecha.getMinutes() + fecha.getTimezoneOffset()
-                          );
-                          return fecha.toLocaleDateString("es-ES", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          });
-                        })()
-                      : "Sin fecha"}
-                  </TableCell>
-                  <TableCell
-                    className={`px-4 py-3 text-start text-sm ${textColor}`}
-                  >
-                    <Badge
-                      size="sm"
-                      color={
-                        produccion.cotizacion?.est_cot === "Aprobado"
-                          ? "success"
-                          : produccion.cotizacion?.est_cot === "Rechazado"
-                          ? "error"
-                          : "warning"
-                      }
-                    >
-                      {produccion.cotizacion?.est_cot || "Sin estado"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-start text-sm">
-                    <TableActionButtons
-                      actions={[
-                        {
-                          type: "view",
-                          onClick: () => {
-                            setProduccionSeleccionado(produccion);
-                            setShowModalVer(true);
-                          },
-                        },
-                        {
-                          type: "edit",
-                          onClick: () => {
-                            setProduccionSeleccionado(produccion);
-                            setShowModalEditar(true);
-                          },
-                        },
-                        {
-                          type: "delete",
-                          onClick: () => handleEliminar(produccion.id_pro),
-                        },
-                      ]}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                    return (
+                      <motion.tr
+                        key={pro.id_pro}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -6 }}
+                        transition={{ duration: 0.18, delay: idx * 0.03 }}
+                        className="hover:bg-gray-50 dark:hover:bg-white/3 transition-colors"
+                      >
+                        {/* Código */}
+                        <td className="px-5 py-4">
+                          <span className="font-mono text-xs font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-white/5 px-2.5 py-1 rounded-md">
+                            {pro.cod_pro || "—"}
+                          </span>
+                        </td>
+
+                        {/* Cronograma */}
+                        <td className="px-5 py-4">
+                          <div className="flex flex-col gap-1.5 text-xs text-gray-600 dark:text-gray-300">
+                            <div className="flex items-center gap-1.5">
+                              <Calendar size={12} className="text-indigo-400" />
+                              <span>Inicio: {fecIni}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <Calendar size={12} className="text-amber-500" />
+                              <span>Est: {fecEst}</span>
+                            </div>
+                            {pro.fec_fin && (
+                              <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
+                                <Calendar size={12} />
+                                <span>Fin: {fecFin}</span>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Estado & Info */}
+                        <td className="px-5 py-4">
+                          <div className="flex flex-col gap-1.5 items-start">
+                            <div className="flex items-center gap-2">
+                              <Badge
+                                size="sm"
+                                color={
+                                  pro.est_pro === "Completado"
+                                    ? "success"
+                                    : pro.est_pro === "Cancelado"
+                                    ? "error"
+                                    : "warning"
+                                }
+                              >
+                                {pro.est_pro || "Pendiente"}
+                              </Badge>
+                              {pro.prioridad && (
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold uppercase ${
+                                  pro.prioridad === 'Alta' ? 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400' :
+                                  pro.prioridad === 'Media' ? 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400' :
+                                  'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400'
+                                }`}>
+                                  {pro.prioridad}
+                                </span>
+                              )}
+                            </div>
+                            {pro.notas && (
+                              <div className="flex gap-1 mt-1 text-[10px] text-gray-500 italic max-w-[150px]">
+                                <AlertCircle size={12} className="shrink-0 mt-0.5" />
+                                <span className="truncate" title={pro.notas}>{pro.notas}</span>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Origen (Vta/Cot) */}
+                        <td className="px-5 py-4">
+                          <div className="flex flex-col gap-1.5 text-xs text-gray-600 dark:text-gray-300">
+                            {pro.venta ? (
+                              <div className="flex flex-col gap-0.5">
+                                <div className="flex items-center gap-1.5 font-medium">
+                                  <ShoppingBag size={12} className="text-teal-500" />
+                                  <span>Venta: {formatDate(pro.venta.fec_ven)}</span>
+                                </div>
+                                <span className="text-[10px] text-gray-400 ml-4.5">{pro.venta.est_ven}</span>
+                              </div>
+                            ) : pro.cotizacion ? (
+                              <div className="flex flex-col gap-0.5">
+                                <div className="flex items-center gap-1.5 font-medium">
+                                  <FileSignature size={12} className="text-purple-500" />
+                                  <span>Cotiz: {formatDate(pro.cotizacion.fec_cot)}</span>
+                                </div>
+                                <span className="text-[10px] text-gray-400 ml-4.5">{pro.cotizacion.est_cot}</span>
+                              </div>
+                            ) : (
+                              <span className="text-gray-400 italic">Sin origen</span>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Responsable */}
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center shrink-0">
+                              <User size={12} className="text-gray-500" />
+                            </div>
+                            <span className="text-xs font-medium text-gray-800 dark:text-gray-200 truncate max-w-[130px]">
+                              {pro.empleado ? `${pro.empleado.nom_emp} ${pro.empleado.ap_pat_emp}` : "No asignado"}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Acciones */}
+                        <td className="px-5 py-4 w-32">
+                          <TableActionButtons
+                            actions={[
+                              {
+                                type: "view",
+                                onClick: () => { setProduccionSeleccionado(pro); setShowModalVer(true); },
+                              },
+                              {
+                                type: "edit",
+                                onClick: () => { setProduccionSeleccionado(pro); setShowModalEditar(true); },
+                              },
+                              {
+                                type: "delete",
+                                onClick: () => handleEliminar(pro.id_pro),
+                              },
+                            ]}
+                          />
+                        </td>
+                      </motion.tr>
+                    );
+                  })}
+                </AnimatePresence>
+              )}
+            </tbody>
+          </table>
         </div>
 
-        {/* Pagination */}
-        <div className="flex flex-wrap justify-between items-center p-4 gap-4">
-          <button
-            onClick={() => setCurrentPage(currentPage - 1)}
-            disabled={currentPage === 1}
-            className={`px-4 py-2 border rounded-md disabled:opacity-50 w-full md:w-auto ${textColor}`}
-          >
-            Anterior
-          </button>
-          <span className={`w-full text-center md:w-auto ${textColor}`}>
-            Página {currentPage} de {totalPages}
-          </span>
-          <button
-            onClick={() => setCurrentPage(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className={`px-4 py-2 border rounded-md disabled:opacity-50 w-full md:w-auto ${textColor}`}
-          >
-            Siguiente
-          </button>
+        {/* Footer paginación */}
+        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 border-t border-gray-100 dark:border-white/6 bg-gray-50/50 dark:bg-white/[0.01]">
+          <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+            <span>Página {currentPage} de {totalPages}</span>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+              className="px-2 py-1 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 text-xs focus:outline-none focus:ring-2 focus:ring-orange-400/40"
+            >
+              <option value={5}>5 / pág</option>
+              <option value={10}>10 / pág</option>
+              <option value={20}>20 / pág</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft size={14} /> Anterior
+            </button>
+            <span className="px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300">
+              {currentPage} / {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === totalPages || totalPages === 0}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Siguiente <ChevronRight size={14} />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Modals */}
+      {/* Modales */}
       <ModalAgregarProduccion
         showModal={showModalAgregar}
         setShowModal={setShowModalAgregar}
         setProducciones={setProducciones}
       />
-
       <ModalEditarProduccion
         showModal={showModalEditar}
         setShowModal={setShowModalEditar}

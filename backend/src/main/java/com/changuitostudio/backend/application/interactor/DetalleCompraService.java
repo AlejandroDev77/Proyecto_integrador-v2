@@ -31,14 +31,23 @@ public class DetalleCompraService implements ManageDetalleCompraUseCase {
 
     @Override
     public DetalleCompra crear(DetalleCompra detallecompra) {
-        return repository.guardar(detallecompra);
+        DetalleCompra guardado = repository.guardar(detallecompra);
+        if (guardado.getCodDetComp() == null || guardado.getCodDetComp().trim().isEmpty()) {
+            guardado.setCodDetComp("DTC-" + guardado.getId());
+            return repository.guardar(guardado);
+        }
+        return guardado;
     }
 
     @Override
     public DetalleCompra actualizar(Long id, DetalleCompra detallecompra) {
         return repository.obtenerPorId(id).map(existing -> {
-            detallecompra.setId(id);
-            return repository.guardar(detallecompra);
+            existing.setCompra(detallecompra.getCompra());
+            existing.setMaterial(detallecompra.getMaterial());
+            existing.setCantidad(detallecompra.getCantidad());
+            existing.setPrecioUnitario(detallecompra.getPrecioUnitario());
+            existing.setSubtotal(detallecompra.getSubtotal());
+            return repository.guardar(existing);
         }).orElseThrow(() -> new DetalleCompraNoEncontradoException("DetalleCompra no encontrado con ID: " + id));
     }
 

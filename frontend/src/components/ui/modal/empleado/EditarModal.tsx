@@ -202,6 +202,7 @@ export default function ModalEditarEmpleado({
   setEmpleados,
 }: Props) {
   const [activeTab, setActiveTab] = useState<TabType>("datos");
+  const [isChangingUsuario, setIsChangingUsuario] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState({
     nom_emp: "",
@@ -236,11 +237,11 @@ export default function ModalEditarEmpleado({
         }`
       );
       const p = await res.json();
-      setUsuarios(p?.data || []);
+      setUsuarios(p?.content || p?.data || []);
       setUsuPag({
-        currentPage: p.current_page || 1,
-        lastPage: p.last_page || 1,
-        total: p.total || 0,
+        currentPage: p.page || p.current_page || 1,
+        lastPage: p.totalPages || p.last_page || 1,
+        total: p.totalElements || p.total || 0,
       });
     } catch {
       setUsuarios([]);
@@ -272,7 +273,11 @@ export default function ModalEditarEmpleado({
         car_emp: empleadoSeleccionado.car_emp || "",
       });
       setSelectedUsuario({
-        id_usu: empleadoSeleccionado.id_usu,
+        id_usu:
+          empleadoSeleccionado.id_usu ||
+          (empleadoSeleccionado as any).usuario?.idUsu ||
+          (empleadoSeleccionado as any).usuario?.id_usu ||
+          0,
         nom_usu: empleadoSeleccionado.usuario?.nom_usu || "",
       });
     }
@@ -281,6 +286,7 @@ export default function ModalEditarEmpleado({
   const handleClose = () => {
     setShowModal(false);
     setActiveTab("datos");
+    setIsChangingUsuario(false);
     setValidationErrors(null);
     setGeneralError(null);
   };
@@ -313,7 +319,11 @@ export default function ModalEditarEmpleado({
             Accept: "application/json",
             ...(uid ? { "X-USER-ID": uid } : {}),
           },
-          body: JSON.stringify({ ...form, id_usu: selectedUsuario.id_usu }),
+          body: JSON.stringify({
+            ...form,
+            cel_emp: form.cel_emp ? parseInt(form.cel_emp) : null,
+            id_usu: selectedUsuario.id_usu,
+          }),
         }
       );
 
@@ -333,11 +343,11 @@ export default function ModalEditarEmpleado({
         return;
       }
 
-      const data = responseData?.data || responseData;
+      const actualData = responseData?.data || responseData;
       setEmpleados((prev) =>
         prev.map((e) =>
           e.id_emp === empleadoSeleccionado.id_emp
-            ? { ...data, usuario: { nom_usu: selectedUsuario.nom_usu } }
+            ? { ...actualData, usuario: { nom_usu: selectedUsuario.nom_usu } }
             : e
         )
       );
@@ -532,43 +542,72 @@ export default function ModalEditarEmpleado({
 
           {activeTab === "usuario" && (
             <div className="space-y-4">
-              <h3 className="font-semibold flex items-center gap-2">
-                <Users className="w-5 h-5 text-green-600" />
-                Cambiar Usuario
-              </h3>
-              <SearchInput
-                value={usuSearch}
-                onChange={setUsuSearch}
-                placeholder="Buscar usuario..."
-              />
-              {loadingUsu ? (
-                <div className="flex justify-center py-12">
-                  <div className="w-10 h-10 border-4 border-green-600 border-t-transparent rounded-full animate-spin" />
+              {!isChangingUsuario ? (
+                <div className="flex flex-col items-center justify-center py-10 space-y-4">
+                  <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center text-green-600">
+                    <Users className="w-10 h-10" />
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">Usuario Actual</h3>
+                    <p className="text-gray-500">{selectedUsuario?.nom_usu || "Desconocido"}</p>
+                    <p className="text-xs text-gray-400 font-mono mt-1">ID: {selectedUsuario?.id_usu}</p>
+                  </div>
+                  <button
+                    onClick={() => setIsChangingUsuario(true)}
+                    className="mt-4 px-6 py-2.5 bg-green-50 dark:bg-green-900/20 text-green-600 hover:bg-green-100 dark:hover:bg-green-900/40 rounded-xl font-medium transition-colors border border-green-200 dark:border-green-800"
+                  >
+                    Cambiar Usuario Asignado
+                  </button>
                 </div>
               ) : (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto">
-                    {usuarios.length > 0 ? (
-                      usuarios.map((u) => (
-                        <UsuarioCard
-                          key={u.id_usu}
-                          usuario={u}
-                          isSelected={selectedUsuario?.id_usu === u.id_usu}
-                          onSelect={() => setSelectedUsuario(u)}
-                        />
-                      ))
-                    ) : (
-                      <div className="col-span-2 flex flex-col items-center py-8 text-gray-500">
-                        <AlertCircle className="w-12 h-12 mb-2 opacity-50" />
-                        <p>No se encontraron usuarios</p>
-                      </div>
-                    )}
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold flex items-center gap-2">
+                      <Users className="w-5 h-5 text-green-600" />
+                      Buscar Nuevo Usuario
+                    </h3>
+                    <button
+                      onClick={() => setIsChangingUsuario(false)}
+                      className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 flex items-center gap-1"
+                    >
+                      <X className="w-4 h-4" /> Cancelar
+                    </button>
                   </div>
-                  <MiniPagination
-                    pagination={usuPag}
-                    onPageChange={(p) => fetchUsuarios(p, usuSearch)}
-                    isLoading={loadingUsu}
+                  <SearchInput
+                    value={usuSearch}
+                    onChange={setUsuSearch}
+                    placeholder="Buscar usuario..."
                   />
+                  {loadingUsu ? (
+                    <div className="flex justify-center py-12">
+                      <div className="w-10 h-10 border-4 border-green-600 border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto">
+                        {usuarios.length > 0 ? (
+                          usuarios.map((u) => (
+                            <UsuarioCard
+                              key={u.id_usu}
+                              usuario={u}
+                              isSelected={selectedUsuario?.id_usu === u.id_usu}
+                              onSelect={() => setSelectedUsuario(u)}
+                            />
+                          ))
+                        ) : (
+                          <div className="col-span-2 flex flex-col items-center py-8 text-gray-500">
+                            <AlertCircle className="w-12 h-12 mb-2 opacity-50" />
+                            <p>No se encontraron usuarios</p>
+                          </div>
+                        )}
+                      </div>
+                      <MiniPagination
+                        pagination={usuPag}
+                        onPageChange={(p) => fetchUsuarios(p, usuSearch)}
+                        isLoading={loadingUsu}
+                      />
+                    </>
+                  )}
                 </>
               )}
             </div>

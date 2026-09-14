@@ -17,4 +17,6 @@ public interface ManageMuebleUseCase {
     Mueble actualizar(Long id, Mueble mueble);
 
     void eliminar(Long id);
+
+    void cambiarEstado(Long id, boolean estado);
 }

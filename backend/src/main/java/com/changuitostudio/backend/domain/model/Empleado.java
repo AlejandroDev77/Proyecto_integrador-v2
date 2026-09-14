@@ -7,7 +7,7 @@ public class Empleado {
     private String nomEmp;
     private String apPatEmp;
     private String apMatEmp;
-    private String celEmp;
+    private Integer celEmp;
     private String dirEmp;
     private LocalDate fecNacEmp;
     private String imgEmp;
@@ -16,6 +16,7 @@ public class Empleado {
     private Usuario usuario;
     private String codEmp;
     private Boolean estEmp;
+    private Long id_usu;
 
     public Empleado() {
     }
@@ -56,11 +57,11 @@ public class Empleado {
     public void setApMatEmp(String apMatEmp) {
         this.apMatEmp = apMatEmp;
     }
-    public String getCelEmp() {
+    public Integer getCelEmp() {
         return celEmp;
     }
 
-    public void setCelEmp(String celEmp) {
+    public void setCelEmp(Integer celEmp) {
         this.celEmp = celEmp;
     }
     public String getDirEmp() {
@@ -118,5 +119,11 @@ public class Empleado {
 
     public void setEstEmp(Boolean estEmp) {
         this.estEmp = estEmp;
+    }
+    public Long getId_usu() {
+        return id_usu;
+    }
+    public void setId_usu(Long id_usu) {
+        this.id_usu = id_usu;
     }
 }

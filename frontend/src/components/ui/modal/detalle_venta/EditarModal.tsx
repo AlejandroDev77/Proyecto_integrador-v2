@@ -117,7 +117,6 @@ function MiniPagination({
   onPageChange: (p: number) => void;
   isLoading: boolean;
 }) {
-  if (pagination.lastPage <= 1) return null;
   return (
     <div className="flex items-center justify-center gap-1 mt-3 pt-2 border-t">
       <button
@@ -233,9 +232,9 @@ function MuebleCard({
         <div className="flex-1">
           <p className="text-xs text-gray-500 font-mono">{mueble.cod_mue}</p>
           <p className="font-medium text-sm truncate">{mueble.nom_mue}</p>
-          {mueble.precio_venta && (
-            <span className="text-xs text-green-600">
-              {mueble.precio_venta} Bs.
+          {(mueble.precio_mue || (mueble as any).precioVenta || (mueble as any).precio_venta) && (
+            <span className="text-xs text-green-600 font-medium">
+              {mueble.precio_mue || (mueble as any).precioVenta || (mueble as any).precio_venta} Bs.
             </span>
           )}
         </div>
@@ -285,16 +284,18 @@ export default function ModalEditarDetalleVenta({
     setLoadingVenta(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/venta?page=${page}&per_page=6${
+        `http://localhost:8080/api/ventas?page=${page}&per_page=6&filter[est_ven]=Pendiente${
           search ? `&filter[cod_ven]=${encodeURIComponent(search)}` : ""
         }`
       );
       const p = await res.json();
-      setVentas(p?.data || []);
+      const realData = p?.data && p?.success !== undefined ? p.data : p;
+      const items = realData?.content || realData?.data || (Array.isArray(realData) ? realData : []);
+      setVentas(Array.isArray(items) ? items : []);
       setVentaPag({
-        currentPage: p.current_page || 1,
-        lastPage: p.last_page || 1,
-        total: p.total || 0,
+        currentPage: realData?.page ?? realData?.current_page ?? p.current_page ?? 1,
+        lastPage: realData?.total_pages ?? realData?.last_page ?? p.last_page ?? 1,
+        total: realData?.total_elements ?? p.total ?? items.length,
       });
     } catch {
       setVentas([]);
@@ -311,11 +312,13 @@ export default function ModalEditarDetalleVenta({
         }`
       );
       const p = await res.json();
-      setMuebles(p?.data || []);
+      const realData = p?.data && p?.success !== undefined ? p.data : p;
+      const items = realData?.content || realData?.data || (Array.isArray(realData) ? realData : []);
+      setMuebles(Array.isArray(items) ? items : []);
       setMueblePag({
-        currentPage: p.current_page || 1,
-        lastPage: p.last_page || 1,
-        total: p.total || 0,
+        currentPage: realData?.page ?? realData?.current_page ?? p.current_page ?? 1,
+        lastPage: realData?.total_pages ?? realData?.last_page ?? p.last_page ?? 1,
+        total: realData?.total_elements ?? p.total ?? items.length,
       });
     } catch {
       setMuebles([]);
@@ -346,15 +349,21 @@ export default function ModalEditarDetalleVenta({
         precio_unitario: detalleSeleccionado.precio_unitario,
         descuento_item: detalleSeleccionado.descuento_item || 0,
       });
-      setSelectedVenta({
-        id_ven: detalleSeleccionado.id_ven,
-        fec_ven: detalleSeleccionado.venta?.fec_ven || "",
-        est_ven: detalleSeleccionado.venta?.est_ven || "",
-      });
-      setSelectedMueble({
-        id_mue: detalleSeleccionado.id_mue,
-        nom_mue: detalleSeleccionado.mueble?.nom_mue || "",
-      });
+      const venId = detalleSeleccionado.venta?.id_venta || detalleSeleccionado.venta?.id || detalleSeleccionado.id_ven;
+      const mueId = detalleSeleccionado.mueble?.id_mue || detalleSeleccionado.mueble?.id || detalleSeleccionado.id_mue;
+
+      if (venId) {
+        fetch(`http://localhost:8080/api/ventas/${venId}`)
+          .then((r) => r.json())
+          .then((v) => setSelectedVenta(v?.data ?? v))
+          .catch(() => {});
+      }
+      if (mueId) {
+        fetch(`http://localhost:8080/api/mueble/${mueId}`)
+          .then((r) => r.json())
+          .then((m) => setSelectedMueble(m?.data ?? m))
+          .catch(() => {});
+      }
     }
   }, [detalleSeleccionado]);
 
@@ -384,8 +393,9 @@ export default function ModalEditarDetalleVenta({
     } catch {}
 
     try {
+      const detailId = detalleSeleccionado.id_det_ven || (detalleSeleccionado as any).id;
       const res = await fetch(
-        `http://localhost:8080/api/detalle-venta/${detalleSeleccionado.id_det_ven}`,
+        `http://localhost:8080/api/detalle-ventas/${detailId}`,
         {
           method: "PUT",
           headers: {
@@ -398,8 +408,8 @@ export default function ModalEditarDetalleVenta({
             precio_unitario: form.precio_unitario,
             descuento_item: form.descuento_item,
             subtotal,
-            id_ven: selectedVenta.id_ven,
-            id_mue: selectedMueble.id_mue,
+            venta: { id: selectedVenta.id_ven || (selectedVenta as any).id || (selectedVenta as any).id_venta },
+            mueble: { id: selectedMueble.id_mue || (selectedMueble as any).id },
           }),
         }
       );
@@ -422,16 +432,17 @@ export default function ModalEditarDetalleVenta({
         return;
       }
 
+      const data = responseData?.data || responseData;
       setDetallesVentas((prev) =>
         prev.map((d) =>
-          d.id_det_ven === detalleSeleccionado.id_det_ven
+          (d.id_det_ven || (d as any).id) === (detalleSeleccionado.id_det_ven || (detalleSeleccionado as any).id)
             ? {
-                ...responseData,
+                ...data,
                 venta: {
                   fec_ven: selectedVenta.fec_ven,
                   est_ven: selectedVenta.est_ven,
                 },
-                mueble: { nom_mue: selectedMueble.nom_mue },
+                mueble: { nombre: selectedMueble.nom_mue || (selectedMueble as any).nombre },
               }
             : d
         )
@@ -536,13 +547,8 @@ export default function ModalEditarDetalleVenta({
                     type="number"
                     step="0.01"
                     value={form.precio_unitario}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        precio_unitario: Number(e.target.value),
-                      })
-                    }
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-amber-500"
+                    readOnly
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-500 cursor-not-allowed focus:ring-0"
                   />
                 </div>
                 <div>
@@ -620,15 +626,25 @@ export default function ModalEditarDetalleVenta({
               ) : (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto">
-                    {ventas.length > 0 ? (
-                      ventas.map((v) => (
+                    {ventas.length > 0 || selectedVenta ? (
+                      <>
+                        {selectedVenta && !ventas.some(v => (v.id_venta || (v as any).id || (v as any).id_ven) === (selectedVenta.id_venta || (selectedVenta as any).id || (selectedVenta as any).id_ven)) && (
+                          <VentaCard
+                            key="selected-venta"
+                            venta={selectedVenta}
+                            isSelected={true}
+                            onSelect={() => setSelectedVenta(selectedVenta)}
+                          />
+                        )}
+                      {ventas.map((v, i) => (
                         <VentaCard
-                          key={v.id_ven}
+                          key={v.id_venta || (v as any).id || (v as any).id_ven || i}
                           venta={v}
-                          isSelected={selectedVenta?.id_ven === v.id_ven}
+                          isSelected={!!selectedVenta && (selectedVenta.id_venta || (selectedVenta as any).id || (selectedVenta as any).id_ven) === (v.id_venta || (v as any).id || (v as any).id_ven)}
                           onSelect={() => setSelectedVenta(v)}
                         />
-                      ))
+                      ))}
+                      </>
                     ) : (
                       <div className="col-span-2 flex flex-col items-center py-8 text-gray-500">
                         <AlertCircle className="w-12 h-12 mb-2 opacity-50" />
@@ -664,15 +680,33 @@ export default function ModalEditarDetalleVenta({
               ) : (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto">
-                    {muebles.length > 0 ? (
-                      muebles.map((m) => (
+                    {muebles.length > 0 || selectedMueble ? (
+                      <>
+                        {selectedMueble && !muebles.some(m => (m.id_mue || (m as any).id) === (selectedMueble.id_mue || (selectedMueble as any).id)) && (
+                          <MuebleCard
+                            key="selected-mueble"
+                            mueble={selectedMueble}
+                            isSelected={true}
+                            onSelect={() => {
+                              setSelectedMueble(selectedMueble);
+                              const price = selectedMueble.precio_mue || (selectedMueble as any).precioVenta || (selectedMueble as any).precio_venta || 0;
+                              setForm(f => ({ ...f, precio_unitario: price }));
+                            }}
+                          />
+                        )}
+                      {muebles.map((m, i) => (
                         <MuebleCard
-                          key={m.id_mue}
+                          key={m.id_mue || (m as any).id || i}
                           mueble={m}
-                          isSelected={selectedMueble?.id_mue === m.id_mue}
-                          onSelect={() => setSelectedMueble(m)}
+                          isSelected={!!selectedMueble && (selectedMueble.id_mue || (selectedMueble as any).id) === (m.id_mue || (m as any).id)}
+                          onSelect={() => {
+                            setSelectedMueble(m);
+                            const price = m.precio_mue || (m as any).precioVenta || (m as any).precio_venta || 0;
+                            setForm(f => ({ ...f, precio_unitario: price }));
+                          }}
                         />
-                      ))
+                      ))}
+                      </>
                     ) : (
                       <div className="col-span-2 flex flex-col items-center py-8 text-gray-500">
                         <AlertCircle className="w-12 h-12 mb-2 opacity-50" />

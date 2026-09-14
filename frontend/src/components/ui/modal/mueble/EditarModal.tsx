@@ -283,7 +283,7 @@ export default function ModalEditarMueble({
         est_mue: muebleSeleccionado.est_mue,
       });
       setSelectedCategoria({
-        id_cat: muebleSeleccionado.id_cat,
+        id_cat: muebleSeleccionado.categoria?.id_cat || muebleSeleccionado.id_cat || 0,
         nom_cat: muebleSeleccionado.categoria?.nom_cat || "",
       });
       setImgFile(null);
@@ -332,14 +332,13 @@ export default function ModalEditarMueble({
       formData.append("dimensiones", form.dimensiones);
       formData.append("est_mue", form.est_mue ? "1" : "0");
       formData.append("id_cat", String(selectedCategoria.id_cat));
-      formData.append("_method", "PUT");
       if (imgFile) formData.append("img_mue", imgFile);
       if (modelo3dFile) formData.append("modelo_3d", modelo3dFile);
 
       const res = await fetch(
         `http://localhost:8080/api/mueble/${muebleSeleccionado.id_mue}`,
         {
-          method: "POST",
+          method: "PUT",
           headers: {
             Accept: "application/json",
             ...(uid ? { "X-USER-ID": uid } : {}),
@@ -583,15 +582,24 @@ export default function ModalEditarMueble({
                   />
                 </div>
               </div>
-              <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-200">
-                <div className="flex items-center gap-2 mb-1">
-                  <FolderTree className="w-5 h-5 text-indigo-600" />
-                  <span className="text-sm font-medium">Categoría actual</span>
+              <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-200 flex justify-between items-center">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <FolderTree className="w-5 h-5 text-indigo-600" />
+                    <span className="text-sm font-medium">Categoría actual</span>
+                  </div>
+                  <p className="font-bold text-indigo-600">
+                    {selectedCategoria?.nom_cat ||
+                      `ID: ${selectedCategoria?.id_cat}`}
+                  </p>
                 </div>
-                <p className="font-bold text-indigo-600">
-                  {selectedCategoria?.nom_cat ||
-                    `ID: ${selectedCategoria?.id_cat}`}
-                </p>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("categoria")}
+                  className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                  Cambiar
+                </button>
               </div>
             </div>
           )}
@@ -614,6 +622,15 @@ export default function ModalEditarMueble({
               ) : (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto">
+                    {/* Mostrar la categoría seleccionada siempre arriba si existe */}
+                    {selectedCategoria && !categorias.some(c => c.id_cat === selectedCategoria.id_cat) && (
+                      <CategoriaCard
+                        key={`sel-${selectedCategoria.id_cat}`}
+                        categoria={selectedCategoria}
+                        isSelected={true}
+                        onSelect={() => {}}
+                      />
+                    )}
                     {categorias.length > 0 ? (
                       categorias.map((c) => (
                         <CategoriaCard
@@ -624,10 +641,12 @@ export default function ModalEditarMueble({
                         />
                       ))
                     ) : (
-                      <div className="col-span-2 flex flex-col items-center py-8 text-gray-500">
-                        <AlertCircle className="w-12 h-12 mb-2 opacity-50" />
-                        <p>No se encontraron categorías</p>
-                      </div>
+                      !selectedCategoria && (
+                        <div className="col-span-2 flex flex-col items-center py-8 text-gray-500">
+                          <AlertCircle className="w-12 h-12 mb-2 opacity-50" />
+                          <p>No se encontraron categorías</p>
+                        </div>
+                      )
                     )}
                   </div>
                   <MiniPagination

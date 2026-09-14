@@ -292,19 +292,17 @@ export default function ModalAgregarDiseño({
         });
         if (search) params.append("filter[cod_cot]", search);
         const res = await fetch(
-          `http://localhost:8080/api/cotizacion?${params}`
+          `http://localhost:8080/api/cotizaciones?${params}`
         );
         const payload = await res.json();
-        const items = payload?.data ?? payload;
+        const realData = payload?.data && payload?.success !== undefined ? payload.data : payload;
+        const items = realData?.content || realData?.data || (Array.isArray(realData) ? realData : []);
         setCotizaciones(Array.isArray(items) ? items : []);
-        if (payload?.meta || payload?.last_page) {
-          setCotizacionesPagination({
-            currentPage:
-              payload?.meta?.current_page ?? payload?.current_page ?? page,
-            lastPage: payload?.meta?.last_page ?? payload?.last_page ?? 1,
-            total: payload?.meta?.total ?? payload?.total ?? items.length,
-          });
-        }
+        setCotizacionesPagination({
+          currentPage: realData?.page ?? realData?.current_page ?? page,
+          lastPage: realData?.total_pages ?? realData?.last_page ?? 1,
+          total: realData?.totalElements ?? realData?.total ?? items.length,
+        });
       } catch {
         setCotizaciones([]);
       } finally {
@@ -353,7 +351,7 @@ export default function ModalAgregarDiseño({
       const formData = new FormData();
       formData.append("nom_dis", form.nom_dis);
       formData.append("desc_dis", form.desc_dis);
-      formData.append("id_cot", selectedCotizacion.id_cot.toString());
+      formData.append("id_cot", (selectedCotizacion.id_cot || (selectedCotizacion as any).id).toString());
       if (imgFile) formData.append("img_dis", imgFile);
       if (archivo3dFile) formData.append("archivo_3d", archivo3dFile);
 
@@ -367,17 +365,16 @@ export default function ModalAgregarDiseño({
       const headers: Record<string, string> = {};
       if (idUsuarioLocal) headers["X-USER-ID"] = idUsuarioLocal;
 
-      const res = await fetch("http://localhost:8080/api/diseño", {
+      const res = await fetch("http://localhost:8080/api/disenos", {
         method: "POST",
         headers,
         body: formData,
       });
       if (!res.ok) throw new Error("Error al crear diseño");
 
-      const updatedRes = await fetch("http://localhost:8080/api/diseño");
-      const updatedPayload: any = await updatedRes.json();
-      const updatedItems = updatedPayload?.data ?? updatedPayload;
-      setDiseños(Array.isArray(updatedItems) ? updatedItems : []);
+      const createdPayload = await res.json();
+      const createdItem = createdPayload?.data ?? createdPayload;
+      setDiseños((prev) => [createdItem, ...prev]);
 
       Swal.fire({
         icon: "success",
@@ -455,11 +452,11 @@ export default function ModalAgregarDiseño({
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[350px] overflow-y-auto">
                     {cotizaciones.length > 0 ? (
-                      cotizaciones.map((c) => (
+                      cotizaciones.map((c, idx) => (
                         <CotizacionCard
-                          key={c.id_cot}
+                          key={c.id_cot || c.id || idx}
                           cotizacion={c}
-                          isSelected={selectedCotizacion?.id_cot === c.id_cot}
+                          isSelected={(selectedCotizacion?.id_cot || (selectedCotizacion as any)?.id) === (c.id_cot || c.id)}
                           onSelect={() => setSelectedCotizacion(c)}
                         />
                       ))

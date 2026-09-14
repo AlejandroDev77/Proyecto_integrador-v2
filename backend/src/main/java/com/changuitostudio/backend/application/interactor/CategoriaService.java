@@ -33,7 +33,12 @@ public class CategoriaService implements ManageCategoriaUseCase {
 
     @Override
     public Categoria crear(Categoria categoria) {
-        return categoriaRepository.guardar(categoria);
+        Categoria guardado = categoriaRepository.guardar(categoria);
+        if (guardado.getCodigo() == null || guardado.getCodigo().trim().isEmpty()) {
+            guardado.setCodigo("CAT-" + guardado.getId());
+            guardado = categoriaRepository.guardar(guardado);
+        }
+        return guardado;
     }
 
     @Override
@@ -43,6 +48,10 @@ public class CategoriaService implements ManageCategoriaUseCase {
 
         if (categoria.getNombre() != null) {
             existente.setNombre(categoria.getNombre());
+        }
+        
+        if (categoria.getDescripcion() != null) {
+            existente.setDescripcion(categoria.getDescripcion());
         }
 
         if (categoria.getEstado() != null) {

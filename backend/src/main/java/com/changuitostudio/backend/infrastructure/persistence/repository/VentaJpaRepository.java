@@ -3,6 +3,8 @@ package com.changuitostudio.backend.infrastructure.persistence.repository;
 import com.changuitostudio.backend.infrastructure.persistence.entity.VentaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -19,4 +21,6 @@ public interface VentaJpaRepository extends JpaRepository<VentaEntity, Long>, Jp
      * Cuenta las ventas realizadas en una fecha específica
      */
     long countByFecVen(LocalDate fecVen);
+
+    Page<VentaEntity> findByClienteId(Long clienteId, Pageable pageable);
 }

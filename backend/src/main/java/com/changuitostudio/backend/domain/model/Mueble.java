@@ -7,10 +7,13 @@ public class Mueble {
     private String nombre;
     private String imagen;
     private Double precioVenta;
+    private Double precioCosto;
     private String descripcion;
     private Integer stock;
+    private Integer stockMinimo;
     private String modelo3d;
     private String dimensiones;
+    private Boolean estado;
     private Categoria categoria;
 
     public Mueble() {
@@ -24,17 +27,20 @@ public class Mueble {
         this.precioVenta = precioVenta;
     }
 
-    public Mueble(Long id, String codigo, String nombre, String imagen, Double precioVenta, 
-                  String descripcion, Integer stock, String modelo3d, String dimensiones, Categoria categoria) {
+    public Mueble(Long id, String codigo, String nombre, String imagen, Double precioVenta, Double precioCosto,
+                  String descripcion, Integer stock, Integer stockMinimo, String modelo3d, String dimensiones, Boolean estado, Categoria categoria) {
         this.id = id;
         this.codigo = codigo;
         this.nombre = nombre;
         this.imagen = imagen;
         this.precioVenta = precioVenta;
+        this.precioCosto = precioCosto;
         this.descripcion = descripcion;
         this.stock = stock;
+        this.stockMinimo = stockMinimo;
         this.modelo3d = modelo3d;
         this.dimensiones = dimensiones;
+        this.estado = estado;
         this.categoria = categoria;
     }
 
@@ -110,12 +116,36 @@ public class Mueble {
         this.dimensiones = dimensiones;
     }
 
+    public Boolean getEstado() {
+        return estado;
+    }
+
+    public void setEstado(Boolean estado) {
+        this.estado = estado;
+    }
+
     public Categoria getCategoria() {
         return categoria;
     }
 
     public void setCategoria(Categoria categoria) {
         this.categoria = categoria;
+    }
+
+    public Double getPrecioCosto() {
+        return precioCosto;
+    }
+
+    public void setPrecioCosto(Double precioCosto) {
+        this.precioCosto = precioCosto;
+    }
+
+    public Integer getStockMinimo() {
+        return stockMinimo;
+    }
+
+    public void setStockMinimo(Integer stockMinimo) {
+        this.stockMinimo = stockMinimo;
     }
 
     @Override
@@ -143,6 +173,7 @@ public class Mueble {
                 ", stock=" + stock +
                 ", modelo3d='" + modelo3d + '\'' +
                 ", dimensiones='" + dimensiones + '\'' +
+                ", estado=" + estado +
                 ", categoria=" + categoria +
                 '}';
     }

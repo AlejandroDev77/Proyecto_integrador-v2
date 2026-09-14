@@ -17,7 +17,7 @@ export interface Message {
 
 export const useChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [shouldShow, setShouldShow] = useState(false);
+  const [shouldShow, setShouldShow] = useState(true);
   const [messages, setMessages] = useState<Message[]>([
     { id: 1, text: "¡Hola! Soy tu asistente virtual. ¿En qué puedo ayudarte?", sender: "bot" },
   ]);
@@ -26,23 +26,8 @@ export const useChatbot = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Decodificar el token para ver si es el rol 1 o 2
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setShouldShow(false); // Ocultar para visitantes
-      return;
-    }
-    
-    try {
-      const decoded = jwtDecode<CustomJwtPayload>(token);
-      if (decoded.id_rol === 1 || decoded.id_rol === 2) {
-        setShouldShow(true);
-      } else {
-        setShouldShow(false);
-      }
-    } catch (e) {
-      setShouldShow(false);
-    }
+    // El chatbot ahora es público y se muestra en todas las páginas, incluido el landing page.
+    setShouldShow(true);
   }, []);
 
   const toggleChat = () => setIsOpen(!isOpen);

@@ -31,14 +31,28 @@ public class DisenoService implements ManageDisenoUseCase {
 
     @Override
     public Diseno crear(Diseno diseno) {
+        if (diseno.getCodDis() == null || diseno.getCodDis().trim().isEmpty()) {
+            diseno.setCodDis("TEMP-" + System.currentTimeMillis());
+            Diseno guardado = repository.guardar(diseno);
+            guardado.setCodDis("DIS-" + guardado.getId());
+            return repository.guardar(guardado);
+        }
         return repository.guardar(diseno);
     }
 
     @Override
     public Diseno actualizar(Long id, Diseno diseno) {
         return repository.obtenerPorId(id).map(existing -> {
-            diseno.setId(id);
-            return repository.guardar(diseno);
+            existing.setNomDis(diseno.getNomDis());
+            existing.setDescDis(diseno.getDescDis());
+            existing.setCotizacion(diseno.getCotizacion());
+            if (diseno.getImgDis() != null) {
+                existing.setImgDis(diseno.getImgDis());
+            }
+            if (diseno.getArchivo3d() != null) {
+                existing.setArchivo3d(diseno.getArchivo3d());
+            }
+            return repository.guardar(existing);
         }).orElseThrow(() -> new DisenoNoEncontradoException("Diseno no encontrado con ID: " + id));
     }
 

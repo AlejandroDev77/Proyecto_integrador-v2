@@ -84,7 +84,6 @@ function MiniPagination({
   onPageChange: (p: number) => void;
   isLoading: boolean;
 }) {
-  if (pagination.lastPage <= 1) return null;
   return (
     <div className="flex items-center justify-center gap-1 mt-3 pt-2 border-t border-gray-200 dark:border-gray-700">
       <button
@@ -209,20 +208,20 @@ const ModalEditarPago: React.FC<Props> = ({
   const fetchVentas = useCallback(async (page = 1, search = "") => {
     setLoadingVenta(true);
     try {
-      const url = `http://localhost:8080/api/venta?page=${page}&per_page=6${
-        search ? `&search=${encodeURIComponent(search)}` : ""
+      const url = `http://localhost:8080/api/ventas?page=${page}&per_page=6&filter[est_ven]=Pendiente${
+        search ? `&filter[cod_ven]=${encodeURIComponent(search)}` : ""
       }`;
       const res = await fetch(url);
       const payload = await res.json();
-      if (payload?.data) {
-        setVentas(payload.data);
+      const data = payload?.data ?? payload;
+      const items = data?.content ?? data?.data ?? data;
+      setVentas(Array.isArray(items) ? items : []);
+      if (data) {
         setVentaPagination({
-          currentPage: payload.current_page || 1,
-          lastPage: payload.last_page || 1,
-          total: payload.total || 0,
+          currentPage: data.page ?? data.current_page ?? page,
+          lastPage: data.total_pages ?? data.last_page ?? 1,
+          total: data.total_elements ?? data.total ?? (Array.isArray(items) ? items.length : 0),
         });
-      } else {
-        setVentas(Array.isArray(payload) ? payload : []);
       }
     } catch {
       setVentas([]);
@@ -250,8 +249,9 @@ const ModalEditarPago: React.FC<Props> = ({
         referencia: pagoSeleccionado.referencia_pag || "",
         monto: pagoSeleccionado.monto || 0,
       });
-      if (pagoSeleccionado.id_ven) {
-        fetch(`http://localhost:8080/api/venta/${pagoSeleccionado.id_ven}`)
+      const idVenta = pagoSeleccionado.id_ven || (pagoSeleccionado.venta as any)?.id_ven || (pagoSeleccionado.venta as any)?.id;
+      if (idVenta) {
+        fetch(`http://localhost:8080/api/ventas/${idVenta}`)
           .then((r) => r.json())
           .then((v) => setSelectedVenta(v?.data ?? v))
           .catch(() => {});
@@ -280,8 +280,9 @@ const ModalEditarPago: React.FC<Props> = ({
     }
 
     try {
+      const idPago = pagoSeleccionado.id_pag || (pagoSeleccionado as any).id;
       const res = await fetch(
-        `http://localhost:8080/api/pago/${pagoSeleccionado.id_pag}`,
+        `http://localhost:8080/api/pagos/${idPago}`,
         {
           method: "PUT",
           headers: {
@@ -293,8 +294,8 @@ const ModalEditarPago: React.FC<Props> = ({
             fec_pag: form.fecha,
             metodo_pag: form.metodo,
             referencia_pag: form.referencia,
-            monto: form.monto,
-            id_ven: selectedVenta.id_ven,
+            monto: parseFloat(form.monto as string),
+            venta: { id: selectedVenta.id_ven || (selectedVenta as any).id },
           }),
         }
       );
@@ -318,7 +319,7 @@ const ModalEditarPago: React.FC<Props> = ({
       const data = responseData?.data ?? responseData;
       setPagos((prev) =>
         prev.map((p) =>
-          p.id_pag === data.id_pag
+          (p.id_pag || (p as any).id) === (data.id_pag || data.id)
             ? {
                 ...data,
                 venta: {
@@ -527,10 +528,13 @@ const ModalEditarPago: React.FC<Props> = ({
                 ) : (
                   ventas.map((v) => (
                     <VentaCard
-                      key={v.id_ven}
+                      key={v.id_ven || (v as any).id}
                       venta={v}
-                      isSelected={selectedVenta?.id_ven === v.id_ven}
-                      onSelect={() => setSelectedVenta(v)}
+                      isSelected={!!selectedVenta && (selectedVenta.id_ven || (selectedVenta as any).id) === (v.id_ven || (v as any).id)}
+                      onSelect={() => {
+                        setSelectedVenta(v);
+                        setForm({ ...form, monto: v.total_ven || 0 });
+                      }}
                     />
                   ))
                 )}
