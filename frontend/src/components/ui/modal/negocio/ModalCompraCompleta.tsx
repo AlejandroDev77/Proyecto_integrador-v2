@@ -46,7 +46,7 @@ interface Props {
   setShowModal: (show: boolean) => void;
 }
 
-const API = "http://localhost:8080/api";
+const API = "/api";
 
 function StepIndicator({
   currentStep,

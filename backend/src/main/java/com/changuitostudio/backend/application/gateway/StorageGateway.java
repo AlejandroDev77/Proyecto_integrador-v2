@@ -10,6 +10,14 @@ public interface StorageGateway {
      * @return URL completa del archivo.
      */
     String save(MultipartFile archivo, String folder);
+
+    /**
+     * Guarda un archivo con un nombre legible. La implementación añade un
+     * sufijo único para evitar sobrescrituras.
+     */
+    default String save(MultipartFile archivo, String folder, String nombreBase) {
+        return save(archivo, folder);
+    }
     
     /**
      * Elimina un archivo dado su path relativo o URL.

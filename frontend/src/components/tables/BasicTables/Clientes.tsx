@@ -65,7 +65,7 @@ export default function Clientes() {
       ...(idUsuarioLocal ? { "X-USER-ID": idUsuarioLocal } : {}),
     };
     try {
-      const res = await fetch(`http://localhost:8080/api/clientes/${id_cli}`, {
+      const res = await fetch(`/api/clientes/${id_cli}`, {
         method: "DELETE",
         headers,
       });

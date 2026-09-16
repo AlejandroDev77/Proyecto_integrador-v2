@@ -64,7 +64,7 @@ export default function Pagos() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8080/api/pagos/${id_pag}`, {
+      const res = await fetch(`/api/pagos/${id_pag}`, {
         method: "DELETE",
         headers,
       });

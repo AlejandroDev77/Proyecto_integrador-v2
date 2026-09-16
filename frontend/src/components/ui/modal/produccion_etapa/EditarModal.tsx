@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
+import { normalizePageResponse } from "../../../../utils/pagination";
 import {
   Cog,
   Factory,
@@ -350,12 +350,12 @@ export default function ModalEditarProduccionEtapa({
     setLoadingProd(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/produccion?page=${page}&per_page=6${
+        `/api/produccion?page=${page}&per_page=6${
           search ? `&filter[cod_pro]=${encodeURIComponent(search)}` : ""
         }`
       );
       const p = await res.json();
-      setProducciones(p?.data || []);
+      setProducciones(normalizePageResponse<Produccion>(p).items);
       setProdPag({
         currentPage: p.current_page || 1,
         lastPage: p.last_page || 1,
@@ -371,12 +371,12 @@ export default function ModalEditarProduccionEtapa({
     setLoadingEtapa(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/etapa-produccion?page=${page}&per_page=6${
+        `/api/etapa-produccion?page=${page}&per_page=6${
           search ? `&filter[nom_eta]=${encodeURIComponent(search)}` : ""
         }`
       );
       const p = await res.json();
-      setEtapas(p?.data || []);
+      setEtapas(normalizePageResponse<EtapaProduccion>(p).items);
       setEtapaPag({
         currentPage: p.current_page || 1,
         lastPage: p.last_page || 1,
@@ -392,12 +392,12 @@ export default function ModalEditarProduccionEtapa({
     setLoadingEmp(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/empleados?page=${page}&per_page=6${
+        `/api/empleados?page=${page}&per_page=6${
           search ? `&filter[nom_emp]=${encodeURIComponent(search)}` : ""
         }`
       );
       const p = await res.json();
-      setEmpleados(p?.data || []);
+      setEmpleados(normalizePageResponse<Empleado>(p).items);
       setEmpPag({
         currentPage: p.current_page || 1,
         lastPage: p.last_page || 1,
@@ -473,14 +473,14 @@ export default function ModalEditarProduccionEtapa({
     setErrorMsg("");
     let uid = null;
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        uid = (jwtDecode(token) as any).id_usu;
+        uid = (JSON.parse(token) as any).id_usu;
       }
     } catch {}
     try {
       const res = await fetch(
-        `http://localhost:8080/api/produccion-etapa/${produccionetapaSeleccionado.id_pro_eta}`,
+        `/api/produccion-etapa/${produccionetapaSeleccionado.id_pro_eta}`,
         {
           method: "PUT",
           headers: {
@@ -714,7 +714,7 @@ export default function ModalEditarProduccionEtapa({
                         <ProduccionCard
                           key={p.id_pro}
                           produccion={p}
-                          isSelected={selectedProduccion?.id_pro === p.id_pro}
+                          isSelected={!!selectedProduccion && selectedProduccion.id_pro === p.id_pro}
                           onSelect={() => setSelectedProduccion(p)}
                         />
                       ))
@@ -758,7 +758,7 @@ export default function ModalEditarProduccionEtapa({
                         <EtapaCard
                           key={e.id_eta}
                           etapa={e}
-                          isSelected={selectedEtapa?.id_eta === e.id_eta}
+                          isSelected={!!selectedEtapa && selectedEtapa.id_eta === e.id_eta}
                           onSelect={() => setSelectedEtapa(e)}
                         />
                       ))
@@ -802,7 +802,7 @@ export default function ModalEditarProduccionEtapa({
                         <EmpleadoCard
                           key={e.id_emp}
                           empleado={e}
-                          isSelected={selectedEmpleado?.id_emp === e.id_emp}
+                          isSelected={!!selectedEmpleado && selectedEmpleado.id_emp === e.id_emp}
                           onSelect={() => setSelectedEmpleado(e)}
                         />
                       ))

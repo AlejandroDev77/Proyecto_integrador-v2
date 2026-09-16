@@ -11,34 +11,34 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/chat")
-@CrossOrigin(origins = "*")
 public class ChatController {
 
     private final ManageUsuarioUseCase manageUsuarioUseCase;
     private final RestTemplate restTemplate;
+    private final String webhookUrl;
 
-    public ChatController(ManageUsuarioUseCase manageUsuarioUseCase) {
+    public ChatController(ManageUsuarioUseCase manageUsuarioUseCase, RestTemplate restTemplate,
+                          @Value("${app.chat.webhook-url}") String webhookUrl) {
         this.manageUsuarioUseCase = manageUsuarioUseCase;
-        this.restTemplate = new RestTemplate();
+        this.restTemplate = restTemplate;
+        this.webhookUrl = webhookUrl;
     }
 
     @PostMapping("/message")
-    public ResponseEntity<?> sendMessageToAI(@RequestBody ChatRequest request, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<?> sendMessageToAI(@Valid @RequestBody ChatRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        String rol = "GUEST";
+        String rol = "USUARIO";
         Long userId = null;
-        String nomUsu = "Visitante";
-
-        // Extraemos el token original para que n8n pueda usarlo
-        String authHeader = httpServletRequest.getHeader("Authorization");
-        String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+        String nomUsu = "Usuario";
 
         // Verificamos si hay un usuario autenticado
         if (authentication != null && authentication.isAuthenticated()
@@ -77,23 +77,15 @@ public class ChatController {
         n8nPayload.put("role", rol);
         n8nPayload.put("userId", userId);
         n8nPayload.put("userName", nomUsu);
-        n8nPayload.put("token", token); // Pasamos el token a n8n
 
         // Llamada al webhook de n8n (Apunta a la IP de tu Máquina Virtual en
         // producción)
-        String n8nWebhookUrl = "https://n8n-server.taila404c6.ts.net/webhook/chat-ia";
-
         try {
             // Se hace la petición POST a n8n
-            ResponseEntity<Map> n8nResponse = restTemplate.postForEntity(n8nWebhookUrl, n8nPayload, Map.class);
+            ResponseEntity<Map> n8nResponse = restTemplate.postForEntity(webhookUrl, n8nPayload, Map.class);
             return ResponseEntity.ok(n8nResponse.getBody());
         } catch (Exception e) {
-            // Si n8n no está corriendo, devolvemos un mensaje de prueba para que React no
-            // falle
-            Map<String, String> mockResponse = new HashMap<>();
-            mockResponse.put("reply", "Hola, soy el asistente mock (" + rol + "). Recibí tu mensaje: '"
-                    + request.getMessage() + "'. Para tener respuestas reales debes iniciar n8n.");
-            return ResponseEntity.ok(mockResponse);
+            return ResponseEntity.status(502).body(Map.of("message", "El asistente no está disponible temporalmente."));
         }
     }
 }

@@ -11,15 +11,20 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
+import com.changuitostudio.backend.shared.UploadValidator;
+import com.changuitostudio.backend.infrastructure.persistence.repository.EmpleadoJpaRepository;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/evidencias-produccion")
 public class EvidenciaProduccionController {
 
     private final ManageEvidenciaProduccionUseCase manageEvidenciaProduccionUseCase;
+    private final EmpleadoJpaRepository empleadoRepository;
 
-    public EvidenciaProduccionController(ManageEvidenciaProduccionUseCase manageEvidenciaProduccionUseCase) {
+    public EvidenciaProduccionController(ManageEvidenciaProduccionUseCase manageEvidenciaProduccionUseCase, EmpleadoJpaRepository empleadoRepository) {
         this.manageEvidenciaProduccionUseCase = manageEvidenciaProduccionUseCase;
+        this.empleadoRepository = empleadoRepository;
     }
 
     @GetMapping
@@ -64,8 +69,15 @@ public class EvidenciaProduccionController {
             @RequestParam("id_pro_eta") Long idProEta,
             @RequestParam("tipo_evi") String tipoEvi,
             @RequestParam(value = "descripcion", required = false) String descripcion,
-            @RequestParam("id_emp") Long idEmp
+            @RequestParam(value = "id_emp", required = false) Long requestedEmployeeId,
+            Authentication authentication
     ) {
+        UploadValidator.evidence(archivo);
+        Long userId = Long.parseLong(authentication.getName());
+        Long idEmp = empleadoRepository.findByUsuarioIdUsu(userId).map(e -> e.getId()).orElse(null);
+        boolean admin = authentication.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+        if (idEmp == null && admin) idEmp = requestedEmployeeId;
+        if (idEmp == null) throw new IllegalArgumentException("El usuario autenticado no tiene un empleado asociado.");
         EvidenciaProduccion creado = manageEvidenciaProduccionUseCase.subirEvidencia(archivo, idProEta, tipoEvi, descripcion, idEmp);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(creado));
     }

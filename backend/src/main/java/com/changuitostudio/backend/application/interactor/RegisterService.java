@@ -18,7 +18,7 @@ public class RegisterService implements RegisterUseCase {
     }
 
     @Override
-    public Usuario register(String nombreUsuario, String email, String password, Long idRol) {
+    public Usuario register(String nombreUsuario, String email, String password) {
         // Validar unicidad
         if (usuarioRepository.existePorNomUsu(nombreUsuario)) {
             throw new IllegalArgumentException("El nombre de usuario ya estÃƒÂ¡ en uso.");
@@ -32,7 +32,7 @@ public class RegisterService implements RegisterUseCase {
         nuevo.setEmailUsu(email);
         nuevo.setPasUsu(passwordEncoder.encode(password));
         nuevo.setEstUsu(true);
-        nuevo.setIdRol(idRol);
+        nuevo.setIdRol(3L); // El registro público siempre crea un cliente.
 
         String codigo = usuarioRepository.generarCodigoUnico();
         nuevo.setCodUsu(codigo);

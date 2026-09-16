@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/detalle-producciones")
+@RequestMapping({"/api/detalle-producciones", "/api/detalle-produccion"})
 public class DetalleProduccionController {
 
     private final ManageDetalleProduccionUseCase manageDetalleProduccionUseCase;

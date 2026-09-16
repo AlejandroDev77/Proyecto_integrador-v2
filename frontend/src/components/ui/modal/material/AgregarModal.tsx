@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
 import { ValidationErrors, parseApiErrors } from "../shared";
 import {
   Package,
@@ -14,18 +13,8 @@ import {
   Check,
   UploadCloud,
 } from "lucide-react";
-
-interface Material {
-  id_mat: number;
-  nom_mat: string;
-  desc_mat: string;
-  stock_mat: number;
-  stock_min: number;
-  est_mat: boolean;
-  unidad_medida: string;
-  costo_mat: number;
-  img_mat: string;
-}
+import type { Material } from "../../../../types/entities";
+export type { Material };
 interface Props {
   showModal: boolean;
   setShowModal: (show: boolean) => void;
@@ -83,9 +72,9 @@ export default function ModalAgregarMaterial({
 
     let idUsuarioLocal = null;
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        const p: any = jwtDecode(token);
+        const p: any = JSON.parse(token);
         idUsuarioLocal = p.id_usu || null;
       }
     } catch {
@@ -105,7 +94,7 @@ export default function ModalAgregarMaterial({
         formData.append("img_mat", imgFile);
       }
 
-      const res = await fetch("http://localhost:8080/api/materiales", {
+      const res = await fetch("/api/materiales", {
         method: "POST",
         headers: {
           Accept: "application/json",

@@ -51,7 +51,7 @@ export default function CategoriasMuebles() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8080/api/categoria-mueble/${id_cat}`, {
+      const res = await fetch(`/api/categoria-mueble/${id_cat}`, {
         method: "DELETE",
         headers,
       });

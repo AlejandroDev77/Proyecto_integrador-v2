@@ -52,7 +52,7 @@ export default function Produccion() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8080/api/produccion/${id_pro}`, {
+      const res = await fetch(`/api/produccion/${id_pro}`, {
         method: "DELETE",
         headers,
       });

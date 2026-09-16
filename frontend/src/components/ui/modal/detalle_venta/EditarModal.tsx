@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
 import {
   ShoppingCart,
   ShoppingBag,
@@ -32,19 +31,7 @@ interface DetalleVenta {
   id_mue: number;
   mueble?: { nom_mue: string };
 }
-interface Venta {
-  id_ven: number;
-  cod_ven?: string;
-  fec_ven: string;
-  est_ven: string;
-  total_ven?: number;
-}
-interface Mueble {
-  id_mue: number;
-  nom_mue: string;
-  cod_mue?: string;
-  precio_venta?: number;
-}
+import type { MuebleReferencia as Mueble, VentaReferencia as Venta } from "../../../../types/entities";
 interface Props {
   showModal: boolean;
   setShowModal: (show: boolean) => void;
@@ -284,7 +271,7 @@ export default function ModalEditarDetalleVenta({
     setLoadingVenta(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/ventas?page=${page}&per_page=6&filter[est_ven]=Pendiente${
+        `/api/ventas?page=${page}&per_page=6&filter[est_ven]=Pendiente${
           search ? `&filter[cod_ven]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -307,7 +294,7 @@ export default function ModalEditarDetalleVenta({
     setLoadingMueble(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/mueble?page=${page}&per_page=6${
+        `/api/mueble?page=${page}&per_page=6${
           search ? `&filter[nom_mue]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -353,13 +340,13 @@ export default function ModalEditarDetalleVenta({
       const mueId = detalleSeleccionado.mueble?.id_mue || detalleSeleccionado.mueble?.id || detalleSeleccionado.id_mue;
 
       if (venId) {
-        fetch(`http://localhost:8080/api/ventas/${venId}`)
+        fetch(`/api/ventas/${venId}`)
           .then((r) => r.json())
           .then((v) => setSelectedVenta(v?.data ?? v))
           .catch(() => {});
       }
       if (mueId) {
-        fetch(`http://localhost:8080/api/mueble/${mueId}`)
+        fetch(`/api/mueble/${mueId}`)
           .then((r) => r.json())
           .then((m) => setSelectedMueble(m?.data ?? m))
           .catch(() => {});
@@ -386,16 +373,16 @@ export default function ModalEditarDetalleVenta({
 
     let uid = null;
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        uid = (jwtDecode(token) as any).id_usu;
+        uid = (JSON.parse(token) as any).id_usu;
       }
     } catch {}
 
     try {
       const detailId = detalleSeleccionado.id_det_ven || (detalleSeleccionado as any).id;
       const res = await fetch(
-        `http://localhost:8080/api/detalle-ventas/${detailId}`,
+        `/api/detalle-ventas/${detailId}`,
         {
           method: "PUT",
           headers: {

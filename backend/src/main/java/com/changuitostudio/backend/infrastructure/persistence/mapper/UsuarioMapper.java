@@ -21,6 +21,7 @@ public class UsuarioMapper {
         entity.setCodUsu(domain.getCodUsu());
         entity.setSecret2fa(domain.getSecret2fa());
         entity.setIs2faEnabled(domain.getIs2faEnabled());
+        entity.setGoogleSubject(domain.getGoogleSubject());
 
        
         if (domain.getIdRol() != null) {
@@ -44,7 +45,8 @@ public class UsuarioMapper {
                 entity.getIdRol(),
                 entity.getRol() != null ? entity.getRol().getNomRol() : null,
                 entity.getSecret2fa(),
-                entity.getIs2faEnabled());
+                entity.getIs2faEnabled(),
+                entity.getGoogleSubject());
     }
 }
 

@@ -15,6 +15,7 @@ import {
   FileSearch,
 } from "lucide-react";
 import Swal from "sweetalert2";
+import { normalizePageResponse } from "../../../../utils/pagination";
 
 interface Cotizacion {
   id_cot: number;
@@ -247,12 +248,12 @@ const ModalAgregarCostoCotizacion: React.FC<
     setLoadingCot(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/cotizacion?page=${page}&per_page=6${
+        `/api/cotizaciones?page=${page}&per_page=6${
           search ? `&filter[cod_cot]=${encodeURIComponent(search)}` : ""
         }`
       );
       const p = await res.json();
-      setCotizaciones(p?.data || []);
+      setCotizaciones(normalizePageResponse<Cotizacion>(p).items);
       setCotPag({
         currentPage: p.current_page || 1,
         lastPage: p.last_page || 1,
@@ -313,7 +314,7 @@ const ModalAgregarCostoCotizacion: React.FC<
     if (!selectedCotizacion) return;
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8080/api/costo-cotizacion", {
+      const res = await fetch("/api/costo-cotizacion", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -395,7 +396,7 @@ const ModalAgregarCostoCotizacion: React.FC<
                         <CotizacionCard
                           key={c.id_cot}
                           cotizacion={c}
-                          isSelected={selectedCotizacion?.id_cot === c.id_cot}
+                          isSelected={!!selectedCotizacion && selectedCotizacion.id_cot === c.id_cot}
                           onSelect={() => setSelectedCotizacion(c)}
                         />
                       ))

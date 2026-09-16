@@ -53,15 +53,26 @@ function CameraManager({ viewMode, globalDragging, roomWidth, roomDepth }: { vie
 }
 
 interface RoomViewerProps {
+  roomId: string;
   initialConfig?: CustomRoomConfig | null;
   roomName?: string;
   onBack?: () => void;
 }
 
-export default function RoomViewer({ initialConfig, roomName, onBack }: RoomViewerProps) {
+function readSavedItems(roomId: string): PlacedItem[] {
+  try {
+    const saved = sessionStorage.getItem(`room_designer_draft:${roomId}`);
+    const items = saved ? JSON.parse(saved) : [];
+    return Array.isArray(items) ? items : [];
+  } catch {
+    return [];
+  }
+}
+
+export default function RoomViewer({ roomId, initialConfig, roomName, onBack }: RoomViewerProps) {
   // State
   const [products, setProducts] = useState<Product[]>([]);
-  const [placedItems, setPlacedItems] = useState<PlacedItem[]>([]);
+  const [placedItems, setPlacedItems] = useState<PlacedItem[]>(() => readSavedItems(roomId));
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [globalDragging, setGlobalDragging] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("isometric");
@@ -88,6 +99,14 @@ export default function RoomViewer({ initialConfig, roomName, onBack }: RoomView
   // UI toggles
   const [isFullscreen, setIsFullscreen] = useState(false);
 
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(`room_designer_draft:${roomId}`, JSON.stringify(placedItems));
+    } catch {
+      // The editor remains usable if browser storage is unavailable.
+    }
+  }, [placedItems, roomId]);
+
   // Fetch Items & Load Local 
   useEffect(() => {
     const localMocks: Product[] = [
@@ -100,7 +119,7 @@ export default function RoomViewer({ initialConfig, roomName, onBack }: RoomView
     ];
 
     axios
-      .get("http://localhost:8080/api/muebles")
+      .get("/api/muebles")
       .then((res) => {
         const apiMuebles = (res.data.data || res.data)
           .filter((m: any) => m.est_mue && m.modelo_3d)
@@ -178,7 +197,7 @@ export default function RoomViewer({ initialConfig, roomName, onBack }: RoomView
           >
             <orthographicCamera attach="shadow-camera" args={[-15, 15, 15, -15]} />
           </directionalLight>
-          <Environment preset="city" />
+          <Environment files="/assets/lebombo_1k.hdr" />
 
           {/* Smooth Camera Transitions */}
           <CameraManager viewMode={viewMode} globalDragging={globalDragging} roomWidth={activeWidth} roomDepth={activeDepth} />

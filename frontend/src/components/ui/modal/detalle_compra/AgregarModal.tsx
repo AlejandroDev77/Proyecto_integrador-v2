@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
 import { ValidationErrors, parseApiErrors } from "../shared";
 import {
   Package,
@@ -22,18 +21,7 @@ import {
 import { DetalleCompra } from "../../../../hooks/detalles_compras/useDetallesCompras";
 
 
-interface CompraMaterial {
-  id_comp: number;
-  fec_comp: string;
-  cod_comp?: string;
-  total_comp?: number;
-}
-interface Material {
-  id_mat: number;
-  nom_mat: string;
-  cod_mat?: string;
-  unidad_medida?: string;
-}
+import type { MaterialReferencia as Material, CompraReferencia as CompraMaterial } from "../../../../types/entities";
 interface Props {
   showModal: boolean;
   setShowModal: (show: boolean) => void;
@@ -309,7 +297,7 @@ export default function ModalAgregarDetalleCompra({
     setLoadingCompra(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/compras-materiales?page=${page}&per_page=8${
+        `/api/compras-materiales?page=${page}&per_page=8${
           search ? `&search=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -332,7 +320,7 @@ export default function ModalAgregarDetalleCompra({
     setLoadingMaterial(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/materiales?page=${page}&per_page=8${
+        `/api/materiales?page=${page}&per_page=8${
           search ? `&filter[nom_mat]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -397,13 +385,13 @@ export default function ModalAgregarDetalleCompra({
     setGeneralError(null);
     let uid = null;
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        uid = (jwtDecode(token) as any).id_usu;
+        uid = (JSON.parse(token) as any).id_usu;
       }
     } catch {}
     try {
-      const res = await fetch("http://localhost:8080/api/detalle-compras", {
+      const res = await fetch("/api/detalle-compras", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -51,7 +51,7 @@ export default function CostosCotizacion() {
     if (!confirm.isConfirmed) return;
 
     try {
-      const res = await fetch(`http://localhost:8080/api/costo-cotizacion/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/costo-cotizacion/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Error");
       setCostosCotizacion((prev) => prev.filter((c) => c.id_costo !== id));
       Swal.fire({ icon: "success", title: "Eliminado", timer: 1500, showConfirmButton: false });

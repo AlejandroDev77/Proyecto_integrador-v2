@@ -65,7 +65,7 @@ export default function Empleados() {
       ...(idUsuarioLocal ? { "X-USER-ID": idUsuarioLocal } : {}),
     };
     try {
-      const res = await fetch(`http://localhost:8080/api/empleados/${id_emp}`, {
+      const res = await fetch(`/api/empleados/${id_emp}`, {
         method: "DELETE",
         headers,
       });

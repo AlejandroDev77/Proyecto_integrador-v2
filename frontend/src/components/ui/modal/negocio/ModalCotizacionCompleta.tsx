@@ -76,7 +76,7 @@ interface Props {
   setShowModal: (show: boolean) => void;
 }
 
-const API = "http://localhost:8080/api";
+const API = "/api";
 
 const TIPOS_PROYECTO = [
   { value: "hogar", label: "Hogar", icon: Home },
@@ -120,7 +120,7 @@ const COLORES_COMUNES = [
 const getImageUrl = (path?: string) => {
   if (!path) return null;
   if (path.startsWith("http")) return path;
-  return `http://localhost:8080/storage/${path}`;
+  return `/storage/${path}`;
 };
 
 function ProductImage({
@@ -473,9 +473,7 @@ export default function ModalCotizacionCompleta({
       Swal.fire({
         icon: "success",
         title: "¡Cotización Creada!",
-        html: `<p>Código: <strong>${data.data.cotizacion.cod_cot}</strong></p>
-               <p>Total: <strong>${totalCotizacion.toFixed(2)} Bs.</strong></p>
-               <p>Muebles: <strong>${detalles.length}</strong></p>`,
+        text: `Código: ${data.data.cotizacion.cod_cot}. Total: ${totalCotizacion.toFixed(2)} Bs. Muebles: ${detalles.length}.`,
         timer: 4000,
       });
       handleClose();

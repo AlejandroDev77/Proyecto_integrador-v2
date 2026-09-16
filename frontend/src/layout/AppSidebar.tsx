@@ -12,6 +12,36 @@ import {
   FaCube,
   FaFileAlt,
   FaRobot,
+  FaUserCog,
+  FaUserFriends,
+  FaUserTie,
+  FaTruck,
+  FaUserShield,
+  FaKey,
+  FaShieldAlt,
+  FaBoxes,
+  FaTags,
+  FaCouch,
+  FaLink,
+  FaCartPlus,
+  FaClipboardList,
+  FaPencilRuler,
+  FaExchangeAlt,
+  FaCashRegister,
+  FaReceipt,
+  FaMoneyBillWave,
+  FaFileInvoiceDollar,
+  FaListAlt,
+  FaCalculator,
+  FaUndoAlt,
+  FaClipboardCheck,
+  FaIndustry,
+  FaTasks,
+  FaStream,
+  FaProjectDiagram,
+  FaCamera,
+  FaDrawPolygon,
+  FaMagic,
 } from "react-icons/fa";
 
 import { ChevronDownIcon, HorizontaLDots } from "../icons";
@@ -25,6 +55,7 @@ type NavItem = {
   subItems?: {
     name: string;
     path: string;
+    icon?: React.ReactNode;
     pro?: boolean;
     new?: boolean;
     requiredPermisos?: string[];
@@ -58,42 +89,49 @@ const navItems: NavItem[] = [
       {
         name: "Usuarios",
         path: "/usuarios",
+        icon: <FaUserCog />,
         pro: false,
         requiredPermisos: ["ver_usuarios"],
       },
       {
         name: "Clientes",
         path: "/clientes",
+        icon: <FaUserFriends />,
         pro: false,
         requiredPermisos: ["ver_clientes"],
       },
       {
         name: "Empleados",
         path: "/empleados",
+        icon: <FaUserTie />,
         pro: false,
         requiredPermisos: ["ver_empleados"],
       },
       {
         name: "Proveedores",
         path: "/proveedores",
+        icon: <FaTruck />,
         pro: false,
         requiredPermisos: ["ver_proveedores"],
       },
       {
         name: "Roles",
         path: "/roles",
+        icon: <FaUserShield />,
         pro: false,
         requiredPermisos: ["ver_roles"],
       },
       {
         name: "Permisos",
         path: "/permisos",
+        icon: <FaKey />,
         pro: false,
         requiredPermisos: ["ver_permisos"],
       },
       {
         name: "Roles y Permisos",
         path: "/roles-permisos",
+        icon: <FaShieldAlt />,
         pro: false,
         requiredPermisos: ["ver_roles_permisos"],
       },
@@ -106,48 +144,56 @@ const navItems: NavItem[] = [
       {
         name: "Materiales",
         path: "/materiales",
+        icon: <FaBoxes />,
         pro: false,
         requiredPermisos: ["ver_materiales"],
       },
       {
         name: "Categorias Muebles",
         path: "/categorias-muebles",
+        icon: <FaTags />,
         pro: false,
         requiredPermisos: ["ver_categorias_muebles"],
       },
       {
         name: "Muebles",
         path: "/muebles",
+        icon: <FaCouch />,
         pro: false,
         requiredPermisos: ["ver_muebles"],
       },
       {
         name: "Muebles Materiales",
         path: "/muebles-materiales",
+        icon: <FaLink />,
         pro: false,
         requiredPermisos: ["ver_muebles_materiales"],
       },
       {
         name: "Compras Materiales",
         path: "/compras-materiales",
+        icon: <FaCartPlus />,
         pro: false,
         requiredPermisos: ["ver_compras_materiales"],
       },
       {
         name: "Detalles Compras",
         path: "/detalles-compras",
+        icon: <FaClipboardList />,
         pro: false,
         requiredPermisos: ["ver_detalles_compras"],
       },
       {
         name: "Diseños",
         path: "/diseños",
+        icon: <FaPencilRuler />,
         pro: false,
         requiredPermisos: ["ver_diseños"],
       },
       {
         name: "Movimientos Inventario",
         path: "/movimientos-inventarios",
+        icon: <FaExchangeAlt />,
         pro: false,
         requiredPermisos: ["ver_movimientos_inventarios"],
       },
@@ -160,48 +206,56 @@ const navItems: NavItem[] = [
       {
         name: "Ventas",
         path: "/ventas",
+        icon: <FaCashRegister />,
         pro: false,
         requiredPermisos: ["ver_ventas"],
       },
       {
         name: "Detalles Ventas",
         path: "/detalles-ventas",
+        icon: <FaReceipt />,
         pro: false,
         requiredPermisos: ["ver_detalles_ventas"],
       },
       {
         name: "Pagos",
         path: "/pagos",
+        icon: <FaMoneyBillWave />,
         pro: false,
         requiredPermisos: ["ver_pagos"],
       },
       {
         name: "Cotizaciones",
         path: "/admin-cotizaciones",
+        icon: <FaFileInvoiceDollar />,
         pro: false,
         requiredPermisos: ["ver_cotizaciones"],
       },
       {
         name: "Detalles Cotizaciones",
         path: "/detalles-cotizaciones",
+        icon: <FaListAlt />,
         pro: false,
         requiredPermisos: ["ver_detalles_cotizaciones"],
       },
       {
         name: "Costos Cotización",
         path: "/costos-cotizacion",
+        icon: <FaCalculator />,
         pro: false,
         requiredPermisos: ["ver_costos_cotizacion"],
       },
       {
         name: "Devoluciones",
         path: "/devoluciones",
+        icon: <FaUndoAlt />,
         pro: false,
         requiredPermisos: ["ver_devoluciones"],
       },
       {
         name: "Detalles Devoluciones",
         path: "/detalles-devoluciones",
+        icon: <FaClipboardCheck />,
         pro: false,
         requiredPermisos: ["ver_detalles_devoluciones"],
       },
@@ -214,30 +268,35 @@ const navItems: NavItem[] = [
       {
         name: "Producciones",
         path: "/producciones",
+        icon: <FaIndustry />,
         pro: false,
         requiredPermisos: ["ver_producciones"],
       },
       {
         name: "Detalles Producciones",
         path: "/detalles-producciones",
+        icon: <FaClipboardList />,
         pro: false,
         requiredPermisos: ["ver_detalles_producciones"],
       },
       {
         name: "Etapas Producciones",
         path: "/etapas-producciones",
+        icon: <FaTasks />,
         pro: false,
         requiredPermisos: ["ver_etapas_producciones"],
       },
       {
         name: "Producciones Etapas",
         path: "/producciones-etapas",
+        icon: <FaStream />,
         pro: false,
         requiredPermisos: ["ver_producciones_etapas"],
       },
       {
         name: "Evidencias Producción",
         path: "/evidencias-produccion",
+        icon: <FaCamera />,
         pro: false,
         requiredPermisos: ["ver_evidencias_produccion"],
       },
@@ -263,6 +322,7 @@ const navItems: NavItem[] = [
       {
         name: "Diseño",
         path: "/prueba",
+        icon: <FaDrawPolygon />,
         pro: false,
         requiredPermisos: ["ver_diseños"],
       },
@@ -275,6 +335,7 @@ const navItems: NavItem[] = [
       {
         name: "Generación 3D",
         path: "/generacion-ia",
+        icon: <FaMagic />,
         pro: false,
         // requiredPermisos: ["ver_ia"], // Puedes descomentar esto cuando tengas el permiso
       },
@@ -488,13 +549,18 @@ const AppSidebar: React.FC = () => {
                   <li key={subItem.name}>
                     <Link
                       to={subItem.path}
-                      className={`menu-dropdown-item ${
+                      className={`menu-dropdown-item flex items-center gap-2 ${
                         isActive(subItem.path)
                           ? "menu-dropdown-item-active"
                           : "menu-dropdown-item-inactive"
                       }`}
                     >
-                      {subItem.name}
+                      {subItem.icon && (
+                        <span className="shrink-0 text-sm opacity-80">
+                          {subItem.icon}
+                        </span>
+                      )}
+                      <span>{subItem.name}</span>
                       <span className="flex items-center gap-1 ml-auto">
                         {subItem.new && (
                           <span

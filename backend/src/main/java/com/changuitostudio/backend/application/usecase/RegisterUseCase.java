@@ -13,9 +13,8 @@ public interface RegisterUseCase {
      * @param nombreUsuario nombre de usuario
      * @param email         email del usuario
      * @param password      contraseÃ±a en texto plano
-     * @param idRol         ID del rol asignado
      * @return el usuario creado
      */
-    Usuario register(String nombreUsuario, String email, String password, Long idRol);
+    Usuario register(String nombreUsuario, String email, String password);
 }
 

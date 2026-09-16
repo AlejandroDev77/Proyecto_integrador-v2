@@ -43,9 +43,13 @@ public class CloudflareR2Service {
     private String publicUrl;
 
     private S3Client s3Client;
+    private boolean configured;
 
     @PostConstruct
     public void init() {
+        configured = !isBlank(accessKeyId) && !isBlank(secretAccessKey) && !isBlank(endpoint)
+                && !isBlank(bucket) && !isBlank(publicUrl);
+        if (!configured) return;
         s3Client = S3Client.builder()
                 .endpointOverride(URI.create(endpoint))
                 .region(Region.of("auto"))
@@ -65,6 +69,7 @@ public class CloudflareR2Service {
      * @return URL pública del archivo subido
      */
     public String uploadBytes(byte[] data, String folder, String fileName, String contentType) {
+        if (!configured) throw new IllegalStateException("El almacenamiento externo no está configurado.");
         String key = folder + "/" + fileName;
 
         PutObjectRequest request = PutObjectRequest.builder()
@@ -91,5 +96,9 @@ public class CloudflareR2Service {
     public String uploadBytesWithUUID(byte[] data, String folder, String extension, String contentType) {
         String fileName = UUID.randomUUID() + "." + extension;
         return uploadBytes(data, folder, fileName, contentType);
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 }

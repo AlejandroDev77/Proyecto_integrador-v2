@@ -55,7 +55,7 @@ const ModalEditarAsignacion: React.FC<ModalEditarAsignacionProps> = ({
       const cargarPermisos = async () => {
         try {
           const res = await fetch(
-            `http://localhost:8080/api/roles-permisos/rol/${idRol}/disponibles`
+            `/api/roles-permisos/rol/${idRol}/disponibles`
           );
           if (!res.ok) throw new Error("Error al cargar permisos");
           
@@ -115,7 +115,7 @@ const ModalEditarAsignacion: React.FC<ModalEditarAsignacionProps> = ({
     setLoading(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/roles-permisos/rol/${idRol}/sincronizar`,
+        `/api/roles-permisos/rol/${idRol}/sincronizar`,
         {
           method: "PUT",
           headers: {

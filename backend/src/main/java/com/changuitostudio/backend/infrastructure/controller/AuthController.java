@@ -8,12 +8,19 @@ import com.changuitostudio.backend.domain.exception.CredencialesInvalidasExcepti
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+import jakarta.servlet.http.HttpServletRequest;
+import com.changuitostudio.backend.application.gateway.JwtProvider;
+import com.changuitostudio.backend.infrastructure.config.JwtAuthFilter;
+import org.springframework.beans.factory.annotation.Value;
+import jakarta.servlet.http.Cookie;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -24,23 +31,27 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "*")
 public class AuthController {
 
     private final LoginUseCase loginUseCase;
     private final RegisterUseCase registerUseCase;
     private final PasswordResetUseCase passwordResetUseCase;
+    private final JwtProvider jwtProvider;
+    private final boolean secureCookie;
 
     public AuthController(LoginUseCase loginUseCase,
                           RegisterUseCase registerUseCase,
-                          PasswordResetUseCase passwordResetUseCase) {
+                          PasswordResetUseCase passwordResetUseCase, JwtProvider jwtProvider,
+                          @Value("${app.auth.cookie-secure:false}") boolean secureCookie) {
         this.loginUseCase = loginUseCase;
         this.registerUseCase = registerUseCase;
         this.passwordResetUseCase = passwordResetUseCase;
+        this.jwtProvider = jwtProvider;
+        this.secureCookie = secureCookie;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
         try {
             LoginUseCase.LoginResult result = loginUseCase.login(request.nomUsu, request.password);
             return buildLoginResponse(result);
@@ -89,7 +100,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         try {
-            registerUseCase.register(request.nomUsu, request.emailUsu, request.pasUsu, request.idRol);
+            registerUseCase.register(request.nomUsu, request.emailUsu, request.pasUsu);
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(Map.of("message", "Usuario registrado correctamente"));
         } catch (IllegalArgumentException e) {
@@ -99,13 +110,41 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> me() {
-        return ResponseEntity.ok(Map.of("valid", true));
+    public ResponseEntity<?> me(Authentication authentication, HttpServletRequest request) {
+        String token = sessionToken(request);
+        return ResponseEntity.ok(Map.of(
+                "valid", true,
+                "id_usu", Long.parseLong(authentication.getName()),
+                "id_rol", jwtProvider.getRoleIdFromToken(token),
+                "permisos", jwtProvider.getPermissionsFromToken(token)));
+    }
+
+    /** La ruta se decide con el rol de la sesión validada, nunca con un id enviado por el cliente. */
+    @GetMapping("/me/redirect-route")
+    public ResponseEntity<?> redirectRoute(HttpServletRequest request) {
+        Long roleId = jwtProvider.getRoleIdFromToken(sessionToken(request));
+        String route = switch (roleId.intValue()) {
+            case 1, 5 -> "/dashboard";
+            case 2 -> "/negocio";
+            case 3 -> "/products";
+            default -> "/signin";
+        };
+        return ResponseEntity.ok(Map.of("route", route));
+    }
+
+    /** Fuerza la emisión de la cookie XSRF-TOKEN legible por el cliente. */
+    @GetMapping("/csrf")
+    public ResponseEntity<?> csrf(org.springframework.security.web.csrf.CsrfToken token) {
+        return ResponseEntity.ok(Map.of("headerName", token.getHeaderName()));
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout() {
-        return ResponseEntity.ok(Map.of("message", "SesiÃ³n cerrada correctamente."));
+    public ResponseEntity<?> logout(HttpServletRequest request) {
+        String token = sessionToken(request);
+        if (token != null) jwtProvider.revokeToken(token);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, expiredSessionCookie().toString())
+                .body(Map.of("message", "SesiÃ³n cerrada correctamente."));
     }
 
     @PostMapping("/forgot-password")
@@ -143,10 +182,33 @@ public class AuthController {
         }
 
         response.put("message", "Inicio de sesiÃ³n exitoso");
-        response.put("access_token", result.accessToken());
-        response.put("token_type", "bearer");
-        response.put("expires_in", 86400000);
-        return ResponseEntity.ok(response);
+        response.put("user", Map.of(
+                "id_usu", Long.parseLong(jwtProvider.getSubjectFromToken(result.accessToken())),
+                "id_rol", jwtProvider.getRoleIdFromToken(result.accessToken()),
+                "permisos", jwtProvider.getPermissionsFromToken(result.accessToken())));
+        response.put("expires_in", 3600);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, sessionCookie(result.accessToken()).toString())
+                .body(response);
+    }
+
+    private ResponseCookie sessionCookie(String token) {
+        return ResponseCookie.from(JwtAuthFilter.SESSION_COOKIE, token)
+                .httpOnly(true).secure(secureCookie).sameSite("Strict").path("/").maxAge(3600).build();
+    }
+
+    private ResponseCookie expiredSessionCookie() {
+        return ResponseCookie.from(JwtAuthFilter.SESSION_COOKIE, "")
+                .httpOnly(true).secure(secureCookie).sameSite("Strict").path("/").maxAge(0).build();
+    }
+
+    private String sessionToken(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) for (Cookie cookie : cookies) {
+            if (JwtAuthFilter.SESSION_COOKIE.equals(cookie.getName())) return cookie.getValue();
+        }
+        String header = request.getHeader("Authorization");
+        return header != null && header.startsWith("Bearer ") ? header.substring(7) : null;
     }
 
     // â”€â”€ Request DTOs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -168,11 +230,8 @@ public class AuthController {
         public String emailUsu;
 
         @NotBlank(message = "La contraseÃ±a es obligatoria.")
-        @Size(min = 6, message = "La contraseÃ±a debe tener al menos 6 caracteres.")
+        @Size(min = 12, max = 72, message = "La contraseña debe tener entre 12 y 72 caracteres.")
         public String pasUsu;
-
-        @NotNull(message = "El rol es obligatorio.")
-        public Long idRol;
     }
 }
 

@@ -52,7 +52,7 @@ export default function ComprasMateriales() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8080/api/compras-materiales/${id_comp}`, {
+      const res = await fetch(`/api/compras-materiales/${id_comp}`, {
         method: "DELETE",
         headers,
       });

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router";
 import {
   Home,
   Sofa,
@@ -16,7 +17,6 @@ import CategoriesScroll from "../../components/Productos/CategoriesScroll";
 import FiltersMenu from "../../components/Productos/FiltersMenu";
 import QuickViewModal from "../../components/Productos/QuickViewModal";
 import FooterSimple from "../../components/Productos/FooterSimple";
-import RoomViewer from "../../components/Productos/RoomViewer";
 import {
   useFetchCategories,
   useFetchProducts,
@@ -27,7 +27,7 @@ import {
   CATEGORY_IMAGES,
 } from "../../hooks/useProducts";
 import { ProductViewModel, FilterState } from "../../services/products/types";
-import { CustomRoomModal, CustomRoomConfig } from "../../components/Productos/RoomBuilder/CustomRoomModal";
+import { CustomRoomModal } from "../../components/Productos/RoomBuilder/CustomRoomModal";
 
 // Estancias data - for the room planner feature
 const ESTANCIAS_DATA = [
@@ -60,6 +60,8 @@ const ESTANCIAS_DATA = [
 ];
 
 export default function ProductsPage() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   // Hooks personalizados
   const userId = useUserId();
   const { categories } = useFetchCategories();
@@ -80,11 +82,13 @@ export default function ProductsPage() {
   const [activeFilters, setActiveFilters] = useState<FilterState>({});
   const [showFilterMenu, setShowFilterMenu] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"categorias" | "estancias">(
-    "categorias"
+    searchParams.get("tab") === "estancias" ? "estancias" : "categorias"
   );
-  const [activeEstancia, setActiveEstancia] = useState<number | null>(null);
   const [showCustomModal, setShowCustomModal] = useState(false);
-  const [customConfig, setCustomConfig] = useState<CustomRoomConfig | null>(null);
+
+  useEffect(() => {
+    setActiveTab(searchParams.get("tab") === "estancias" ? "estancias" : "categorias");
+  }, [searchParams]);
 
   // Obtener categorías de categoriesFromAPI
   const categoryViewModels = categories.map((c: any) => ({
@@ -110,20 +114,18 @@ export default function ProductsPage() {
   const categoryNames = categoryViewModels.map((c) => c.name);
 
   return (
-    <div className={`min-h-screen ${activeEstancia ? 'bg-[#e5e5e5]' : 'bg-[#fcfbf8]'}`}>
+    <div className="min-h-screen bg-[#fcfbf8]">
       <ProductsHeader query={query} setQuery={setQuery} />
 
-      <main className={`max-w-[1800px] mx-auto ${!activeEstancia ? 'px-2 md:px-4 lg:px-6 pt-8 pb-20' : 'p-0'}`}>
-        {!activeEstancia && (
-          <CategoriesScroll
-            categories={categoryViewModels}
-            estancias={ESTANCIAS_DATA}
-            activeCategory={activeCategory}
-            setActiveCategory={setActiveCategory}
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-          />
-        )}
+      <main className="max-w-[1800px] mx-auto px-2 md:px-4 lg:px-6 pt-8 pb-20">
+        <CategoriesScroll
+          categories={categoryViewModels}
+          estancias={ESTANCIAS_DATA}
+          activeCategory={activeCategory}
+          setActiveCategory={setActiveCategory}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
 
         {activeTab === "categorias" ? (
           <>
@@ -198,14 +200,7 @@ export default function ProductsPage() {
         ) : (
           /* Estancias View - Room Planner Layout (IKEA Style) */
           <section className="pb-8">
-            {activeEstancia ? (
-                <RoomViewer 
-                  initialConfig={customConfig}
-                  roomName={activeEstancia === 999 ? "Personalizada" : ESTANCIAS_DATA.find((e) => e.id === activeEstancia)?.name}
-                  onBack={() => setActiveEstancia(null)}
-                />
-            ) : (
-              /* Landing Home Design */
+            {/* Landing Home Design */}
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                 
                 {/* 1. Hero Banner */}
@@ -225,7 +220,7 @@ export default function ProductsPage() {
                     </p>
                     <div>
                       <button 
-                        onClick={() => setActiveEstancia(ESTANCIAS_DATA[0].id)}
+                        onClick={() => navigate(`/products/rooms/${ESTANCIAS_DATA[0].id}`)}
                         className="px-8 py-4 bg-gradient-to-r from-[#0058a3] to-[#004f93] text-white rounded-full font-bold hover:shadow-[0_8px_24px_rgba(0,88,163,0.4)] transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 flex items-center gap-2"
                       >
                         Abre el diseñador <ArrowLeft className="w-5 h-5 rotate-180" />
@@ -268,10 +263,7 @@ export default function ProductsPage() {
 
                     {/* From scratch */}
                     <div 
-                      onClick={() => {
-                        setCustomConfig(null);
-                        setActiveEstancia(1);
-                      }}
+                      onClick={() => navigate("/products/rooms/1")}
                       className="bg-white rounded-2xl border border-gray-200 hover:border-[#0058a3]/50 hover:shadow-[0_12px_30px_rgba(0,88,163,0.15)] hover:-translate-y-2 transition-all duration-300 cursor-pointer group overflow-hidden flex flex-col"
                     >
                       <div className="h-40 w-full overflow-hidden mb-4 bg-gray-50">
@@ -342,7 +334,7 @@ export default function ProductsPage() {
                       return (
                         <div
                           key={estancia.id}
-                          onClick={() => setActiveEstancia(estancia.id)}
+                          onClick={() => navigate(`/products/rooms/${estancia.id}`)}
                           className="group relative rounded-2xl overflow-hidden shadow-sm border border-gray-200 hover:shadow-[0_12px_30px_rgba(0,0,0,0.1)] hover:-translate-y-1 transition-all duration-300 cursor-pointer bg-white"
                         >
                           <div className="h-[240px] bg-gray-100 overflow-hidden relative">
@@ -377,7 +369,6 @@ export default function ProductsPage() {
                 </div>
 
               </div>
-            )}
           </section>
         )}
       </main>
@@ -387,9 +378,9 @@ export default function ProductsPage() {
         isOpen={showCustomModal} 
         onClose={() => setShowCustomModal(false)} 
         onSubmit={(config) => {
-          setCustomConfig(config);
-          setActiveEstancia(999);
+          sessionStorage.setItem("room_designer_custom_config", JSON.stringify(config));
           setShowCustomModal(false);
+          navigate("/products/rooms/custom");
         }} 
       />
 

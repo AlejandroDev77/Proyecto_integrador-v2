@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/produccion-etapas")
+@RequestMapping({"/api/produccion-etapas", "/api/produccion-etapa"})
 public class ProduccionEtapaController {
 
     private final ManageProduccionEtapaUseCase manageProduccionEtapaUseCase;

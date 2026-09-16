@@ -46,10 +46,9 @@ export default function AlertasInventario() {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, delay: 0.4 }}
-        className="relative overflow-hidden rounded-[2rem] bg-white/60 p-5 dark:bg-gray-900/60 backdrop-blur-xl border border-white/50 dark:border-gray-700/50 shadow-lg sm:p-6 h-full flex flex-col"
+        className="flex h-full flex-col rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-6"
       >
-        <div className="absolute top-0 right-0 w-48 h-48 bg-green-500/10 rounded-full mix-blend-multiply filter blur-[60px] -mr-10 -mt-10 pointer-events-none" />
-        <h3 className="relative z-10 text-xl font-black text-gray-900 dark:text-white drop-shadow-sm mb-4">
+        <h3 className="mb-4 text-base font-semibold text-gray-900 dark:text-white">
           Alertas de Inventario
         </h3>
         <div className="flex flex-col items-center justify-center py-8 text-center">
@@ -84,15 +83,13 @@ export default function AlertasInventario() {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5, delay: 0.4 }}
-      className="relative overflow-hidden rounded-[2rem] bg-white/60 p-5 dark:bg-gray-900/60 backdrop-blur-xl border border-white/50 dark:border-gray-700/50 shadow-lg sm:p-6 h-full flex flex-col"
+      className="flex h-full flex-col rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-6"
     >
-      <div className="absolute top-0 right-0 w-48 h-48 bg-red-500/10 rounded-full mix-blend-multiply filter blur-[60px] -mr-10 -mt-10 pointer-events-none" />
-      
-      <div className="relative z-10 flex items-center justify-between mb-4">
-        <h3 className="text-xl font-black text-gray-900 dark:text-white drop-shadow-sm">
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white">
           Alertas de Inventario
         </h3>
-        <span className="px-3 py-1 text-xs font-black uppercase tracking-wider text-red-600 bg-red-100 dark:bg-red-500/20 dark:text-red-400 rounded-full animate-pulse">
+        <span className="rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700 dark:bg-red-500/10 dark:text-red-300">
           {totalAlertas} alertas
         </span>
       </div>
@@ -101,7 +98,7 @@ export default function AlertasInventario() {
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="relative z-10 space-y-3 max-h-80 overflow-y-auto custom-scrollbar pr-2"
+        className="max-h-80 space-y-3 overflow-y-auto pr-2 custom-scrollbar"
       >
         {alertasMateriales.length > 0 && (
           <div className="mb-4">
@@ -112,7 +109,7 @@ export default function AlertasInventario() {
               <motion.div
                 variants={itemVariants}
                 key={`mat-${idx}`}
-                className={`group flex items-center justify-between p-3 rounded-xl border mb-2 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 cursor-default ${getUrgencyBg(
+                className={`group mb-2 flex cursor-default items-center justify-between rounded-lg border p-3 transition-colors ${getUrgencyBg(
                   item.stock,
                   item.stock_min
                 )}`}
@@ -125,7 +122,7 @@ export default function AlertasInventario() {
                     )}`}
                   />
                   <div>
-                    <p className="font-bold text-gray-800 dark:text-white/90 text-sm group-hover:text-[#a67c52] transition-colors">
+                    <p className="text-sm font-medium text-gray-800 dark:text-white">
                       {item.nombre}
                     </p>
                     <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -134,7 +131,7 @@ export default function AlertasInventario() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-black text-lg text-gray-800 dark:text-white/90 group-hover:scale-110 transition-transform origin-right">
+                  <p className="text-lg font-semibold text-gray-800 dark:text-white">
                     {item.stock}
                   </p>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
@@ -155,7 +152,7 @@ export default function AlertasInventario() {
               <motion.div
                 variants={itemVariants}
                 key={`mue-${idx}`}
-                className={`group flex items-center justify-between p-3 rounded-xl border mb-2 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 cursor-default ${getUrgencyBg(
+                className={`group mb-2 flex cursor-default items-center justify-between rounded-lg border p-3 transition-colors ${getUrgencyBg(
                   item.stock,
                   item.stock_min
                 )}`}
@@ -168,7 +165,7 @@ export default function AlertasInventario() {
                     )}`}
                   />
                   <div>
-                    <p className="font-bold text-gray-800 dark:text-white/90 text-sm group-hover:text-[#a67c52] transition-colors">
+                    <p className="text-sm font-medium text-gray-800 dark:text-white">
                       {item.nombre}
                     </p>
                     <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -177,7 +174,7 @@ export default function AlertasInventario() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-black text-lg text-gray-800 dark:text-white/90 group-hover:scale-110 transition-transform origin-right">
+                  <p className="text-lg font-semibold text-gray-800 dark:text-white">
                     {item.stock}
                   </p>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">

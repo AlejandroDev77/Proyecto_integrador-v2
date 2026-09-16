@@ -44,7 +44,7 @@ export default function DetallesDevoluciones() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8080/api/detalle-devolucion/${id_det_dev}`, {
+      const res = await fetch(`/api/detalle-devolucion/${id_det_dev}`, {
         method: "DELETE",
         headers,
       });

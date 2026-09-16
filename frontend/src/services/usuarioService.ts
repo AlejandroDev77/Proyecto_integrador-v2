@@ -1,14 +1,13 @@
 import axiosClient from "../api/axios";
-import { jwtDecode } from "jwt-decode";
 import { CrearUsuarioDTO, ActualizarUsuarioDTO } from "../types/usuario";
 
 const API_URL = "/api/usuarios";
 
 const getIdUsuarioFromToken = (): string | null => {
   try {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("auth_identity");
     if (token) {
-      const p: any = jwtDecode(token);
+      const p: any = JSON.parse(token);
       return p.id_usu || null;
     }
   } catch {

@@ -58,7 +58,7 @@ export default function Cotizaciones() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8080/api/cotizacion/${id_cot}`, {
+      const res = await fetch(`/api/cotizaciones/${id_cot}`, {
         method: "DELETE",
         headers,
       });

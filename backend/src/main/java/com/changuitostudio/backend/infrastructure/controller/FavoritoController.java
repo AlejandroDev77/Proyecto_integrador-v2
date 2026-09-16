@@ -9,6 +9,7 @@ import jakarta.persistence.PersistenceContext;
 
 import java.util.List;
 import java.util.Map;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @RestController
 @RequestMapping({"/api/cliente/favoritos", "/api/favoritos"})
@@ -29,16 +30,9 @@ public class FavoritoController {
      * Requiere autenticación (Bearer token o X-USER-ID header)
      */
     @GetMapping("")
-    public ResponseEntity<List<Map<String, Object>>> getFavoritos(
-            @RequestHeader(value = "X-USER-ID", required = false) Integer headerIdUsu,
-            @RequestParam(value = "filter[id_usu]", required = false) Integer filterIdUsu) {
+    public ResponseEntity<List<Map<String, Object>>> getFavoritos() {
         try {
-            Integer idUsu = headerIdUsu != null ? headerIdUsu : filterIdUsu;
-
-            if (idUsu == null) {
-                return ResponseEntity.badRequest()
-                        .body(List.of());
-            }
+            Integer idUsu = authenticatedUserId();
 
             // Buscar si existe un cliente con ese id_usu
             @SuppressWarnings("unchecked")
@@ -103,9 +97,9 @@ public class FavoritoController {
      * Param: id_usu (id del usuario autenticado)
      */
     @GetMapping("/ids")
-    public ResponseEntity<List<Object>> getFavoritoIds(
-            @RequestParam(value = "id_usu") Integer idUsu) {
+    public ResponseEntity<List<Object>> getFavoritoIds() {
         try {
+            Integer idUsu = authenticatedUserId();
             // Buscar si existe un cliente con ese id_usu
             @SuppressWarnings("unchecked")
             List<Integer> clienteIds = (List<Integer>) entityManager
@@ -139,12 +133,12 @@ public class FavoritoController {
     public ResponseEntity<Map<String, Object>> toggleFavorito(
             @RequestBody Map<String, Integer> payload) {
         try {
-            Integer idUsu = payload.get("id_usu");
+            Integer idUsu = authenticatedUserId();
             Integer idMue = payload.get("id_mue");
 
-            if (idUsu == null || idMue == null) {
+            if (idMue == null || idMue <= 0) {
                 return ResponseEntity.badRequest()
-                        .body(Map.of("error", "id_usu e id_mue son requeridos"));
+                        .body(Map.of("error", "id_mue es requerido"));
             }
 
             // Buscar si existe un cliente con ese id_usu
@@ -184,7 +178,13 @@ public class FavoritoController {
             }
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
-                    .body(Map.of("error", e.getMessage()));
+                    .body(Map.of("error", "No se pudo actualizar el favorito."));
         }
+    }
+
+    private Integer authenticatedUserId() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) throw new IllegalStateException("No autenticado");
+        return Integer.valueOf(auth.getName());
     }
 }

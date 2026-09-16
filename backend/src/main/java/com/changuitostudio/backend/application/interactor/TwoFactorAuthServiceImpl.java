@@ -29,14 +29,12 @@ public class TwoFactorAuthServiceImpl implements TwoFactorAuthUseCase {
         Usuario usuario = usuarioRepository.buscarPorId(userId)
                 .orElseThrow(() -> new UsuarioNoEncontradoException(userId));
 
-        String secret;
-        if (usuario.getSecret2fa() == null || usuario.getSecret2fa().isEmpty()) {
-            secret = tfaCoreService.generateNewSecret();
-            usuario.setSecret2fa(secret);
-            usuarioRepository.guardar(usuario);
-        } else {
-            secret = usuario.getSecret2fa();
+        if (Boolean.TRUE.equals(usuario.getIs2faEnabled())) {
+            throw new IllegalStateException("2FA ya está habilitado para esta cuenta.");
         }
+        String secret = tfaCoreService.generateNewSecret();
+        usuario.setSecret2fa(secret);
+        usuarioRepository.guardar(usuario);
 
         String qrCodeUrl = tfaCoreService.generateQrCodeImageUri(secret, usuario.getEmailUsu());
         return new TwoFactorSetupResult(qrCodeUrl, secret);
@@ -64,9 +62,16 @@ public class TwoFactorAuthServiceImpl implements TwoFactorAuthUseCase {
     }
 
     @Override
-    public void disable(Long userId) {
+    public void disable(Long userId, String code) {
         Usuario usuario = usuarioRepository.buscarPorId(userId)
                 .orElseThrow(() -> new UsuarioNoEncontradoException(userId));
+
+        if (!Boolean.TRUE.equals(usuario.getIs2faEnabled()) || usuario.getSecret2fa() == null) {
+            throw new IllegalStateException("2FA no está habilitado.");
+        }
+        if (!tfaCoreService.isOtpValid(usuario.getSecret2fa(), code)) {
+            throw new IllegalArgumentException("Código 2FA incorrecto.");
+        }
 
         usuario.setIs2faEnabled(false);
         usuario.setSecret2fa(null);

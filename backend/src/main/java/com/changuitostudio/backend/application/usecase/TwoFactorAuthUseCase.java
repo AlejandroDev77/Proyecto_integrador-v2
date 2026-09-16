@@ -25,6 +25,6 @@ public interface TwoFactorAuthUseCase {
     /**
      * Deshabilita 2FA para el usuario.
      */
-    void disable(Long userId);
+    void disable(Long userId, String code);
 }
 

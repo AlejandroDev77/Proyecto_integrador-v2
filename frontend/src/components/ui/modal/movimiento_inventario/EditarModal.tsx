@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import {
@@ -40,22 +39,7 @@ interface MovimientoInventario {
   id_emp: number;
   empleado?: { nom_emp: string; ap_pat_emp: string };
 }
-interface Material {
-  id_mat: number;
-  nom_mat: string;
-  cod_mat?: string;
-}
-interface Mueble {
-  id_mue: number;
-  nom_mue: string;
-  cod_mue?: string;
-}
-interface Empleado {
-  id_emp: number;
-  nom_emp: string;
-  ap_pat_emp: string;
-  cod_emp?: string;
-}
+import type { MaterialReferencia as Material, MuebleReferencia as Mueble, Empleado } from "../../../../types/entities";
 interface Props {
   showModal: boolean;
   setShowModal: (show: boolean) => void;
@@ -342,7 +326,7 @@ export default function ModalEditarMovimientoInventario({
     setLoadingEmp(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/empleados?page=${page}&per_page=6${
+        `/api/empleados?page=${page}&per_page=6${
           search ? `&filter[nom_emp]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -363,7 +347,7 @@ export default function ModalEditarMovimientoInventario({
     setLoadingMat(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/materiales?page=${page}&per_page=6${
+        `/api/materiales?page=${page}&per_page=6${
           search ? `&filter[nom_mat]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -384,7 +368,7 @@ export default function ModalEditarMovimientoInventario({
     setLoadingMue(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/mueble?page=${page}&per_page=6${
+        `/api/mueble?page=${page}&per_page=6${
           search ? `&filter[nom_mue]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -474,14 +458,14 @@ export default function ModalEditarMovimientoInventario({
     setErrorMsg("");
     let uid = null;
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        uid = (jwtDecode(token) as any).id_usu;
+        uid = (JSON.parse(token) as any).id_usu;
       }
     } catch {}
     try {
       const res = await fetch(
-        `http://localhost:8080/api/movimientos-inventario/${movimientoSeleccionado.id_mov || (movimientoSeleccionado as any).id}`,
+        `/api/movimientos-inventario/${movimientoSeleccionado.id_mov || (movimientoSeleccionado as any).id}`,
         {
           method: "PUT",
           headers: {
@@ -756,7 +740,7 @@ export default function ModalEditarMovimientoInventario({
                         <EmpleadoCard
                           key={e.id_emp || (e as any).id}
                           empleado={e}
-                          isSelected={(selectedEmpleado?.id_emp || (selectedEmpleado as any)?.id) === (e.id_emp || (e as any).id)}
+                          isSelected={!!selectedEmpleado && (selectedEmpleado.id_emp || (selectedEmpleado as any).id) === (e.id_emp || (e as any).id)}
                           onSelect={() => setSelectedEmpleado(e)}
                         />
                       ))
@@ -828,7 +812,7 @@ export default function ModalEditarMovimientoInventario({
                             <MaterialCard
                               key={m.id_mat || (m as any).id}
                               material={m}
-                              isSelected={(selectedMaterial?.id_mat || (selectedMaterial as any)?.id) === (m.id_mat || (m as any).id)}
+                              isSelected={!!selectedMaterial && (selectedMaterial.id_mat || (selectedMaterial as any).id) === (m.id_mat || (m as any).id)}
                               onSelect={() => setSelectedMaterial(m)}
                             />
                           ))
@@ -866,7 +850,7 @@ export default function ModalEditarMovimientoInventario({
                             <MuebleCard
                               key={m.id_mue || (m as any).id}
                               mueble={m}
-                              isSelected={(selectedMueble?.id_mue || (selectedMueble as any)?.id) === (m.id_mue || (m as any).id)}
+                              isSelected={!!selectedMueble && (selectedMueble.id_mue || (selectedMueble as any).id) === (m.id_mue || (m as any).id)}
                               onSelect={() => setSelectedMueble(m)}
                             />
                           ))

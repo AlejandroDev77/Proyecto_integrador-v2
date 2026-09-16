@@ -46,7 +46,7 @@ public class CategoriaController {
         });
 
         if (page == null && per_page == null) {
-            PageResult<Categoria> allData = manageCategoriaUseCase.listarCategorias(1, Integer.MAX_VALUE, filters, sort);
+            PageResult<Categoria> allData = manageCategoriaUseCase.listarCategorias(1, 100, filters, sort);
             return ResponseEntity.ok(allData.getContent().stream().map(this::toResponseDTO).toList());
         }
 

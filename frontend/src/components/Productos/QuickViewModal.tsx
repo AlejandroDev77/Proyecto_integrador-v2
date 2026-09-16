@@ -251,7 +251,7 @@ export default function QuickViewModal({
                               enableZoom={true}
                               enablePan={false}
                             />
-                            <Environment preset="apartment" />
+                            <Environment files="/assets/lebombo_1k.hdr" />
                           </Canvas>
                         </Suspense>
                       </div>

@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/detalle-cotizaciones")
+@RequestMapping({"/api/detalle-cotizaciones", "/api/detalle-cotizacion"})
 public class DetalleCotizacionController {
 
     private final ManageDetalleCotizacionUseCase manageDetalleCotizacionUseCase;

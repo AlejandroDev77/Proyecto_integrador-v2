@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
 import { ValidationErrors, parseApiErrors } from "../shared";
 import { FolderTree, X, Save, FileText } from "lucide-react";
 
@@ -50,9 +49,9 @@ export default function ModalEditarCategoriaMueble({
 
     let idUsuarioLocal = null;
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        const p: any = jwtDecode(token);
+        const p: any = JSON.parse(token);
         idUsuarioLocal = p.id_usu || null;
       }
     } catch {
@@ -61,7 +60,7 @@ export default function ModalEditarCategoriaMueble({
 
     try {
       const res = await fetch(
-        `http://localhost:8080/api/categoria-mueble/${categoriaSeleccionada.id_cat}`,
+        `/api/categoria-mueble/${categoriaSeleccionada.id_cat}`,
         {
           method: "PUT",
           headers: {

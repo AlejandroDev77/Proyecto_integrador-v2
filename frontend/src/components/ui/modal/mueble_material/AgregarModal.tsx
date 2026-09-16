@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
 import {
   Package,
   Layers,
@@ -438,7 +437,7 @@ export default function ModalAgregarMuebleMaterial({
         });
         if (search) params.append("filter[nom_mue]", search);
 
-        const res = await fetch(`http://localhost:8080/api/mueble?${params}`);
+        const res = await fetch(`/api/mueble?${params}`);
         const payload = await res.json();
 
         const realData = payload?.data && payload?.success !== undefined ? payload.data : payload;
@@ -475,7 +474,7 @@ export default function ModalAgregarMuebleMaterial({
         if (search) params.append("filter[nom_mat]", search);
 
         const res = await fetch(
-          `http://localhost:8080/api/materiales?${params}`
+          `/api/materiales?${params}`
         );
         const payload = await res.json();
 
@@ -580,9 +579,9 @@ export default function ModalAgregarMuebleMaterial({
 
     let idUsuarioLocal = null;
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        const payload: any = jwtDecode(token);
+        const payload: any = JSON.parse(token);
         idUsuarioLocal = payload.id_usu || null;
       }
     } catch (e) {
@@ -598,7 +597,7 @@ export default function ModalAgregarMuebleMaterial({
 
     try {
       for (const material of selectedMaterials) {
-        const res = await fetch("http://localhost:8080/api/mueble-material", {
+        const res = await fetch("/api/mueble-material", {
           method: "POST",
           headers,
           body: JSON.stringify({
@@ -613,7 +612,7 @@ export default function ModalAgregarMuebleMaterial({
 
       // Refrescar datos
       const updatedRes = await fetch(
-        "http://localhost:8080/api/mueble-material"
+        "/api/mueble-material"
       );
       const updatedPayload: any = await updatedRes.json();
       
@@ -625,7 +624,7 @@ export default function ModalAgregarMuebleMaterial({
       Swal.fire({
         icon: "success",
         title: "¡Materiales asignados!",
-        html: `Se agregaron <b>${selectedMaterials.length}</b> material(es) al mueble <b>${selectedMueble.nom_mue}</b>`,
+        text: `Se agregaron ${selectedMaterials.length} material(es) al mueble ${selectedMueble.nom_mue}`,
         showConfirmButton: false,
         timer: 2000,
         timerProgressBar: true,
@@ -694,7 +693,7 @@ export default function ModalAgregarMuebleMaterial({
                         <MuebleCard
                           key={mueble.id_mue}
                           mueble={mueble}
-                          isSelected={selectedMueble?.id_mue === mueble.id_mue}
+                          isSelected={!!selectedMueble && selectedMueble.id_mue === mueble.id_mue}
                           onSelect={() => setSelectedMueble(mueble)}
                         />
                       ))

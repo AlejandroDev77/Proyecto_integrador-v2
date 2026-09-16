@@ -79,7 +79,7 @@ const ModalVerMueble: React.FC<ModalVerMuebleProps> = ({ showModal, setShowModal
   useEffect(() => {
     if (activeTab === 'MATERIALES' && muebleSeleccionado?.id_mue) {
       setLoadingMateriales(true);
-      fetch(`http://localhost:8080/api/mueble-materiales?filter[mueble.id_mue]=${muebleSeleccionado.id_mue}&per_page=100`)
+      fetch(`/api/mueble-materiales?filter[mueble.id_mue]=${muebleSeleccionado.id_mue}&per_page=100`)
         .then(res => res.json())
         .then(data => {
           const arr = data?.data?.content || data?.data || [];

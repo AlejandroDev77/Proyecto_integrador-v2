@@ -41,8 +41,8 @@ export default function RolesPermisos() {
     const loadData = async () => {
       try {
         const [rolesResRaw, permisosResRaw] = await Promise.all([
-          fetch("http://localhost:8080/api/roles").then((r) => r.json()),
-          fetch("http://localhost:8080/api/permisos").then((r) => r.json()),
+          fetch("/api/roles").then((r) => r.json()),
+          fetch("/api/permisos").then((r) => r.json()),
         ]);
         const rolesData = Array.isArray(rolesResRaw) ? rolesResRaw : Array.isArray(rolesResRaw?.data) ? rolesResRaw.data : [];
         const permisosData = Array.isArray(permisosResRaw) ? permisosResRaw : Array.isArray(permisosResRaw?.data) ? permisosResRaw.data : [];

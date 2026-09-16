@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
+import { normalizePageResponse } from "../../../../utils/pagination";
 import {
   ClipboardList,
   FileText,
@@ -369,12 +369,12 @@ export default function ModalAgregarDetalleCotizacion({
     setLoadingCot(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/cotizacion?page=${page}&per_page=8${
+        `/api/cotizaciones?page=${page}&per_page=8${
           search ? `&filter[search]=${encodeURIComponent(search)}` : ""
         }`
       );
       const p = await res.json();
-      setCotizaciones(p?.data || []);
+      setCotizaciones(normalizePageResponse<Cotizacion>(p).items);
       setCotPag({
         currentPage: p.current_page || 1,
         lastPage: p.last_page || 1,
@@ -391,12 +391,12 @@ export default function ModalAgregarDetalleCotizacion({
     setLoadingMueble(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/mueble?page=${page}&per_page=8${
+        `/api/mueble?page=${page}&per_page=8${
           search ? `&filter[nom_mue]=${encodeURIComponent(search)}` : ""
         }`
       );
       const p = await res.json();
-      setMuebles(p?.data || []);
+      setMuebles(normalizePageResponse<Mueble>(p).items);
       setMueblePag({
         currentPage: p.current_page || 1,
         lastPage: p.last_page || 1,
@@ -474,8 +474,8 @@ export default function ModalAgregarDetalleCotizacion({
     setIsSubmitting(true);
     let uid = null;
     try {
-      const token = localStorage.getItem("token");
-      if (token) uid = (jwtDecode(token) as any).id_usu;
+      const token = sessionStorage.getItem("auth_identity");
+      if (token) uid = (JSON.parse(token) as any).id_usu;
     } catch {}
 
     try {
@@ -500,7 +500,7 @@ export default function ModalAgregarDetalleCotizacion({
         payload.img_referencia = customMueble.img_referencia;
       }
 
-      const res = await fetch("http://localhost:8080/api/detalle-cotizacion", {
+      const res = await fetch("/api/detalle-cotizacion", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -585,7 +585,7 @@ export default function ModalAgregarDetalleCotizacion({
                         <CotizacionCard
                           key={c.id_cot}
                           cotizacion={c}
-                          isSelected={selectedCotizacion?.id_cot === c.id_cot}
+                          isSelected={!!selectedCotizacion && selectedCotizacion.id_cot === c.id_cot}
                           onSelect={() => setSelectedCotizacion(c)}
                         />
                       ))
@@ -665,7 +665,7 @@ export default function ModalAgregarDetalleCotizacion({
                             <MuebleCard
                               key={m.id_mue}
                               mueble={m}
-                              isSelected={selectedMueble?.id_mue === m.id_mue}
+                              isSelected={!!selectedMueble && selectedMueble.id_mue === m.id_mue}
                               onSelect={() => setSelectedMueble(m)}
                             />
                           ))

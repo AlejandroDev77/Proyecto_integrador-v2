@@ -1,5 +1,50 @@
 # Informe de auditoría de seguridad — Bosquejo
 
+## Estado de remediación — 13 de septiembre de 2026
+
+Se aplicó una remediación integral al frontend, backend y despliegue Docker. El riesgo actual baja de **crítico** a **medio condicionado**: los defectos explotables desde la aplicación fueron corregidos y verificados, pero quedan dos acciones que dependen de infraestructura externa y una migración de datos históricos. Este apartado prevalece sobre las descripciones originales, que se conservan como evidencia del estado anterior.
+
+| ID | Estado | Corrección aplicada / acción pendiente |
+|---|---|---|
+| H01 | Corregida | Denegación por defecto; catálogo público explícito; API operativa limitada a administrador/empleado; portal limitado al usuario autenticado; `/api/me` exige sesión real. |
+| H02 | Corregida | El registro público ignora cualquier rol solicitado y asigna exclusivamente el rol cliente. |
+| H03 | Código corregido; acción externa pendiente | Se retiraron credenciales del código y se creó configuración ignorada por Git con secretos aleatorios para JWT y PostgreSQL. Deben rotarse en R2, Gmail, Google, Tripo3D y n8n las claves que ya estuvieron expuestas, y depurarse del historial Git si el repositorio salió del equipo. |
+| H04 | Corregida | Los JWT declaran tipo `access` o `2fa_pending`; el filtro acepta únicamente `access`. Para desactivar 2FA se exige un OTP vigente y cada alta genera un secreto nuevo. |
+| H05 | Corregida | Los mensajes dinámicos usan texto o escape HTML antes de llegar a SweetAlert. |
+| H06 | Corregida | Se eliminó el cliente S3 y sus variables del frontend; las referencias IA se cargan mediante un endpoint autenticado del backend. |
+| H07 | Corregida | Los campos de contraseña, token y secretos 2FA se redactan; `/api/logs` exige administrador. |
+| H08 | Corregida | Favoritos, perfil, compras y evidencia derivan la identidad del principal autenticado; se comprueba pertenencia en las lecturas del portal. |
+| H09 | Corregida | Precio y total se calculan desde la base de datos, cantidades y stock se validan, las filas de muebles se bloquean y el pago queda pendiente de confirmación. |
+| H10 | Corregida para el despliegue actual | Cada petición comprueba que la cuenta siga activa y que rol y huella de credenciales sigan vigentes. Logout revoca el JWT en la instancia; cambiar la contraseña invalida todos los JWT anteriores. |
+| H11 | Corregida | Se eliminó el JWT de URLs y respuestas del chatbot; el backend ya no acepta `token` por query ni reenvía el bearer a n8n. |
+| H12 | Corregida | La sesión ya no se entrega a JavaScript ni se guarda en `localStorage`: se envía en cookie `HttpOnly`, `SameSite=Strict` y `Secure` al habilitar `APP_AUTH_COOKIE_SECURE=true`. Las mutaciones usan token CSRF. |
+| H12 | Corregida | Google exige email verificado y guarda el `sub` estable y único. Una cuenta local no se vincula automáticamente por coincidencia de correo. |
+| H13 | Corregida | Chat e IA exigen autenticación, tienen límite de solicitudes, cola acotada, dos trabajadores y límites de tiempo/tamaño. |
+| H14 | Corregida para archivos nuevos; migración pendiente | Se comprueba tamaño, extensión y firma mágica. Las rutas locales se normalizan y deben permanecer dentro de `storage`. Las evidencias nuevas usan almacenamiento local protegido. Deben retirarse o migrarse documentos históricos que ya estén publicados en R2. |
+| H15 | Corregida | Registro y restablecimiento exigen contraseñas de 12 a 72 caracteres en el servidor. |
+| H16 | Corregida para una instancia | Login, 2FA, registro, recuperación, chat e IA tienen rate limiting por IP. Si se escala a varias réplicas, el contador debe trasladarse a Redis u otro almacén compartido. |
+| H17 | Corregida | Páginas limitadas a 100 registros, parámetros acotados, multipart a 20/25 MB, máximo 20 partes, conexiones y descarga de modelos limitadas. |
+| H18 | Corregida | Las respuestas 500 usan referencia opaca; la excepción completa queda solo en logs y se desactivó el logging de depuración. |
+| H19 | Acción de infraestructura pendiente | Nginx añade CSP y cabeceras defensivas y centraliza `/api`; Docker aún sirve HTTP local. Para publicación se debe terminar TLS con certificado y dominio en el proxy perimetral. |
+| H20 | Corregida | PostgreSQL se enlaza solo a `127.0.0.1`; el backend ya no publica puerto al host y se consume a través de Nginx. |
+| H21 | Corregida | Un trabajo idempotente crea `bosquejo_app` sin superusuario, `CREATEDB` ni `CREATEROLE`; el backend usa esa cuenta. |
+
+### Verificación posterior
+
+- `mvnw.cmd -B -ntp test`: correcto con Spring Boot 4.1.1, Spring Security 7.1.1 y Tomcat 11.0.24.
+- `npx vite build`: artefacto de producción generado correctamente.
+- `npm audit --audit-level=low`: **0 vulnerabilidades**. Se eliminaron `xlsx` y `swiper`; la exportación CSV neutraliza fórmulas.
+- `docker compose config --quiet`: correcto.
+- `docker compose up -d --build`: imágenes de backend y frontend construidas; servicios ejecutados como usuario sin privilegios.
+- Pruebas HTTP sin token: `/` y el catálogo responden; `/api/usuarios` y `/api/me` rechazan el acceso.
+- PostgreSQL: `bosquejo_app` devuelve `rolsuper=false`, `rolcreatedb=false` y `rolcreaterole=false`.
+- SQL injection: se revisaron JPQL, consultas nativas, `JdbcTemplate` y filtros del dashboard. Los valores externos se enlazan mediante parámetros; no se encontró una vía de inyección SQL explotable.
+- Reconstrucción final Docker completada. Pruebas HTTP posteriores: `/` → 200, `/api/muebles` → 200, `/api/usuarios` → 401 y `/api/me` → 401. Backend, frontend y PostgreSQL permanecen activos; `db-init` finaliza correctamente después de aplicar los privilegios.
+
+### Configuración requerida después de rotar claves
+
+El archivo local `runtime-secrets.env` está excluido de Git. Complete ahí las credenciales **nuevas** de correo, Google, R2, Tripo3D y n8n. Las integraciones correspondientes permanecen deshabilitadas mientras esos valores estén vacíos; el resto del sistema puede iniciar sin recuperar secretos expuestos.
+
 Fecha: 11 de septiembre de 2026. Código base: `e1efc69`, incluyendo los cambios locales existentes al comenzar la revisión.
 
 **Evaluación general: riesgo crítico.** La API permite operaciones administrativas sin autenticación, el registro público permite seleccionar un rol privilegiado y existen secretos en archivos versionados. El segundo factor, las compras y varios flujos del navegador presentan problemas adicionales.

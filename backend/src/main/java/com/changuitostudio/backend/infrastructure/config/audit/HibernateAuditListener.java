@@ -17,9 +17,16 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.lang.reflect.Field;
+import java.time.temporal.TemporalAccessor;
+import java.util.Collection;
 
 @Component
 public class HibernateAuditListener implements PostInsertEventListener, PostUpdateEventListener, PostDeleteEventListener {
+
+    private static final Set<String> SENSITIVE_FIELDS = Set.of(
+            "pasUsu", "password", "secret2fa", "secret", "token", "accessToken", "refreshToken");
 
     @Autowired
     @Lazy
@@ -39,20 +46,22 @@ public class HibernateAuditListener implements PostInsertEventListener, PostUpda
     @Override
     public void onPostInsert(PostInsertEvent event) {
         if (event.getEntity() instanceof AuditLog) return;
-        saveAuditLog(event.getEntity(), "INSERT", null, extractState(event.getPersister(), event.getState(), event.getPersister().getPropertyInsertability()), event.getId());
+        Object[] state = event.getState() != null ? event.getState() : event.getPersister().getPropertyValues(event.getEntity());
+        saveAuditLog(event.getEntity(), "INSERT", null, extractState(event.getPersister(), state, event.getPersister().getPropertyInsertability()), event.getId());
     }
 
     @Override
     public void onPostUpdate(PostUpdateEvent event) {
         if (event.getEntity() instanceof AuditLog) return;
-        saveAuditLog(event.getEntity(), "UPDATE", extractState(event.getPersister(), event.getOldState(), event.getPersister().getPropertyUpdateability()), extractState(event.getPersister(), event.getState(), event.getPersister().getPropertyUpdateability()), event.getId());
+        Object[] currentState = event.getState() != null ? event.getState() : event.getPersister().getPropertyValues(event.getEntity());
+        saveAuditLog(event.getEntity(), "UPDATE", extractState(event.getPersister(), event.getOldState(), event.getPersister().getPropertyUpdateability()), extractState(event.getPersister(), currentState, event.getPersister().getPropertyUpdateability()), event.getId());
     }
 
     @Override
     public void onPostDelete(PostDeleteEvent event) {
         if (event.getEntity() instanceof AuditLog) return;
-        // For delete, we can log everything since it's just the old state
-        saveAuditLog(event.getEntity(), "DELETE", extractState(event.getPersister(), event.getDeletedState(), null), null, event.getId());
+        Object[] deletedState = event.getDeletedState() != null ? event.getDeletedState() : event.getPersister().getPropertyValues(event.getEntity());
+        saveAuditLog(event.getEntity(), "DELETE", extractState(event.getPersister(), deletedState, null), null, event.getId());
     }
 
     private void saveAuditLog(Object entity, String action, Map<String, Object> oldState, Map<String, Object> newState, Object recordId) {
@@ -101,10 +110,44 @@ public class HibernateAuditListener implements PostInsertEventListener, PostUpda
         for (int i = 0; i < propertyNames.length; i++) {
             // Only include the property if it's allowed (or if we aren't filtering)
             if (propertyInclusion == null || propertyInclusion[i]) {
-                map.put(propertyNames[i], state[i]);
+                String property = propertyNames[i];
+                map.put(property, SENSITIVE_FIELDS.contains(property) ? "[REDACTADO]" : sanitizeValue(state[i]));
             }
         }
         return map;
+    }
+
+    private Object sanitizeValue(Object value) {
+        if (value == null || value instanceof CharSequence || value instanceof Number || value instanceof Boolean
+                || value instanceof Enum<?> || value instanceof TemporalAccessor || value instanceof java.util.Date) {
+            return value;
+        }
+        if (value instanceof Collection<?> collection) {
+            return Map.of("cantidad", collection.size());
+        }
+        Object id = findEntityId(value);
+        if (id != null) {
+            return Map.of("id", id);
+        }
+        return String.valueOf(value);
+    }
+
+    private Object findEntityId(Object entity) {
+        Class<?> type = entity.getClass();
+        while (type != null && type != Object.class) {
+            for (Field field : type.getDeclaredFields()) {
+                if (field.isAnnotationPresent(jakarta.persistence.Id.class)) {
+                    try {
+                        field.setAccessible(true);
+                        return field.get(entity);
+                    } catch (IllegalAccessException ignored) {
+                        return null;
+                    }
+                }
+            }
+            type = type.getSuperclass();
+        }
+        return null;
     }
 
     @Override

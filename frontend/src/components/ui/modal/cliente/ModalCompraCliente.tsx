@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
 import {
   ShoppingCart,
   User,
@@ -30,7 +29,7 @@ interface Props {
   onSuccess: () => void;
 }
 
-const API = "http://localhost:8080/api";
+const API = "/api";
 
 interface ClienteInfo {
   id_cli: number;
@@ -89,14 +88,14 @@ export default function ModalCompraCliente({
   const fetchCliente = async () => {
     setLoadingCliente(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (!token) {
         setCliente(null);
         return;
       }
 
       // Decodificar token para obtener id_usu
-      const decoded: any = jwtDecode(token);
+      const decoded: any = JSON.parse(token);
       const idUsu = decoded.id_usu;
 
       if (!idUsu) {

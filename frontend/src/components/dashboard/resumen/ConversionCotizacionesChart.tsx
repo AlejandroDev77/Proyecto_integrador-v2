@@ -1,7 +1,6 @@
 import Chart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
 import { useDashboard } from "../../../context/DashboardContext";
-import { motion } from "framer-motion";
 
 export default function ConversionCotizacionesChart() {
   const { data } = useDashboard();
@@ -62,16 +61,9 @@ export default function ConversionCotizacionesChart() {
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5, delay: 0.3 }}
-      className="relative overflow-hidden rounded-[2rem] bg-white/60 p-5 dark:bg-gray-900/60 backdrop-blur-xl border border-white/50 dark:border-gray-700/50 shadow-lg sm:p-6"
-    >
-      <div className="absolute top-0 right-0 w-48 h-48 bg-[#a67c52]/10 rounded-full mix-blend-multiply filter blur-[60px] -mr-10 -mt-10 pointer-events-none" />
-      
-      <div className="relative z-10">
-        <h3 className="text-xl font-black text-gray-900 dark:text-white drop-shadow-sm mb-1">
+    <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-6">
+      <div>
+        <h3 className="mb-1 text-base font-semibold text-gray-900 dark:text-white">
           Conversión de Cotizaciones
         </h3>
         <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">
@@ -89,7 +81,7 @@ export default function ConversionCotizacionesChart() {
 
         <div className="flex items-center justify-center gap-6 mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
           <div className="text-center group">
-            <p className="text-2xl font-black text-gray-800 dark:text-white/90 group-hover:scale-110 transition-transform">
+            <p className="text-xl font-semibold text-gray-800 dark:text-white">
               {total}
             </p>
             <p className="text-xs font-semibold tracking-wider uppercase text-gray-500 dark:text-gray-400">
@@ -98,14 +90,14 @@ export default function ConversionCotizacionesChart() {
           </div>
           <div className="w-px h-10 bg-gray-200 dark:bg-gray-700"></div>
           <div className="text-center group">
-            <p className="text-2xl font-black text-[#a67c52] dark:text-[#d4b48f] group-hover:scale-110 transition-transform">
+            <p className="text-xl font-semibold text-[#a67c52] dark:text-[#d4b48f]">
               {aprobadas}
             </p>
             <p className="text-xs font-semibold tracking-wider uppercase text-gray-500 dark:text-gray-400">Aprobadas</p>
           </div>
           <div className="w-px h-10 bg-gray-200 dark:bg-gray-700"></div>
           <div className="text-center group">
-            <p className="text-2xl font-black text-gray-400 dark:text-gray-500 group-hover:scale-110 transition-transform">
+            <p className="text-xl font-semibold text-gray-500 dark:text-gray-400">
               {total - aprobadas}
             </p>
             <p className="text-xs font-semibold tracking-wider uppercase text-gray-500 dark:text-gray-400">
@@ -114,6 +106,6 @@ export default function ConversionCotizacionesChart() {
           </div>
         </div>
       </div>
-    </motion.div>
+    </section>
   );
 }

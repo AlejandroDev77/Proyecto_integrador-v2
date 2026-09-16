@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
+import { normalizePageResponse } from "../../../../utils/pagination";
 import { ValidationErrors, parseApiErrors } from "../shared";
 import {
   RotateCcw,
@@ -30,6 +30,7 @@ interface DetalleDevolucion {
   mueble?: { nom_mue: string };
 }
 interface Devolucion {
+  id?: number;
   id_dev: number;
   cod_dev?: string;
   fec_dev: string;
@@ -37,6 +38,7 @@ interface Devolucion {
   motivo?: string;
 }
 interface Mueble {
+  id?: number;
   id_mue: number;
   nom_mue: string;
   cod_mue?: string;
@@ -279,17 +281,17 @@ export default function ModalEditarDetalleDevolucion({
     setLoadingDev(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/devolucion?page=${page}&per_page=6${
+        `/api/devolucion?page=${page}&per_page=6${
           search ? `&filter[cod_dev]=${encodeURIComponent(search)}` : ""
         }`
       );
       const p = await res.json();
-      setDevoluciones(p?.data || []);
-      setDevPag({
-        currentPage: p.current_page || 1,
-        lastPage: p.last_page || 1,
-        total: p.total || 0,
-      });
+      const result = normalizePageResponse<Devolucion>(p);
+      setDevoluciones(result.items.map((devolucion) => ({
+        ...devolucion,
+        id_dev: devolucion.id_dev ?? devolucion.id,
+      })));
+      setDevPag(result.pagination);
     } catch {
       setDevoluciones([]);
     } finally {
@@ -300,17 +302,17 @@ export default function ModalEditarDetalleDevolucion({
     setLoadingMueble(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/mueble?page=${page}&per_page=6${
+        `/api/mueble?page=${page}&per_page=6${
           search ? `&filter[nom_mue]=${encodeURIComponent(search)}` : ""
         }`
       );
       const p = await res.json();
-      setMuebles(p?.data || []);
-      setMueblePag({
-        currentPage: p.current_page || 1,
-        lastPage: p.last_page || 1,
-        total: p.total || 0,
-      });
+      const result = normalizePageResponse<Mueble>(p);
+      setMuebles(result.items.map((mueble) => ({
+        ...mueble,
+        id_mue: mueble.id_mue ?? mueble.id,
+      })));
+      setMueblePag(result.pagination);
     } catch {
       setMuebles([]);
     } finally {
@@ -371,14 +373,14 @@ export default function ModalEditarDetalleDevolucion({
     setGeneralError(null);
     let uid = null;
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        uid = (jwtDecode(token) as any).id_usu;
+        uid = (JSON.parse(token) as any).id_usu;
       }
     } catch {}
     try {
       const res = await fetch(
-        `http://localhost:8080/api/detalle-devolucion/${detalledevolucionSeleccionado.id_det_dev}`,
+        `/api/detalle-devolucion/${detalledevolucionSeleccionado.id_det_dev}`,
         {
           method: "PUT",
           headers: {
@@ -588,7 +590,7 @@ export default function ModalEditarDetalleDevolucion({
                         <DevolucionCard
                           key={d.id_dev}
                           devolucion={d}
-                          isSelected={selectedDevolucion?.id_dev === d.id_dev}
+                          isSelected={!!selectedDevolucion && selectedDevolucion.id_dev === d.id_dev}
                           onSelect={() => setSelectedDevolucion(d)}
                         />
                       ))
@@ -632,7 +634,7 @@ export default function ModalEditarDetalleDevolucion({
                         <MuebleCard
                           key={m.id_mue}
                           mueble={m}
-                          isSelected={selectedMueble?.id_mue === m.id_mue}
+                          isSelected={!!selectedMueble && selectedMueble.id_mue === m.id_mue}
                           onSelect={() => setSelectedMueble(m)}
                         />
                       ))

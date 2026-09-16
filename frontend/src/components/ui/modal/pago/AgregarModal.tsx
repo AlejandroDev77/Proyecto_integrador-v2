@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
 import { ValidationErrors, parseApiErrors } from "../shared";
 import {
   CreditCard,
@@ -352,7 +351,7 @@ export default function ModalAgregarPago({
         "filter[est_ven]": "Pendiente",
       });
       if (search) params.append("filter[cod_ven]", search);
-      const res = await fetch(`http://localhost:8080/api/ventas?${params}`);
+      const res = await fetch(`/api/ventas?${params}`);
       const payload = await res.json();
       const data = payload?.data ?? payload;
       const items = data?.content ?? data?.data ?? data;
@@ -401,9 +400,9 @@ export default function ModalAgregarPago({
 
     let idUsuarioLocal = null;
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        const payload: any = jwtDecode(token);
+        const payload: any = JSON.parse(token);
         idUsuarioLocal = payload.id_usu || null;
       }
     } catch {
@@ -426,7 +425,7 @@ export default function ModalAgregarPago({
         monto: parseFloat(form.monto),
         venta: { id: selectedVenta.id_ven || (selectedVenta as any).id },
       };
-      const res = await fetch("http://localhost:8080/api/pagos", {
+      const res = await fetch("/api/pagos", {
         method: "POST",
         headers,
         body: JSON.stringify(pagoData),

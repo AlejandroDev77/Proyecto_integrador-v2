@@ -97,22 +97,6 @@ export default function PruebaEnhanced() {
   // Undo hook
   const { push, undo, canUndo } = useUndo();
 
-  // Environment presets map
-  const getEnvironmentPreset = (preset: LightPreset) => {
-    switch (preset) {
-      case "studio":
-        return "studio";
-      case "natural":
-        return "sunset";
-      case "dramatic":
-        return "night";
-      case "soft":
-        return "dawn";
-      default:
-        return "studio";
-    }
-  };
-
   // Zoom functions
   const zoomByFactor = (factor: number) => {
     if (!orbitControlsRef.current) return;
@@ -405,7 +389,7 @@ export default function PruebaEnhanced() {
                   )}
 
                   {/* Environment */}
-                  <Environment preset={getEnvironmentPreset(lightPreset)} />
+                  <Environment files="/assets/lebombo_1k.hdr" />
 
                   {/* Contact Shadows */}
                   <ContactShadows

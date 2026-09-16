@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
+import { normalizePageResponse } from "../../../../utils/pagination";
 import { ValidationErrors, parseApiErrors } from "../shared";
 import {
   UserPlus,
@@ -14,18 +14,8 @@ import {
   Save,
 } from "lucide-react";
 
-interface Cliente {
-  id_cli: number;
-  nom_cli: string;
-  ap_pat_cli: string;
-  ap_mat_cli: string;
-  cel_cli: number;
-  dir_cli: string;
-  fec_nac_cli: string;
-  ci_cli: string;
-  img_cli: string;
-  id_usu: number;
-}
+import type { Cliente } from "../../../../types/entities";
+export type { Cliente };
 
 interface Usuario {
   id_usu: number;
@@ -69,9 +59,9 @@ export default function ModalAgregarCliente({
 
       // Pre-seleccionar usuario actual si es posible
       try {
-        const token = localStorage.getItem("token");
+        const token = sessionStorage.getItem("auth_identity");
         if (token) {
-          const decoded: any = jwtDecode(token);
+          const decoded: any = JSON.parse(token);
           if (decoded.id_usu) {
             setForm((prev) => ({ ...prev, id_usu: decoded.id_usu.toString() }));
           }
@@ -80,11 +70,10 @@ export default function ModalAgregarCliente({
         console.error("Error decoding token in Modal", e);
       }
 
-      fetch("http://localhost:8080/api/usuarios?filter[sin_relaciones]=true")
+      fetch("/api/usuarios?filter[sin_relaciones]=true")
         .then((res) => res.json())
         .then((payload: any) => {
-          const items = payload?.data ?? payload;
-          setUsuariosDisponibles(Array.isArray(items) ? items : []);
+          setUsuariosDisponibles(normalizePageResponse<Usuario>(payload).items);
         })
         .catch(() => setUsuariosDisponibles([]));
     }
@@ -107,9 +96,9 @@ export default function ModalAgregarCliente({
 
     let idUsuarioLocal = null;
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        const payload: any = jwtDecode(token);
+        const payload: any = JSON.parse(token);
         idUsuarioLocal = payload.id_usu || null;
       }
     } catch {
@@ -123,7 +112,7 @@ export default function ModalAgregarCliente({
     };
 
     try {
-      const res = await fetch("http://localhost:8080/api/clientes", {
+      const res = await fetch("/api/clientes", {
         method: "POST",
         headers,
         body: JSON.stringify({ ...form, id_usu: parseInt(form.id_usu) }),

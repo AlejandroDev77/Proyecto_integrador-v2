@@ -27,7 +27,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   // Cargar desde localStorage al iniciar
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    const storedToken = localStorage.getItem("token");
+    const storedToken = sessionStorage.getItem("auth_identity");
     
     if (storedUser && storedToken) {
       setUserState(JSON.parse(storedUser));
@@ -47,14 +47,14 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const login = (token: string, user: User) => {
     setToken(token);
     setUserState(user);
-    localStorage.setItem("token", token);
+    sessionStorage.setItem("auth_identity", token);
     localStorage.setItem("user", JSON.stringify(user));
   };
 
   const logout = () => {
     setUser(null);
     setToken(null);
-    localStorage.removeItem("token");
+    sessionStorage.removeItem("auth_identity");
     localStorage.removeItem("user");
   };
 

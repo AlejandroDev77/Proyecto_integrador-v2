@@ -57,7 +57,7 @@ export default function Muebles() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8080/api/mueble/${id_mue}`, {
+      const res = await fetch(`/api/mueble/${id_mue}`, {
         method: "DELETE",
         headers,
       });

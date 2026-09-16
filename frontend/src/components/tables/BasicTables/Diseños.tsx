@@ -51,7 +51,7 @@ export default function Diseños() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8080/api/disenos/${id_dis}`, {
+      const res = await fetch(`/api/disenos/${id_dis}`, {
         method: "DELETE",
         headers,
       });
@@ -155,7 +155,7 @@ export default function Diseños() {
                         {dis.img_dis ? (
                           <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-200 dark:border-white/10 shadow-sm bg-white dark:bg-black/20">
                             <img
-                              src={dis.img_dis.startsWith("http") ? dis.img_dis : `http://localhost:8080/storage/${dis.img_dis.replace("public/", "")}`}
+                              src={dis.img_dis.startsWith("http") ? dis.img_dis : `/storage/${dis.img_dis.replace("public/", "")}`}
                               alt={dis.nom_dis}
                               className="w-full h-full object-cover"
                             />
@@ -183,7 +183,7 @@ export default function Diseños() {
                       <td className="px-5 py-4">
                         {dis.archivo_3d || (dis as any).archivo3d ? (
                           <a
-                            href={(dis.archivo_3d || (dis as any).archivo3d).startsWith("http") ? (dis.archivo_3d || (dis as any).archivo3d) : `http://localhost:8080/storage/${(dis.archivo_3d || (dis as any).archivo3d).replace("public/", "")}`}
+                            href={(dis.archivo_3d || (dis as any).archivo3d).startsWith("http") ? (dis.archivo_3d || (dis as any).archivo3d) : `/storage/${(dis.archivo_3d || (dis as any).archivo3d).replace("public/", "")}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center gap-1.5 w-fit px-2 py-1 bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 rounded text-xs font-medium hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-colors"

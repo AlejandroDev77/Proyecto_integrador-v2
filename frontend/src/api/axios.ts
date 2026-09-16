@@ -1,17 +1,37 @@
 import axios from "axios";
 
 const axiosClient = axios.create({
-  baseURL: "http://localhost:8080",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "",
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true,
+  xsrfCookieName: "XSRF-TOKEN",
+  xsrfHeaderName: "X-XSRF-TOKEN",
 });
 
-// Interceptor para agregar el Bearer Token automáticamente
-axiosClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+const csrfToken = () => document.cookie
+  .match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/)?.[1];
+
+const safeMethod = (method?: string) => ["GET", "HEAD", "OPTIONS", "TRACE"].includes((method || "GET").toUpperCase());
+let csrfRequest: Promise<void> | null = null;
+
+async function ensureCsrfToken() {
+  if (csrfToken()) return;
+  if (!csrfRequest) {
+    csrfRequest = fetch("/api/csrf", { credentials: "same-origin" })
+      .then(() => undefined)
+      .finally(() => { csrfRequest = null; });
+  }
+  await csrfRequest;
+}
+
+// Fuerza el encabezado CSRF también en las llamadas Axios; la cookie de sesión permanece HttpOnly.
+axiosClient.interceptors.request.use(async (config) => {
+  if (!safeMethod(config.method)) await ensureCsrfToken();
+  const token = csrfToken();
+  if (!safeMethod(config.method) && token && !config.headers["X-XSRF-TOKEN"]) {
+    config.headers["X-XSRF-TOKEN"] = decodeURIComponent(token);
   }
   return config;
 });
@@ -27,7 +47,8 @@ axiosClient.interceptors.response.use(
       
       if (!isLoginRequest) {
        
-        localStorage.removeItem("token");
+        localStorage.removeItem("token"); // Limpia JWT heredados de versiones anteriores.
+        sessionStorage.removeItem("auth_identity");
         
         if (window.location.pathname !== "/signin") {
           window.location.href = "/signin";

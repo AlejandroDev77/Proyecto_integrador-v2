@@ -51,7 +51,7 @@ public class RolesController {
         });
 
         if (page == null && per_page == null) {
-            PageResult<Rol> allData = manageRolUseCase.listarRoles(1, Integer.MAX_VALUE, filters, sort);
+            PageResult<Rol> allData = manageRolUseCase.listarRoles(1, 100, filters, sort);
             return ResponseEntity.ok(allData.getContent().stream().map(this::toRolDTO).toList());
         }
 

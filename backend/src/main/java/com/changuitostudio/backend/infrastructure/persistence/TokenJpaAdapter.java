@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Component
+@org.springframework.transaction.annotation.Transactional
 public class TokenJpaAdapter implements TokenRepository {
 
     private final VerificationTokenJpaRepository tokenJpaRepository;

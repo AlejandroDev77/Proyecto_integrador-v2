@@ -47,7 +47,7 @@ public class PermisoController {
         });
 
         if (page == null && per_page == null) {
-            PageResult<Permiso> allData = managePermisoUseCase.listarPermisos(1, Integer.MAX_VALUE, filters, sort);
+            PageResult<Permiso> allData = managePermisoUseCase.listarPermisos(1, 100, filters, sort);
             return ResponseEntity.ok(allData.getContent().stream().map(this::toResponseDTO).toList());
         }
 

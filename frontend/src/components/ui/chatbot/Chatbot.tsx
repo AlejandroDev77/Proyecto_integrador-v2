@@ -55,20 +55,6 @@ const Chatbot: React.FC = () => {
       return `![${alt}](${url})`;
     });
 
-    // Inyectar token en los enlaces de descarga de reportes
-    const token = localStorage.getItem('token') || '';
-    if (token) {
-      // Reemplaza el marcador TU_TOKEN si la IA lo dejó
-      processedText = processedText.replace(/token=TU_TOKEN/g, `token=${token}`);
-      // Y si la IA no puso token, lo agregamos a la fuerza
-      processedText = processedText.replace(/(\/api\/reportes\/dashboard\/pdf\?[^)]+)\)/g, (match, url) => {
-        if (!url.includes('token=')) {
-          return `${url}&token=${token})`;
-        }
-        return match;
-      });
-    }
-
     return processedText;
   };
 

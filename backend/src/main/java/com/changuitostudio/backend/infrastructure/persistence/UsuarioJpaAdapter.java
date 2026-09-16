@@ -23,6 +23,7 @@ import java.util.Optional;
 
 
 @Component
+@org.springframework.transaction.annotation.Transactional
 public class UsuarioJpaAdapter implements UsuarioRepository {
 
     private final UsuarioJpaRepository jpaRepository;
@@ -63,6 +64,11 @@ public class UsuarioJpaAdapter implements UsuarioRepository {
     @Override
     public Optional<Usuario> buscarPorEmail(String email) {
         return jpaRepository.findByEmailUsu(email).map(UsuarioMapper::toDomain);
+    }
+
+    @Override
+    public Optional<Usuario> buscarPorGoogleSubject(String subject) {
+        return jpaRepository.findByGoogleSubject(subject).map(UsuarioMapper::toDomain);
     }
 
     @Override

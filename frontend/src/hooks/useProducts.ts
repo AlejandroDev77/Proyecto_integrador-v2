@@ -4,7 +4,6 @@
  */
 
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { jwtDecode } from "jwt-decode";
 import {
   fetchCategoriesFromAPI,
   fetchProductsFromAPI,
@@ -58,9 +57,9 @@ export const useUserId = (): number | null => {
 
   useEffect(() => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        const decoded: any = jwtDecode(token);
+        const decoded: any = JSON.parse(token);
         setUserId(decoded.id_usu || null);
       }
     } catch (error) {

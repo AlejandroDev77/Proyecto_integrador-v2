@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
+import { normalizePageResponse } from "../../../../utils/pagination";
 import {
   RotateCcw,
   ShoppingBag,
@@ -35,24 +35,10 @@ interface Devolucion {
   id_emp: number;
 }
 
-interface Venta {
-  id_ven: number;
-  cod_ven?: string;
-  fec_ven: string;
-  est_ven: string;
-  total_ven: number;
-  cliente?: { nom_cli: string; ap_pat_cli: string };
-}
-
-interface Empleado {
-  id_emp: number;
-  nom_emp: string;
-  ap_pat_emp: string;
-  ap_mat_emp: string;
-  cod_emp?: string;
-}
+import type { Venta, Empleado } from "../../../../types/entities";
 
 interface Mueble {
+  id?: number;
   id_mue: number;
   nom_mue: string;
   cod_mue?: string;
@@ -517,18 +503,14 @@ export default function ModalAgregarDevolucion({
         per_page: "8",
       });
       if (search) params.append("filter[cod_ven]", search);
-      const res = await fetch(`http://localhost:8080/api/venta?${params}`);
+      const res = await fetch(`/api/venta?${params}`);
       const payload = await res.json();
-      const items = payload?.data ?? payload;
-      setVentas(Array.isArray(items) ? items : []);
-      if (payload?.meta || payload?.last_page) {
-        setVentasPagination({
-          currentPage:
-            payload?.meta?.current_page ?? payload?.current_page ?? page,
-          lastPage: payload?.meta?.last_page ?? payload?.last_page ?? 1,
-          total: payload?.meta?.total ?? payload?.total ?? items.length,
-        });
-      }
+      const result = normalizePageResponse<Venta>(payload);
+      setVentas(result.items.map((venta) => ({
+        ...venta,
+        id_ven: venta.id_ven ?? venta.id,
+      })));
+      setVentasPagination(result.pagination);
     } catch {
       setVentas([]);
     } finally {
@@ -546,19 +528,15 @@ export default function ModalAgregarDevolucion({
         });
         if (search) params.append("filter[nom_emp]", search);
         const res = await fetch(
-          `http://localhost:8080/api/empleados?${params}`
+          `/api/empleados?${params}`
         );
         const payload = await res.json();
-        const items = payload?.data ?? payload;
-        setEmpleados(Array.isArray(items) ? items : []);
-        if (payload?.meta || payload?.last_page) {
-          setEmpleadosPagination({
-            currentPage:
-              payload?.meta?.current_page ?? payload?.current_page ?? page,
-            lastPage: payload?.meta?.last_page ?? payload?.last_page ?? 1,
-            total: payload?.meta?.total ?? payload?.total ?? items.length,
-          });
-        }
+        const result = normalizePageResponse<Empleado>(payload);
+        setEmpleados(result.items.map((empleado) => ({
+          ...empleado,
+          id_emp: empleado.id_emp ?? empleado.id,
+        })));
+        setEmpleadosPagination(result.pagination);
       } catch {
         setEmpleados([]);
       } finally {
@@ -577,18 +555,14 @@ export default function ModalAgregarDevolucion({
           per_page: "8",
         });
         if (search) params.append("filter[nom_mue]", search);
-        const res = await fetch(`http://localhost:8080/api/mueble?${params}`);
+        const res = await fetch(`/api/mueble?${params}`);
         const payload = await res.json();
-        const items = payload?.data ?? payload;
-        setMuebles(Array.isArray(items) ? items : []);
-        if (payload?.meta || payload?.last_page) {
-          setMueblesPagination({
-            currentPage:
-              payload?.meta?.current_page ?? payload?.current_page ?? page,
-            lastPage: payload?.meta?.last_page ?? payload?.last_page ?? 1,
-            total: payload?.meta?.total ?? payload?.total ?? items.length,
-          });
-        }
+        const result = normalizePageResponse<Mueble>(payload);
+        setMuebles(result.items.map((mueble) => ({
+          ...mueble,
+          id_mue: mueble.id_mue ?? mueble.id,
+        })));
+        setMueblesPagination(result.pagination);
       } catch {
         setMuebles([]);
       } finally {
@@ -600,6 +574,13 @@ export default function ModalAgregarDevolucion({
 
   useEffect(() => {
     if (showModal) {
+      setStep(1);
+      setSelectedVenta(null);
+      setSelectedEmpleado(null);
+      setDetalles([]);
+      setSearchVenta("");
+      setSearchEmpleado("");
+      setSearchMueble("");
       fetchVentas(1, "");
       fetchEmpleados(1, "");
       fetchMuebles(1, "");
@@ -680,9 +661,9 @@ export default function ModalAgregarDevolucion({
       return;
     let idUsuarioLocal = null;
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        const payload: any = jwtDecode(token);
+        const payload: any = JSON.parse(token);
         idUsuarioLocal = payload.id_usu || null;
       }
     } catch {
@@ -702,7 +683,7 @@ export default function ModalAgregarDevolucion({
         id_ven: selectedVenta.id_ven,
         id_emp: selectedEmpleado.id_emp,
       };
-      const res = await fetch("http://localhost:8080/api/devolucion", {
+      const res = await fetch("/api/devolucion", {
         method: "POST",
         headers,
         body: JSON.stringify(devolucionData),
@@ -719,17 +700,16 @@ export default function ModalAgregarDevolucion({
           precio_unitario: det.precio_unitario,
           subtotal: det.subtotal,
         };
-        await fetch("http://localhost:8080/api/detalle-devolucion", {
+        await fetch("/api/detalle-devolucion", {
           method: "POST",
           headers,
           body: JSON.stringify(detalleData),
         });
       }
 
-      const updatedRes = await fetch("http://localhost:8080/api/devolucion");
+      const updatedRes = await fetch("/api/devolucion");
       const updatedPayload: any = await updatedRes.json();
-      const updatedItems = updatedPayload?.data ?? updatedPayload;
-      setDevoluciones(Array.isArray(updatedItems) ? updatedItems : []);
+      setDevoluciones(normalizePageResponse<Devolucion>(updatedPayload).items);
 
       Swal.fire({
         icon: "success",
@@ -811,7 +791,9 @@ export default function ModalAgregarDevolucion({
                         <VentaCard
                           key={v.id_ven}
                           venta={v}
-                          isSelected={selectedVenta?.id_ven === v.id_ven}
+                          isSelected={
+                            !!selectedVenta && selectedVenta.id_ven === v.id_ven
+                          }
                           onSelect={() => setSelectedVenta(v)}
                         />
                       ))
@@ -855,7 +837,9 @@ export default function ModalAgregarDevolucion({
                         <EmpleadoCard
                           key={e.id_emp}
                           empleado={e}
-                          isSelected={selectedEmpleado?.id_emp === e.id_emp}
+                          isSelected={
+                            !!selectedEmpleado && selectedEmpleado.id_emp === e.id_emp
+                          }
                           onSelect={() => setSelectedEmpleado(e)}
                         />
                       ))

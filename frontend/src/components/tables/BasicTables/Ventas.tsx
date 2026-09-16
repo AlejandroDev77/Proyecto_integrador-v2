@@ -52,7 +52,7 @@ export default function Ventas() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8080/api/ventas/${id_ven}`, {
+      const res = await fetch(`/api/ventas/${id_ven}`, {
         method: "DELETE",
         headers,
       });
@@ -68,7 +68,7 @@ export default function Ventas() {
 
   const generarReporte = async () => {
     try {
-      const response = await fetch(`http://localhost:8080/api/reporte-ventas`, {
+      const response = await fetch(`/api/reporte-ventas`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });

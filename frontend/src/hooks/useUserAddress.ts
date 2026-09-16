@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from "react";
-import { jwtDecode } from "jwt-decode";
 
 export interface Cliente {
   id_cli: number;
@@ -42,17 +41,17 @@ export function useCliente() {
     setError(null);
     setMissingCliente(false);
     try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("No token found");
-      const decoded: any = jwtDecode(token);
+      const identity = sessionStorage.getItem("auth_identity");
+      if (!identity) throw new Error("No active session");
+      const decoded: any = JSON.parse(identity);
       const id_usu = decoded.id_usu;
       // Key para cachear que el usuario no tiene datos de cliente y evitar fetchs repetidos
       const missingKey = `missingCliente_${id_usu}`;
       const cachedMissing = localStorage.getItem(missingKey) === "true";
 
       // Llamamos al endpoint combinado /api/usuarios/{id}/perfil
-      const resPerfil = await fetch(`http://localhost:8080/api/usuarios/${id_usu}/perfil`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const resPerfil = await fetch(`/api/usuarios/${id_usu}/perfil`, {
+        credentials: "same-origin",
       });
 
       if (!resPerfil.ok) {

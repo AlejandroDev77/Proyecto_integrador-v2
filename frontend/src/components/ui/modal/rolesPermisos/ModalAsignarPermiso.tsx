@@ -270,7 +270,7 @@ const ModalAsignarPermiso: React.FC<ModalAsignarPermisoProps> = ({
     setLoadingPermisos(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/roles-permisos/rol/${rolId}/disponibles`
+        `/api/roles-permisos/rol/${rolId}/disponibles`
       );
       if (!res.ok) throw new Error("Error al cargar permisos");
 
@@ -357,7 +357,7 @@ const ModalAsignarPermiso: React.FC<ModalAsignarPermisoProps> = ({
       const permisosIds = permisosAsignados.map((p) => p.id_permiso);
 
       const res = await fetch(
-        `http://localhost:8080/api/roles-permisos/rol/${selectedRol.id_rol}/sincronizar`,
+        `/api/roles-permisos/rol/${selectedRol.id_rol}/sincronizar`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -497,7 +497,7 @@ const ModalAsignarPermiso: React.FC<ModalAsignarPermisoProps> = ({
                     <RolCard
                       key={r.id_rol}
                       rol={r}
-                      isSelected={selectedRol?.id_rol === r.id_rol}
+                      isSelected={!!selectedRol && selectedRol.id_rol === r.id_rol}
                       onSelect={() => setSelectedRol(r)}
                     />
                   ))

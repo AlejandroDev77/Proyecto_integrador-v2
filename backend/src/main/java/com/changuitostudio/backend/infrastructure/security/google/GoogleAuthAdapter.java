@@ -35,10 +35,10 @@ public class GoogleAuthAdapter implements GoogleAuthProvider {
 
         GoogleIdToken.Payload payload = idToken.getPayload();
         String email = payload.getEmail();
-        String nombre = (String) payload.get("nombre");
-        String foto = (String) payload.get("foto");
+        String nombre = (String) payload.get("name");
+        String foto = (String) payload.get("picture");
 
-        return new GoogleUserInfo(email, nombre, foto);
+        return new GoogleUserInfo(email, nombre, foto, payload.getSubject(), Boolean.TRUE.equals(payload.getEmailVerified()));
     }
 }
 

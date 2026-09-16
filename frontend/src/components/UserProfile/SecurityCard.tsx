@@ -70,10 +70,15 @@ export default function SecurityCard({ forceLight = false }: Props) {
 
   const handleDisable = async () => {
     if (!window.confirm("¿Seguro que deseas desactivar la capa extra de seguridad (2FA)?")) return;
+    const code = window.prompt("Ingresa el código actual de tu aplicación autenticadora:");
+    if (!code || !/^\d{6}$/.test(code)) {
+      setErrorMsg("Debes ingresar un código 2FA válido de 6 dígitos.");
+      return;
+    }
     
     setActionLoading(true);
     try {
-      await axiosClient.post("/api/2fa/disable");
+      await axiosClient.post("/api/2fa/disable", { code });
       setIs2faEnabled(false);
       setSuccessMsg("La seguridad de 2 Factores ha sido deshabilitada.");
       setTimeout(() => setSuccessMsg(""), 4000);

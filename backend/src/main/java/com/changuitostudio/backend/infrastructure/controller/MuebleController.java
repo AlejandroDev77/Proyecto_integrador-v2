@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import com.changuitostudio.backend.application.gateway.StorageGateway;
+import com.changuitostudio.backend.shared.UploadValidator;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -51,7 +52,7 @@ public class MuebleController {
         });
 
         if (page == null && per_page == null) {
-            PageResult<Mueble> allData = manageMuebleUseCase.listarMuebles(1, Integer.MAX_VALUE, filters, sort);
+            PageResult<Mueble> allData = manageMuebleUseCase.listarMuebles(1, 100, filters, sort);
             return ResponseEntity.ok(allData.getContent().stream().map(this::toResponseDTO).toList());
         }
 
@@ -108,10 +109,12 @@ public class MuebleController {
         dominio.setCategoria(categoria);
 
         if (imgMue != null && !imgMue.isEmpty()) {
-            dominio.setImagen(storageGateway.save(imgMue, "images"));
+            UploadValidator.image(imgMue);
+            dominio.setImagen(storageGateway.save(imgMue, "muebles/imagenes", nomMue));
         }
         if (modelo3d != null && !modelo3d.isEmpty()) {
-            dominio.setModelo3d(storageGateway.save(modelo3d, "models"));
+            UploadValidator.model(modelo3d);
+            dominio.setModelo3d(storageGateway.save(modelo3d, "muebles/modelos-3d", nomMue));
         }
 
         Mueble creado = manageMuebleUseCase.crear(dominio);
@@ -150,10 +153,12 @@ public class MuebleController {
         dominio.setCategoria(categoria);
 
         if (imgMue != null && !imgMue.isEmpty()) {
-            dominio.setImagen(storageGateway.save(imgMue, "images"));
+            UploadValidator.image(imgMue);
+            dominio.setImagen(storageGateway.save(imgMue, "muebles/imagenes", nomMue));
         }
         if (modelo3d != null && !modelo3d.isEmpty()) {
-            dominio.setModelo3d(storageGateway.save(modelo3d, "models"));
+            UploadValidator.model(modelo3d);
+            dominio.setModelo3d(storageGateway.save(modelo3d, "muebles/modelos-3d", nomMue));
         }
 
         Mueble actualizado = manageMuebleUseCase.actualizar(id, dominio);

@@ -44,7 +44,7 @@ export default function ProduccionEtapa() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8080/api/produccion-etapa/${id_pro_eta}`, {
+      const res = await fetch(`/api/produccion-etapa/${id_pro_eta}`, {
         method: "DELETE",
         headers,
       });

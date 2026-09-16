@@ -9,8 +9,10 @@ RUN mvn -B -ntp package -DskipTests
 FROM eclipse-temurin:21-jre
 
 WORKDIR /app
-RUN mkdir -p /app/storage
-COPY --from=build /workspace/target/*.jar app.jar
+RUN mkdir -p /app/storage && chown -R 10001:10001 /app
+COPY --from=build /workspace/target/backend-0.0.1-SNAPSHOT.jar /app/app.jar
+RUN chown 10001:10001 app.jar
 
 EXPOSE 8080
+USER 10001:10001
 ENTRYPOINT ["java", "-jar", "app.jar"]

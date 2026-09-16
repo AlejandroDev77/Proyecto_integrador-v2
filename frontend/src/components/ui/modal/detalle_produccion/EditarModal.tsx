@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
+import { normalizePageResponse } from "../../../../utils/pagination";
 import {
   Factory,
   Cog,
@@ -266,12 +266,12 @@ export default function ModalEditarDetalleProduccion({
     setLoadingProd(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/produccion?page=${page}&per_page=6${
+        `/api/produccion?page=${page}&per_page=6${
           search ? `&filter[cod_pro]=${encodeURIComponent(search)}` : ""
         }`
       );
       const p = await res.json();
-      setProducciones(p?.data || []);
+      setProducciones(normalizePageResponse<Produccion>(p).items);
       setProdPag({
         currentPage: p.current_page || 1,
         lastPage: p.last_page || 1,
@@ -287,12 +287,12 @@ export default function ModalEditarDetalleProduccion({
     setLoadingMueble(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/mueble?page=${page}&per_page=6${
+        `/api/mueble?page=${page}&per_page=6${
           search ? `&filter[nom_mue]=${encodeURIComponent(search)}` : ""
         }`
       );
       const p = await res.json();
-      setMuebles(p?.data || []);
+      setMuebles(normalizePageResponse<Mueble>(p).items);
       setMueblePag({
         currentPage: p.current_page || 1,
         lastPage: p.last_page || 1,
@@ -354,14 +354,14 @@ export default function ModalEditarDetalleProduccion({
     setIsSubmitting(true);
     let uid = null;
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        uid = (jwtDecode(token) as any).id_usu;
+        uid = (JSON.parse(token) as any).id_usu;
       }
     } catch {}
     try {
       const res = await fetch(
-        `http://localhost:8080/api/detalle-produccion/${detalleproduccionSeleccionado.id_det_pro}`,
+        `/api/detalle-produccion/${detalleproduccionSeleccionado.id_det_pro}`,
         {
           method: "PUT",
           headers: {
@@ -537,7 +537,7 @@ export default function ModalEditarDetalleProduccion({
                         <ProduccionCard
                           key={p.id_pro}
                           produccion={p}
-                          isSelected={selectedProduccion?.id_pro === p.id_pro}
+                          isSelected={!!selectedProduccion && selectedProduccion.id_pro === p.id_pro}
                           onSelect={() => setSelectedProduccion(p)}
                         />
                       ))
@@ -581,7 +581,7 @@ export default function ModalEditarDetalleProduccion({
                         <MuebleCard
                           key={m.id_mue}
                           mueble={m}
-                          isSelected={selectedMueble?.id_mue === m.id_mue}
+                          isSelected={!!selectedMueble && selectedMueble.id_mue === m.id_mue}
                           onSelect={() => setSelectedMueble(m)}
                         />
                       ))

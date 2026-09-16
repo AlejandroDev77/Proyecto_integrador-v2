@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
+import { normalizePageResponse } from "../../../../utils/pagination";
 import {
   Factory,
   X,
@@ -348,21 +348,14 @@ const ModalEditarProduccion: React.FC<Props> = ({
     setLoadingVenta(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/venta?page=${page}&per_page=6${
+        `/api/venta?page=${page}&per_page=6${
           search ? `&search=${encodeURIComponent(search)}` : ""
         }`
       );
       const p = await res.json();
-      if (p?.data) {
-        setVentas(p.data);
-        setVentaPag({
-          currentPage: p.current_page || 1,
-          lastPage: p.last_page || 1,
-          total: p.total || 0,
-        });
-      } else {
-        setVentas(Array.isArray(p) ? p : []);
-      }
+      const result = normalizePageResponse<Venta>(p);
+      setVentas(result.items);
+      setVentaPag(result.pagination);
     } catch {
       setVentas([]);
     } finally {
@@ -373,21 +366,14 @@ const ModalEditarProduccion: React.FC<Props> = ({
     setLoadingEmp(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/empleados?page=${page}&per_page=6${
+        `/api/empleados?page=${page}&per_page=6${
           search ? `&search=${encodeURIComponent(search)}` : ""
         }`
       );
       const p = await res.json();
-      if (p?.data) {
-        setEmpleados(p.data);
-        setEmpPag({
-          currentPage: p.current_page || 1,
-          lastPage: p.last_page || 1,
-          total: p.total || 0,
-        });
-      } else {
-        setEmpleados(Array.isArray(p) ? p : []);
-      }
+      const result = normalizePageResponse<Empleado>(p);
+      setEmpleados(result.items);
+      setEmpPag(result.pagination);
     } catch {
       setEmpleados([]);
     } finally {
@@ -398,21 +384,14 @@ const ModalEditarProduccion: React.FC<Props> = ({
     setLoadingCot(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/cotizacion?page=${page}&per_page=6${
+        `/api/cotizaciones?page=${page}&per_page=6${
           search ? `&search=${encodeURIComponent(search)}` : ""
         }`
       );
       const p = await res.json();
-      if (p?.data) {
-        setCotizaciones(p.data);
-        setCotPag({
-          currentPage: p.current_page || 1,
-          lastPage: p.last_page || 1,
-          total: p.total || 0,
-        });
-      } else {
-        setCotizaciones(Array.isArray(p) ? p : []);
-      }
+      const result = normalizePageResponse<Cotizacion>(p);
+      setCotizaciones(result.items);
+      setCotPag(result.pagination);
     } catch {
       setCotizaciones([]);
     } finally {
@@ -452,7 +431,7 @@ const ModalEditarProduccion: React.FC<Props> = ({
       });
       if (produccionSeleccionado.id_ven) {
         fetch(
-          `http://localhost:8080/api/venta/${produccionSeleccionado.id_ven}`
+          `/api/venta/${produccionSeleccionado.id_ven}`
         )
           .then((r) => r.json())
           .then((v) => setSelectedVenta(v?.data ?? v))
@@ -460,7 +439,7 @@ const ModalEditarProduccion: React.FC<Props> = ({
       }
       if (produccionSeleccionado.id_emp) {
         fetch(
-          `http://localhost:8080/api/empleados/${produccionSeleccionado.id_emp}`
+          `/api/empleados/${produccionSeleccionado.id_emp}`
         )
           .then((r) => r.json())
           .then((e) => setSelectedEmpleado(e?.data ?? e))
@@ -468,7 +447,7 @@ const ModalEditarProduccion: React.FC<Props> = ({
       }
       if (produccionSeleccionado.id_cot) {
         fetch(
-          `http://localhost:8080/api/cotizacion/${produccionSeleccionado.id_cot}`
+          `/api/cotizaciones/${produccionSeleccionado.id_cot}`
         )
           .then((r) => r.json())
           .then((c) => setSelectedCotizacion(c?.data ?? c))
@@ -507,9 +486,9 @@ const ModalEditarProduccion: React.FC<Props> = ({
     setErrorMsg("");
     let idUsuarioLocal = null;
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        const p: any = jwtDecode(token);
+        const p: any = JSON.parse(token);
         idUsuarioLocal = p.id_usu || null;
       }
     } catch {
@@ -518,7 +497,7 @@ const ModalEditarProduccion: React.FC<Props> = ({
 
     try {
       const res = await fetch(
-        `http://localhost:8080/api/produccion/${produccionSeleccionado.id_pro}`,
+        `/api/produccion/${produccionSeleccionado.id_pro}`,
         {
           method: "PUT",
           headers: {
@@ -807,7 +786,7 @@ const ModalEditarProduccion: React.FC<Props> = ({
                     <VentaCard
                       key={v.id_ven}
                       venta={v}
-                      isSelected={selectedVenta?.id_ven === v.id_ven}
+                      isSelected={!!selectedVenta && selectedVenta.id_ven === v.id_ven}
                       onSelect={() => setSelectedVenta(v)}
                     />
                   ))
@@ -837,7 +816,7 @@ const ModalEditarProduccion: React.FC<Props> = ({
                     <EmpleadoCard
                       key={e.id_emp}
                       empleado={e}
-                      isSelected={selectedEmpleado?.id_emp === e.id_emp}
+                      isSelected={!!selectedEmpleado && selectedEmpleado.id_emp === e.id_emp}
                       onSelect={() => setSelectedEmpleado(e)}
                     />
                   ))
@@ -867,7 +846,7 @@ const ModalEditarProduccion: React.FC<Props> = ({
                     <CotizacionCard
                       key={c.id_cot}
                       cotizacion={c}
-                      isSelected={selectedCotizacion?.id_cot === c.id_cot}
+                      isSelected={!!selectedCotizacion && selectedCotizacion.id_cot === c.id_cot}
                       onSelect={() => setSelectedCotizacion(c)}
                     />
                   ))

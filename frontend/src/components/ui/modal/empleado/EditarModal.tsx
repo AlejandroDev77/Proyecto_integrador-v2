@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
+import { normalizePageResponse } from "../../../../utils/pagination";
 import { ValidationErrors, parseApiErrors } from "../shared";
 import {
   UserPlus,
@@ -23,19 +23,8 @@ import {
   Save,
 } from "lucide-react";
 
-interface Empleado {
-  id_emp: number;
-  nom_emp: string;
-  ap_pat_emp: string;
-  ap_mat_emp: string;
-  cel_emp: string;
-  dir_emp: string;
-  fec_nac_emp: string;
-  ci_emp: string;
-  car_emp: string;
-  id_usu: number;
-  usuario?: { nom_usu: string };
-}
+import type { Empleado } from "../../../../types/entities";
+export type { Empleado };
 interface Usuario {
   id_usu: number;
   nom_usu: string;
@@ -232,17 +221,14 @@ export default function ModalEditarEmpleado({
     setLoadingUsu(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/usuarios?page=${page}&per_page=6${
+        `/api/usuarios?page=${page}&per_page=6${
           search ? `&filter[nom_usu]=${encodeURIComponent(search)}` : ""
         }`
       );
       const p = await res.json();
-      setUsuarios(p?.content || p?.data || []);
-      setUsuPag({
-        currentPage: p.page || p.current_page || 1,
-        lastPage: p.totalPages || p.last_page || 1,
-        total: p.totalElements || p.total || 0,
-      });
+      const result = normalizePageResponse<Usuario>(p);
+      setUsuarios(result.items);
+      setUsuPag(result.pagination);
     } catch {
       setUsuarios([]);
     } finally {
@@ -304,14 +290,14 @@ export default function ModalEditarEmpleado({
     setGeneralError(null);
     let uid = null;
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        uid = (jwtDecode(token) as any).id_usu;
+        uid = (JSON.parse(token) as any).id_usu;
       }
     } catch {}
     try {
       const res = await fetch(
-        `http://localhost:8080/api/empleados/${empleadoSeleccionado.id_emp}`,
+        `/api/empleados/${empleadoSeleccionado.id_emp}`,
         {
           method: "PUT",
           headers: {
@@ -590,7 +576,7 @@ export default function ModalEditarEmpleado({
                             <UsuarioCard
                               key={u.id_usu}
                               usuario={u}
-                              isSelected={selectedUsuario?.id_usu === u.id_usu}
+                              isSelected={!!selectedUsuario && selectedUsuario.id_usu === u.id_usu}
                               onSelect={() => setSelectedUsuario(u)}
                             />
                           ))

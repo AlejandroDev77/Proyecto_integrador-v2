@@ -1,11 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { BarChart2, Download, FileSpreadsheet, ExternalLink, FileText, CreditCard, Database } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { BarChart2, Download, FileSpreadsheet, ExternalLink, FileText, CreditCard, Database, Factory, Users, ClipboardList, Package, ChevronDown, Check } from "lucide-react";
 import ReportLayout from "./ReportLayout";
 import { BlobProvider } from "@react-pdf/renderer";
 import VentasPDFDocument from "../../reports/VentasPDFDocument";
 import PagosPDFDocument from "../../reports/PagosPDFDocument";
-import * as XLSX from "xlsx";
-import Select from "../../form/Select";
 import DatePicker from "../../form/date-picker";
 
 import ProduccionesPDFDocument from "../../reports/ProduccionesPDFDocument";
@@ -14,6 +12,24 @@ import CotizacionesPDFDocument from "../../reports/CotizacionesPDFDocument";
 import InventarioPDFDocument from "../../reports/InventarioPDFDocument";
 
 type TipoReporte = "ventas" | "pagos" | "produccion" | "clientes" | "cotizaciones" | "inventario";
+
+const REPORT_TYPE_ICONS = {
+  ventas: BarChart2,
+  pagos: CreditCard,
+  produccion: Factory,
+  clientes: Users,
+  cotizaciones: ClipboardList,
+  inventario: Package,
+};
+
+const REPORT_TYPE_OPTIONS: { value: TipoReporte; label: string }[] = [
+  { value: "ventas", label: "Reporte de Ventas" },
+  { value: "pagos", label: "Reporte de Pagos" },
+  { value: "produccion", label: "Reporte de Producción" },
+  { value: "clientes", label: "Mejores Clientes" },
+  { value: "cotizaciones", label: "Reporte de Cotizaciones" },
+  { value: "inventario", label: "Kardex de Inventario" },
+];
 
 // interfaces removed
 
@@ -34,6 +50,19 @@ export default function Reportes() {
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [reportMenuOpen, setReportMenuOpen] = useState(false);
+  const reportMenuRef = useRef<HTMLDivElement>(null);
+  const SelectedReportIcon = REPORT_TYPE_ICONS[tipoReporte];
+
+  useEffect(() => {
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      if (reportMenuRef.current && !reportMenuRef.current.contains(event.target as Node)) {
+        setReportMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    return () => document.removeEventListener("mousedown", closeOnOutsideClick);
+  }, []);
 
   useEffect(() => {
     try {
@@ -69,7 +98,7 @@ export default function Reportes() {
       end.setHours(23, 59, 59, 999);
 
       if (tipoReporte === "ventas" || tipoReporte === "clientes") {
-        const res = await fetch(`http://localhost:8080/api/ventas?page=1&per_page=5000`);
+        const res = await fetch(`/api/ventas?page=1&per_page=100`);
         const payload = await res.json();
         const items = payload?.data?.content || payload?.data || [];
         const filtradas = items.filter((v: any) => {
@@ -97,7 +126,7 @@ export default function Reportes() {
           setTopClientes(ranking);
         }
       } else if (tipoReporte === "pagos") {
-        const res = await fetch(`http://localhost:8080/api/pagos?page=1&per_page=5000`);
+        const res = await fetch(`/api/pagos?page=1&per_page=100`);
         const payload = await res.json();
         const items = payload?.data?.content || payload?.data || [];
         const filtrados = items.filter((p: any) => {
@@ -107,7 +136,7 @@ export default function Reportes() {
         });
         setPagos(filtrados);
       } else if (tipoReporte === "produccion") {
-        const res = await fetch(`http://localhost:8080/api/producciones?page=1&per_page=5000`);
+        const res = await fetch(`/api/producciones?page=1&per_page=100`);
         const payload = await res.json();
         const items = payload?.data?.content || payload?.data || [];
         const filtrados = items.filter((p: any) => {
@@ -117,7 +146,7 @@ export default function Reportes() {
         });
         setProducciones(filtrados);
       } else if (tipoReporte === "cotizaciones") {
-        const res = await fetch(`http://localhost:8080/api/cotizaciones?page=1&per_page=5000`);
+        const res = await fetch(`/api/cotizaciones?page=1&per_page=100`);
         const payload = await res.json();
         const items = payload?.data?.content || payload?.data || [];
         const filtrados = items.filter((c: any) => {
@@ -127,7 +156,7 @@ export default function Reportes() {
         });
         setCotizaciones(filtrados);
       } else if (tipoReporte === "inventario") {
-        const res = await fetch(`http://localhost:8080/api/movimientos-inventario?page=1&per_page=5000`);
+        const res = await fetch(`/api/movimientos-inventario?page=1&per_page=100`);
         const payload = await res.json();
         const items = payload?.data?.content || payload?.data || [];
         const filtrados = items.filter((m: any) => {
@@ -214,17 +243,26 @@ export default function Reportes() {
     }
 
     if (dataToExport.length === 0) return;
-    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
-    XLSX.writeFile(workbook, `Reporte_${sheetName}_${fechaInicio}_a_${fechaFin}.xlsx`);
+    const headers = Object.keys(dataToExport[0]);
+    const csvCell = (value: unknown) => {
+      let text = String(value ?? "");
+      if (/^[=+\-@]/.test(text)) text = `'${text}`;
+      return `"${text.replace(/"/g, '""')}"`;
+    };
+    const csv = [headers.map(csvCell).join(","), ...dataToExport.map((row) =>
+      headers.map((header) => csvCell((row as Record<string, unknown>)[header])).join(",")
+    )].join("\r\n");
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8" }));
+    link.download = `Reporte_${sheetName}_${fechaInicio}_a_${fechaFin}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
   };
 
   const descargarBackup = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:8080/api/backup", {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      const response = await fetch("/api/backup", {
+        credentials: "same-origin",
       });
       if (!response.ok) throw new Error("No se pudo generar el backup");
 
@@ -280,21 +318,45 @@ export default function Reportes() {
       icon={<BarChart2 className="w-6 h-6 text-orange-500" />}
       filters={
         <div className="flex flex-wrap items-center gap-4">
-          {/* Selector de Tipo usando el componente Select */}
-          <div className="w-56">
-            <Select
-              options={[
-                { value: "ventas", label: "📄 Reporte de Ventas" },
-                { value: "pagos", label: "💳 Reporte de Pagos" },
-                { value: "produccion", label: "🔨 Reporte de Producción" },
-                { value: "clientes", label: "⭐ Mejores Clientes" },
-                { value: "cotizaciones", label: "📝 Reporte Cotizaciones" },
-                { value: "inventario", label: "📦 Kardex de Inventario" },
-              ]}
-              defaultValue={tipoReporte}
-              onChange={(val) => setTipoReporte(val as TipoReporte)}
-              className="h-10"
-            />
+          <div className="relative w-64" ref={reportMenuRef} onKeyDown={(event) => {
+            if (event.key === "Escape") setReportMenuOpen(false);
+          }}>
+            <button
+              type="button"
+              aria-haspopup="listbox"
+              aria-expanded={reportMenuOpen}
+              onClick={() => setReportMenuOpen((open) => !open)}
+              className="flex h-11 w-full items-center gap-3 rounded-lg border border-gray-300 bg-white px-3 text-left text-sm text-gray-800 shadow-theme-xs transition hover:border-orange-300 focus:outline-none focus:ring-3 focus:ring-orange-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+            >
+              <SelectedReportIcon className="h-4 w-4 shrink-0 text-orange-500" />
+              <span className="flex-1 truncate">{REPORT_TYPE_OPTIONS.find((option) => option.value === tipoReporte)?.label}</span>
+              <ChevronDown className={`h-4 w-4 shrink-0 text-gray-400 transition-transform ${reportMenuOpen ? "rotate-180" : ""}`} />
+            </button>
+            {reportMenuOpen && (
+              <div role="listbox" aria-label="Tipo de reporte" className="absolute left-0 top-full z-50 mt-2 w-full overflow-hidden rounded-xl border border-gray-200 bg-white p-1.5 shadow-xl dark:border-gray-700 dark:bg-gray-900">
+                {REPORT_TYPE_OPTIONS.map((option) => {
+                  const Icon = REPORT_TYPE_ICONS[option.value];
+                  const selected = option.value === tipoReporte;
+                  return (
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={selected}
+                      key={option.value}
+                      onClick={() => {
+                        setTipoReporte(option.value);
+                        setReportMenuOpen(false);
+                      }}
+                      className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition ${selected ? "bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300" : "text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-white/5"}`}
+                    >
+                      <Icon className={`h-4 w-4 shrink-0 ${selected ? "text-orange-500" : "text-gray-400"}`} />
+                      <span className="flex-1">{option.label}</span>
+                      {selected && <Check className="h-4 w-4 text-orange-600" />}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Fechas Rápidas */}

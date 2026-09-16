@@ -1,233 +1,53 @@
+import { useState } from "react";
 import { useLogs } from "../../../hooks/logss/useLogs";
-import ComponentCard from "../../common/ComponentCard";
-import { motion, AnimatePresence } from "framer-motion";
-import { Activity, ChevronLeft, ChevronRight, FileJson } from "lucide-react";
+import { getLogs } from "../../../services/LogService";
+import { pdf } from "@react-pdf/renderer";
+import AuditLogsPDFDocument from "../../reports/AuditLogsPDFDocument";
+import { Activity, CalendarDays, ChevronLeft, ChevronRight, Download, Eye, FileJson, Search, SlidersHorizontal, X } from "lucide-react";
 
-const textColor = "text-gray-800 dark:text-white/90";
+type AuditLog = { id: number; cod_usu?: string; table_name?: string; action: string; record_id?: number; old_values?: string | null; new_values?: string | null; created_at?: string };
 
-function renderChangedValues(oldValues: string | null, newValues: string | null) {
-  let oldParsed: Record<string, any> = {};
-  let newParsed: Record<string, any> = {};
-  try { if (oldValues) oldParsed = JSON.parse(oldValues); } catch {}
-  try { if (newValues) newParsed = JSON.parse(newValues); } catch {}
-
-  const allKeys = Array.from(new Set([...Object.keys(oldParsed), ...Object.keys(newParsed)]));
-  
-  const changedKeys = allKeys.filter((key) => {
-    const oldStr = typeof oldParsed[key] === 'object' ? JSON.stringify(oldParsed[key]) : oldParsed[key];
-    const newStr = typeof newParsed[key] === 'object' ? JSON.stringify(newParsed[key]) : newParsed[key];
-    return oldStr !== newStr;
-  });
-
-  if (changedKeys.length === 0) return <span className="text-gray-400">—</span>;
-
-  const formatValue = (val: any) => {
-    if (val === undefined || val === null) return "—";
-    if (typeof val === 'object') return JSON.stringify(val);
-    return String(val);
-  };
-
-  return (
-    <ul className="space-y-1.5 w-full">
-      {changedKeys.map((key) => (
-        <li key={key}>
-          <div className="bg-gray-50/50 dark:bg-white/5 rounded-lg p-2 flex flex-col md:flex-row md:items-center gap-2 border border-gray-100 dark:border-white/10">
-            <span className="font-semibold text-xs text-sky-600 dark:text-sky-400 min-w-[90px]">
-              {key}:
-            </span>
-            <div className="flex items-center gap-2 text-xs">
-              <span className="bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 px-2 py-0.5 rounded-md line-through truncate max-w-[150px]" title={formatValue(oldParsed[key])}>
-                {formatValue(oldParsed[key])}
-              </span>
-              <span className="text-gray-400">→</span>
-              <span className="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 px-2 py-0.5 rounded-md font-medium truncate max-w-[150px]" title={formatValue(newParsed[key])}>
-                {formatValue(newParsed[key])}
-              </span>
-            </div>
-          </div>
-        </li>
-      ))}
-    </ul>
-  );
+function parseChanges(log: AuditLog) {
+  try { const before = log.old_values ? JSON.parse(log.old_values) : {}; const after = log.new_values ? JSON.parse(log.new_values) : {}; return Object.keys({ ...before, ...after }).filter((key) => JSON.stringify(before[key]) !== JSON.stringify(after[key])); } catch { return []; }
 }
+function formatDate(value?: string) { return value ? new Intl.DateTimeFormat("es-BO", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "—"; }
+function actionClass(action: string) { return action === "INSERT" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300" : action === "UPDATE" ? "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300" : "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300"; }
 
 export default function LogsTable() {
-  const {
-    searchTerm,
-    setSearchTerm,
-    currentPage,
-    setCurrentPage,
-    itemsPerPage,
-    setItemsPerPage,
-    paginatedData,
-    totalPages,
-  } = useLogs();
-
-  return (
-    <div className="space-y-4">
-      {/* Barra superior con Buscador */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-orange-500/10 text-orange-500 dark:bg-orange-400/10 dark:text-orange-400">
-            <Activity size={18} />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-gray-900 dark:text-white">Logs del Sistema</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Auditoría de cambios</p>
-          </div>
-        </div>
-
-        <div className="w-full md:w-auto">
-          <input
-            type="text"
-            placeholder="Buscar por usuario (cod_usu)..."
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="w-full md:w-72 px-4 py-2 border border-gray-200 dark:border-white/10 rounded-xl text-sm bg-white dark:bg-white/5 text-gray-800 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/40"
-          />
-        </div>
-      </div>
-
-      {/* Tabla */}
-      <div className="overflow-hidden rounded-2xl border border-gray-200 dark:border-white/6 bg-white dark:bg-white/2">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100 dark:border-white/6">
-                {[
-                  "Código Usuario",
-                  "Tabla",
-                  "Acción",
-                  "Cambios",
-                  "Fecha",
-                ].map((label) => (
-                  <th
-                    key={label}
-                    className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
-                  >
-                    {label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-white/4">
-              {paginatedData.length === 0 ? (
-                <tr>
-                  <td colSpan={5}>
-                    <div className="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-600">
-                      <FileJson size={40} strokeWidth={1.2} className="mb-3 opacity-40" />
-                      <p className="text-sm font-medium">Sin registros</p>
-                      <p className="text-xs mt-1 opacity-70">No hay logs que coincidan con la búsqueda</p>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                <AnimatePresence initial={false}>
-                  {paginatedData
-                    .slice()
-                    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                    .map((log, idx) => (
-                      <motion.tr
-                        key={log.id}
-                        initial={{ opacity: 0, y: 6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -6 }}
-                        transition={{ duration: 0.18, delay: idx * 0.03 }}
-                        className="hover:bg-gray-50 dark:hover:bg-white/3 transition-colors"
-                      >
-                        {/* Código Usuario */}
-                        <td className="px-5 py-4">
-                          <span className="font-mono text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-md">
-                            {log.cod_usu || "SISTEMA"}
-                          </span>
-                        </td>
-
-                        {/* Tabla */}
-                        <td className="px-5 py-4">
-                          <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400">
-                            {log.table_name} {log.record_id ? `#${log.record_id}` : ""}
-                          </span>
-                        </td>
-
-                        {/* Acción */}
-                        <td className="px-5 py-4">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${
-                              log.action === "INSERT"
-                                ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400"
-                                : log.action === "UPDATE"
-                                ? "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400"
-                                : "bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400"
-                            }`}
-                          >
-                            {log.action}
-                          </span>
-                        </td>
-
-                        {/* Cambios */}
-                        <td className="px-5 py-4 w-[300px]">
-                          {renderChangedValues(log.old_values, log.new_values)}
-                        </td>
-
-                        {/* Fecha Creación */}
-                        <td className="px-5 py-4 text-xs text-gray-500 dark:text-gray-400">
-                          {log.created_at ? (
-                            <div className="flex flex-col">
-                              <span className="font-medium text-gray-700 dark:text-gray-300">
-                                {new Date(log.created_at).toLocaleDateString("es-BO")}
-                              </span>
-                              <span>{new Date(log.created_at).toLocaleTimeString("es-BO", { hour12: true })}</span>
-                            </div>
-                          ) : (
-                            "—"
-                          )}
-                        </td>
-                      </motion.tr>
-                    ))}
-                </AnimatePresence>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Footer paginación */}
-        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 border-t border-gray-100 dark:border-white/6 bg-gray-50/50 dark:bg-white/[0.01]">
-          <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-            <span>Página {currentPage} de {totalPages}</span>
-            <select
-              value={itemsPerPage}
-              onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
-              className="px-2 py-1 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 text-xs focus:outline-none focus:ring-2 focus:ring-orange-400/40"
-            >
-              <option value={5}>5 / pág</option>
-              <option value={10}>10 / pág</option>
-              <option value={20}>20 / pág</option>
-            </select>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => setCurrentPage(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              <ChevronLeft size={14} /> Anterior
-            </button>
-            <span className="px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300">
-              {currentPage} / {totalPages}
-            </span>
-            <button
-              onClick={() => setCurrentPage(currentPage + 1)}
-              disabled={currentPage === totalPages || totalPages === 0}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              Siguiente <ChevronRight size={14} />
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const { searchTerm, setSearchTerm, action, setAction, fromDate, setFromDate, toDate, setToDate, clearFilters, currentPage, setCurrentPage, itemsPerPage, setItemsPerPage, paginatedData, totalPages, totalItems, loading } = useLogs();
+  const hasFilters = Boolean(searchTerm || action || fromDate || toDate);
+  const filters = { ...(searchTerm.trim() ? { search: searchTerm.trim() } : {}), ...(action ? { action } : {}), ...(fromDate ? { from_date: fromDate } : {}), ...(toDate ? { to_date: toDate } : {}) };
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(Number(value));
+    setCurrentPage(1);
+  };
+  const downloadReport = async () => {
+    setExporting(true);
+    try {
+      const response = await getLogs(1, 100, filters);
+      const payload = response?.data && response.success !== undefined ? response.data : response;
+      const allLogs = [...(payload?.content || payload?.data || [])];
+      const totalReportPages = payload?.totalPages || payload?.total_pages || 1;
+      for (let page = 2; page <= totalReportPages; page += 1) {
+        const nextResponse = await getLogs(page, 100, filters);
+        const nextPayload = nextResponse?.data && nextResponse.success !== undefined ? nextResponse.data : nextResponse;
+        allLogs.push(...(nextPayload?.content || nextPayload?.data || []));
+      }
+      const blob = await pdf(<AuditLogsPDFDocument logs={allLogs} fechaInicio={fromDate || "Inicio del historial"} fechaFin={toDate || "Fecha de emisión"} autor="Administrador" />).toBlob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `reporte-auditoria-${new Date().toISOString().slice(0, 10)}.pdf`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } finally { setExporting(false); }
+  };
+  return <div className="space-y-5">
+    <div className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-5 dark:border-white/10 dark:bg-white/[0.03] lg:flex-row lg:items-center lg:justify-between"><div className="flex items-center gap-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-orange-500/10 text-orange-600"><Activity size={21} /></div><div><h2 className="font-semibold text-gray-900 dark:text-white">Auditoría del sistema</h2><p className="text-sm text-gray-500 dark:text-gray-400">{totalItems} registros encontrados</p></div></div><button onClick={downloadReport} disabled={exporting || loading} className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-orange-700 disabled:opacity-50"><Download size={17} /> {exporting ? "Generando…" : "Exportar PDF"}</button></div>
+    <div className="grid gap-3 rounded-2xl border border-gray-200 bg-white p-4 dark:border-white/10 dark:bg-white/[0.03] md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_180px_170px_170px_auto]"><label className="relative"><Search className="absolute left-3 top-3 text-gray-400" size={17} /><input value={searchTerm} onChange={(event) => { setSearchTerm(event.target.value); setCurrentPage(1); }} placeholder="Usuario, tabla, acción o registro" className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-3 text-sm outline-none focus:ring-2 focus:ring-orange-500/30 dark:border-white/10 dark:bg-gray-900" /></label><select value={action} onChange={(event) => { setAction(event.target.value); setCurrentPage(1); }} className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm dark:border-white/10 dark:bg-gray-900"><option value="">Todas las acciones</option><option value="INSERT">Creaciones</option><option value="UPDATE">Actualizaciones</option><option value="DELETE">Eliminaciones</option></select><label className="relative"><CalendarDays className="absolute left-3 top-3 text-gray-400" size={16} /><input aria-label="Desde" type="date" value={fromDate} onChange={(event) => { setFromDate(event.target.value); setCurrentPage(1); }} className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-9 pr-2 text-sm dark:border-white/10 dark:bg-gray-900" /></label><label className="relative"><CalendarDays className="absolute left-3 top-3 text-gray-400" size={16} /><input aria-label="Hasta" type="date" value={toDate} onChange={(event) => { setToDate(event.target.value); setCurrentPage(1); }} className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-9 pr-2 text-sm dark:border-white/10 dark:bg-gray-900" /></label><button onClick={clearFilters} disabled={!hasFilters} className="inline-flex items-center justify-center gap-1 rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-600 disabled:opacity-40 dark:border-white/10 dark:text-gray-300"><X size={16} /> Limpiar</button></div>
+    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/[0.03]"><div className="overflow-x-auto"><table className="min-w-full text-sm"><thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500 dark:bg-white/[0.03]"><tr><th className="px-5 py-4">Fecha y hora</th><th className="px-5 py-4">Usuario</th><th className="px-5 py-4">Operación</th><th className="px-5 py-4">Registro</th><th className="px-5 py-4">Resumen</th><th className="px-5 py-4"><span className="sr-only">Ver</span></th></tr></thead><tbody className="divide-y divide-gray-100 dark:divide-white/5">{loading ? <tr><td colSpan={6} className="px-5 py-12 text-center text-gray-500">Cargando registros…</td></tr> : paginatedData.length === 0 ? <tr><td colSpan={6}><div className="flex flex-col items-center py-14 text-gray-400"><FileJson size={38} /><p className="mt-3 font-medium">No hay registros para estos filtros</p></div></td></tr> : paginatedData.map((log: AuditLog) => { const changes = parseChanges(log); return <tr key={log.id} className="hover:bg-orange-50/30 dark:hover:bg-white/[0.02]"><td className="whitespace-nowrap px-5 py-4 text-xs text-gray-600 dark:text-gray-300">{formatDate(log.created_at)}</td><td className="px-5 py-4"><span className="rounded-md bg-gray-100 px-2 py-1 font-mono text-xs dark:bg-white/10">{log.cod_usu || "SISTEMA"}</span></td><td className="px-5 py-4"><span className={`rounded-full px-2.5 py-1 text-xs font-bold ${actionClass(log.action)}`}>{log.action}</span></td><td className="px-5 py-4"><div className="font-medium text-gray-800 dark:text-white">{log.table_name || "—"}</div><div className="text-xs text-gray-500">ID #{log.record_id ?? "—"}</div></td><td className="max-w-xs px-5 py-4 text-xs text-gray-600 dark:text-gray-300">{changes.length ? `${changes.length} campo${changes.length === 1 ? "" : "s"}: ${changes.slice(0, 3).join(", ")}${changes.length > 3 ? "…" : ""}` : "Ver detalles de la operación"}</td><td className="px-5 py-4"><button onClick={() => setSelectedLog(log)} className="rounded-lg p-2 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-500/10" title="Ver detalle"><Eye size={18} /></button></td></tr>; })}</tbody></table></div><div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 px-5 py-3 dark:border-white/5"><div className="flex items-center gap-2 text-xs text-gray-500"><SlidersHorizontal size={15} /> Página {currentPage} de {totalPages}<select value={itemsPerPage} onChange={(event) => handleItemsPerPageChange(event.target.value)} className="rounded-md border border-gray-200 bg-white p-1 dark:border-white/10 dark:bg-gray-900"><option value={10}>10 / pág.</option><option value={20}>20 / pág.</option><option value={50}>50 / pág.</option></select></div><div className="flex gap-2"><button onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1} className="rounded-lg border border-gray-200 p-2 disabled:opacity-40 dark:border-white/10"><ChevronLeft size={16} /></button><button onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage >= totalPages} className="rounded-lg border border-gray-200 p-2 disabled:opacity-40 dark:border-white/10"><ChevronRight size={16} /></button></div></div></div>
+    {selectedLog && <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 p-4" onMouseDown={() => setSelectedLog(null)}><div className="max-h-[85vh] w-full max-w-3xl overflow-auto rounded-2xl bg-white p-6 shadow-2xl dark:bg-gray-900" onMouseDown={(event) => event.stopPropagation()}><div className="mb-5 flex items-start justify-between"><div><h3 className="text-lg font-bold">Detalle de auditoría</h3><p className="mt-1 text-sm text-gray-500">{formatDate(selectedLog.created_at)} · {selectedLog.table_name} #{selectedLog.record_id}</p></div><button onClick={() => setSelectedLog(null)} className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-white/10"><X size={18} /></button></div><div className="grid gap-4 md:grid-cols-2"><section><h4 className="mb-2 text-sm font-semibold text-red-600">Valores anteriores</h4><pre className="overflow-auto rounded-xl bg-red-50 p-3 text-xs text-gray-700 dark:bg-red-500/10 dark:text-gray-200">{selectedLog.old_values || "Sin valor anterior"}</pre></section><section><h4 className="mb-2 text-sm font-semibold text-emerald-600">Valores nuevos</h4><pre className="overflow-auto rounded-xl bg-emerald-50 p-3 text-xs text-gray-700 dark:bg-emerald-500/10 dark:text-gray-200">{selectedLog.new_values || "Sin valor nuevo"}</pre></section></div></div></div>}
+  </div>;
 }

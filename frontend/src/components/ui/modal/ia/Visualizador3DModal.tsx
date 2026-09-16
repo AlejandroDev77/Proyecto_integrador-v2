@@ -139,7 +139,7 @@ export default function Visualizador3DModal({ isOpen, onClose, modelUrl, title }
               <ambientLight intensity={0.8} />
               <directionalLight position={[8, 10, 6]} intensity={1.2} castShadow />
               <directionalLight position={[-5, 4, -4]} intensity={0.3} color="#c7d9ff" />
-              <Environment preset="apartment" />
+              <Environment files="/assets/lebombo_1k.hdr" />
               <ContactShadows position={[0, -1.2, 0]} opacity={0.3} scale={12} blur={2.5} />
 
               <Center>

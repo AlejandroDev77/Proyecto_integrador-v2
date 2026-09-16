@@ -122,7 +122,7 @@ interface EtapaProduccion {
   orden_secuencia?: number;
 }
 
-const API = "http://localhost:8080/api";
+const API = "/api";
 
 // Formatear fecha en español (DD/MM/YYYY)
 const formatDateES = (dateStr?: string): string => {
@@ -139,7 +139,7 @@ const formatDateES = (dateStr?: string): string => {
 const getImageUrl = (path?: string) => {
   if (!path) return null;
   if (path.startsWith("http")) return path;
-  return `http://localhost:8080/storage/${path}`;
+  return `/storage/${path}`;
 };
 
 function ProductImage({
@@ -691,11 +691,7 @@ export default function ModalProduccionCompleta({
       Swal.fire({
         icon: "success",
         title: "¡Producción creada!",
-        html: `<p>Código: <b>${
-          data.data?.produccion?.cod_pro
-        }</b></p><p>Muebles: ${
-          data.data?.detalles?.length || 0
-        }</p><p>Etapas asignadas: ${data.data?.etapas || 0}</p>`,
+        text: `Código: ${data.data?.produccion?.cod_pro || ""}. Muebles: ${data.data?.detalles?.length || 0}. Etapas asignadas: ${data.data?.etapas || 0}.`,
         showConfirmButton: true,
       });
       handleClose();
@@ -944,7 +940,7 @@ export default function ModalProduccionCompleta({
                         <EmpleadoCard
                           key={e.id}
                           empleado={e}
-                          isSelected={selectedEmpleado?.id === e.id}
+                          isSelected={!!selectedEmpleado && selectedEmpleado.id === e.id}
                           onSelect={() => setSelectedEmpleado(e)}
                         />
                       ))

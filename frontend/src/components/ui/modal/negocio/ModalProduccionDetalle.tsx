@@ -16,7 +16,11 @@ import {
 } from "lucide-react";
 import Swal from "sweetalert2";
 
-const API = "http://localhost:8080/api";
+const escapeHtml = (value: string) => value.replace(/[&<>'"]/g, (char) => ({
+  "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;",
+}[char] as string));
+
+const API = "/api";
 
 interface Evidencia {
   id_evi: number;
@@ -224,7 +228,7 @@ export default function ModalProduccionDetalle({
             <svg class="w-5 h-5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
             </svg>
-            <span class="text-sm text-gray-600">Etapa: <strong class="text-gray-900">${etapaNombre}</strong></span>
+            <span class="text-sm text-gray-600">Etapa: <strong class="text-gray-900">${escapeHtml(etapaNombre)}</strong></span>
           </div>
           
           <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de evidencia *</label>
@@ -310,7 +314,7 @@ export default function ModalProduccionDetalle({
             const accepts: Record<string, string> = {
               foto: "image/*",
               video: "video/*",
-              documento: ".pdf,.doc,.docx,.xls,.xlsx",
+              documento: ".pdf,.jpg,.jpeg,.png,.webp",
             };
             fileHint.textContent = hints[selected.value] || "";
             fileInput.accept = accepts[selected.value] || "*/*";
@@ -596,7 +600,7 @@ export default function ModalProduccionDetalle({
                                   "http"
                                 )
                                   ? evi.archivo_evi
-                                  : `http://localhost:8080/storage/${evi.archivo_evi}`;
+                                  : `/storage/${evi.archivo_evi}`;
 
                                 return (
                                   <div

@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
 import {
   ShoppingCart,
   Truck,
@@ -22,6 +21,7 @@ import {
   Calendar,
   Receipt,
 } from "lucide-react";
+import type { Proveedor, Empleado, Material } from "../../../../types/entities";
 
 interface CompraMaterial {
   id_comp: number;
@@ -33,32 +33,6 @@ interface CompraMaterial {
   id_emp: number;
 }
 
-interface Proveedor {
-  id_prov: number;
-  nom_prov: string;
-  cod_prov?: string;
-  tel_prov?: string;
-  email_prov?: string;
-}
-
-interface Empleado {
-  id_emp: number;
-  nom_emp: string;
-  ap_pat_emp: string;
-  ap_mat_emp: string;
-  cod_emp?: string;
-}
-
-interface Material {
-  id_mat: number;
-  nom_mat: string;
-  cod_mat?: string;
-  img_mat?: string;
-  costo_mat: number;
-  stock_mat: number;
-  unidad_medida?: string;
-}
-
 interface Props {
   showModal: boolean;
   setShowModal: (show: boolean) => void;
@@ -66,6 +40,7 @@ interface Props {
 }
 
 interface DetalleCompra {
+  id?: number;
   id_mat: number;
   nom_mat: string;
   cantidad: number;
@@ -510,7 +485,7 @@ export default function ModalAgregarCompraMaterial({
         });
         if (search) params.append("filter[nom_prov]", search);
         const res = await fetch(
-          `http://localhost:8080/api/proveedores?${params}`
+          `/api/proveedores?${params}`
         );
         const payload = await res.json();
         const realData = payload?.data && payload?.success !== undefined ? payload.data : payload;
@@ -542,7 +517,7 @@ export default function ModalAgregarCompraMaterial({
         });
         if (search) params.append("filter[nom_emp]", search);
         const res = await fetch(
-          `http://localhost:8080/api/empleados?${params}`
+          `/api/empleados?${params}`
         );
         const payload = await res.json();
         const realData = payload?.data && payload?.success !== undefined ? payload.data : payload;
@@ -574,7 +549,7 @@ export default function ModalAgregarCompraMaterial({
         });
         if (search) params.append("filter[nom_mat]", search);
         const res = await fetch(
-          `http://localhost:8080/api/materiales?${params}`
+          `/api/materiales?${params}`
         );
         const payload = await res.json();
         const realData = payload?.data && payload?.success !== undefined ? payload.data : payload;
@@ -673,9 +648,9 @@ export default function ModalAgregarCompraMaterial({
       return;
     let idUsuarioLocal = null;
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        const payload: any = jwtDecode(token);
+        const payload: any = JSON.parse(token);
         idUsuarioLocal = payload.id_usu || null;
       }
     } catch {
@@ -694,7 +669,7 @@ export default function ModalAgregarCompraMaterial({
         proveedor: { id: selectedProveedor.id_prov || (selectedProveedor as any).id },
         empleado: { id: selectedEmpleado.id_emp || (selectedEmpleado as any).id },
       };
-      const res = await fetch("http://localhost:8080/api/compras-materiales", {
+      const res = await fetch("/api/compras-materiales", {
         method: "POST",
         headers,
         body: JSON.stringify(compraData),
@@ -711,7 +686,7 @@ export default function ModalAgregarCompraMaterial({
           precio_unitario: det.precio_unitario,
           subtotal: det.subtotal,
         };
-        await fetch("http://localhost:8080/api/detalle-compras", {
+        await fetch("/api/detalle-compras", {
           method: "POST",
           headers,
           body: JSON.stringify(detalleData),
@@ -719,7 +694,7 @@ export default function ModalAgregarCompraMaterial({
       }
 
       const updatedRes = await fetch(
-        "http://localhost:8080/api/compras-materiales"
+        "/api/compras-materiales"
       );
       const updatedPayload: any = await updatedRes.json();
       const realData = updatedPayload?.data && updatedPayload?.success !== undefined ? updatedPayload.data : updatedPayload;

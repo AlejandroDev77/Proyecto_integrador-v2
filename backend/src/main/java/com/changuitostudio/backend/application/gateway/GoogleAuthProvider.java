@@ -8,7 +8,9 @@ public interface GoogleAuthProvider {
     record GoogleUserInfo(
             String email,
             String nombre,
-            String foto
+            String foto,
+            String subject,
+            boolean emailVerified
     ) {}
 
     /**

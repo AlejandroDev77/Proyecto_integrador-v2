@@ -44,7 +44,7 @@ export default function DetallesCotizaciones() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8080/api/detalle-cotizacion/${id_det_cot}`, {
+      const res = await fetch(`/api/detalle-cotizacion/${id_det_cot}`, {
         method: "DELETE",
         headers,
       });

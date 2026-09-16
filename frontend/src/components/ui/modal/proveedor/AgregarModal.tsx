@@ -1,6 +1,5 @@
 import { useState } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
 import { ValidationErrors, parseApiErrors } from "../shared";
 import {
   Truck,
@@ -14,17 +13,8 @@ import {
   Save,
   User,
 } from "lucide-react";
-
-interface Proveedor {
-  id_prov: number;
-  nom_prov: string;
-  contacto_prov: string;
-  email_prov: string;
-  tel_prov: string;
-  dir_prov: string;
-  nit_prov: string;
-  est_prov: boolean;
-}
+import type { Proveedor } from "../../../../types/entities";
+export type { Proveedor };
 interface Props {
   showModal: boolean;
   setShowModal: (show: boolean) => void;
@@ -66,9 +56,9 @@ export default function ModalAgregarProveedor({
 
     let idUsuarioLocal = null;
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        const p: any = jwtDecode(token);
+        const p: any = JSON.parse(token);
         idUsuarioLocal = p.id_usu || null;
       }
     } catch {
@@ -76,7 +66,7 @@ export default function ModalAgregarProveedor({
     }
 
     try {
-      const res = await fetch("http://localhost:8080/api/proveedores", {
+      const res = await fetch("/api/proveedores", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -19,7 +19,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/usuarios")
-@CrossOrigin(origins = "*")
 public class UsuarioController {
 
     private final ManageUsuarioUseCase manageUsuarioUseCase;
@@ -98,7 +97,7 @@ public class UsuarioController {
         });
 
         if (page == null && perPage == null) {
-            PageResult<Usuario> allData = manageUsuarioUseCase.listarUsuarios(1, Integer.MAX_VALUE, filters, sort);
+            PageResult<Usuario> allData = manageUsuarioUseCase.listarUsuarios(1, 100, filters, sort);
             List<UsuarioResponseDTO> items = allData.getContent().stream()
                     .map(this::toResponse)
                     .toList();

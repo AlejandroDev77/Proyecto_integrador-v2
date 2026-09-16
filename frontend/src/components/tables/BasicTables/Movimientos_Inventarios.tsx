@@ -51,7 +51,7 @@ export default function MovimientosInventarios() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8080/api/movimientos-inventario/${id_mov}`, {
+      const res = await fetch(`/api/movimientos-inventario/${id_mov}`, {
         method: "DELETE",
         headers,
       });

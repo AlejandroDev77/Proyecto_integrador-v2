@@ -56,13 +56,13 @@ interface Props {
   setShowModal: (show: boolean) => void;
 }
 
-const API = "http://localhost:8080/api";
+const API = "/api";
 
 // Helper para obtener URL de imagen
 const getImageUrl = (path?: string) => {
   if (!path) return null;
   if (path.startsWith("http")) return path;
-  return `http://localhost:8080/storage/${path}`;
+  return `/storage/${path}`;
 };
 
 // Componente de imagen con fallback

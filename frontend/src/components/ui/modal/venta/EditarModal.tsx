@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
 import { ValidationErrors, parseApiErrors } from "../shared";
 import { Venta, Cliente, Empleado } from "../../../../types/venta";
 import {
@@ -250,7 +249,7 @@ const ModalEditarVenta = ({
           per_page: "6",
         });
         if (search) params.append("filter[nom_cli]", search);
-        const res = await fetch(`http://localhost:8080/api/clientes?${params}`);
+        const res = await fetch(`/api/clientes?${params}`);
         const payload = await res.json();
         const pageResult = payload?.data;
         const items = pageResult?.content || pageResult || [];
@@ -279,7 +278,7 @@ const ModalEditarVenta = ({
         });
         if (search) params.append("filter[nom_emp]", search);
         const res = await fetch(
-          `http://localhost:8080/api/empleados?${params}`
+          `/api/empleados?${params}`
         );
         const payload = await res.json();
         const pageResult = payload?.data;
@@ -338,9 +337,9 @@ const ModalEditarVenta = ({
     try {
       let idUsuarioLocal = null;
       try {
-        const token = localStorage.getItem("token");
+        const token = sessionStorage.getItem("auth_identity");
         if (token) {
-          const payload: any = jwtDecode(token);
+          const payload: any = JSON.parse(token);
           idUsuarioLocal = payload.id_usu || null;
         }
       } catch (e) {
@@ -364,7 +363,7 @@ const ModalEditarVenta = ({
       };
 
       const res = await fetch(
-        `http://localhost:8080/api/ventas/${ventaSeleccionada.id_ven || (ventaSeleccionada as any).id}`,
+        `/api/ventas/${ventaSeleccionada.id_ven || (ventaSeleccionada as any).id}`,
         {
           method: "PUT",
           headers,
@@ -388,7 +387,7 @@ const ModalEditarVenta = ({
         return;
       }
 
-      const updatedRes = await fetch("http://localhost:8080/api/ventas");
+      const updatedRes = await fetch("/api/ventas");
       const updatedPayload: any = await updatedRes.json();
       const pageResult = updatedPayload?.data;
       const updatedItems = pageResult?.content || pageResult || [];

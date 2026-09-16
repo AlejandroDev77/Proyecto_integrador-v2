@@ -56,7 +56,7 @@ export default function Materiales() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8080/api/materiales/${id_mat}`, {
+      const res = await fetch(`/api/materiales/${id_mat}`, {
         method: "DELETE",
         headers,
       });

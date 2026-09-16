@@ -12,7 +12,6 @@ import {
   Layers,
   CheckCircle2,
 } from "lucide-react";
-import { r2Service } from "../../../../services/r2Service";
 import { generacionIAService } from "../../../../services/generacionIAService";
 import { getMuebles } from "../../../../services/muebleService";
 
@@ -109,7 +108,7 @@ export default function Generar3DModal({ showModal, setShowModal, onSuccess }: P
     try {
       // Paso 1: subir imágenes
       const imageUrls = await Promise.all(
-        files.map((f) => r2Service.uploadFile(f, "ia-temp"))
+        files.map((f) => generacionIAService.uploadReference(f))
       );
 
       // Paso 2: registrar

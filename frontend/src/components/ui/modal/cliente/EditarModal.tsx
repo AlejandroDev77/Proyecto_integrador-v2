@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
+import { normalizePageResponse } from "../../../../utils/pagination";
 import { ValidationErrors, parseApiErrors } from "../shared";
 import {
   UserCog,
@@ -14,20 +14,8 @@ import {
   Save,
 } from "lucide-react";
 
-interface Cliente {
-  id_cli: number;
-  cod_cli?: string;
-  nom_cli: string;
-  ap_pat_cli: string;
-  ap_mat_cli: string;
-  cel_cli: number;
-  dir_cli: string;
-  fec_nac_cli: string;
-  ci_cli: string;
-  img_cli: string;
-  id_usu: number;
-  usuario?: { nom_usu: string; idUsu?: number; id_usu?: number };
-}
+import type { Cliente } from "../../../../types/entities";
+export type { Cliente };
 
 interface Usuario {
   id_usu: number;
@@ -69,11 +57,10 @@ export default function ModalEditarCliente({
     if (showModal) {
       setValidationErrors(null);
       setGeneralError(null);
-      fetch("http://localhost:8080/api/usuarios")
+      fetch("/api/usuarios")
         .then((res) => res.json())
         .then((payload: any) => {
-          const items = payload?.data ?? payload;
-          setUsuarios(Array.isArray(items) ? items : []);
+          setUsuarios(normalizePageResponse<Usuario>(payload).items);
         })
         .catch(() => setUsuarios([]));
     }
@@ -112,9 +99,9 @@ export default function ModalEditarCliente({
 
     let idUsuarioLocal = null;
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        const payload: any = jwtDecode(token);
+        const payload: any = JSON.parse(token);
         idUsuarioLocal = payload.id_usu || null;
       }
     } catch {
@@ -129,7 +116,7 @@ export default function ModalEditarCliente({
 
     try {
       const res = await fetch(
-        `http://localhost:8080/api/clientes/${clienteSeleccionado.id_cli}`,
+        `/api/clientes/${clienteSeleccionado.id_cli}`,
         {
           method: "PUT",
           headers,

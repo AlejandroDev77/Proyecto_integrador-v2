@@ -1,7 +1,7 @@
-import axios from "axios";
+import axios from "../api/axios";
 import { GeneracionIA } from "../types/generacionIA";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+const API_URL = "/api";
 
 export const generacionIAService = {
     getAll: async (page = 1, perPage = 20) => {
@@ -19,6 +19,15 @@ export const generacionIAService = {
     create: async (data: GeneracionIA) => {
         const response = await axios.post(`${API_URL}/generaciones-ia`, data);
         return response.data;
+    },
+
+    uploadReference: async (file: File) => {
+        const form = new FormData();
+        form.append("archivo", file);
+        const response = await axios.post(`${API_URL}/generaciones-ia/referencias`, form, {
+            headers: { "Content-Type": "multipart/form-data" }
+        });
+        return response.data.url as string;
     },
 
     update: async (id: number, data: Partial<GeneracionIA>) => {

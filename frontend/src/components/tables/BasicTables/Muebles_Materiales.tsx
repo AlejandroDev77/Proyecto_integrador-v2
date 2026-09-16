@@ -51,7 +51,7 @@ export default function MueblesMateriales() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8080/api/mueble-material/${id_mue_mat}`, {
+      const res = await fetch(`/api/mueble-material/${id_mue_mat}`, {
         method: "DELETE",
         headers,
       });

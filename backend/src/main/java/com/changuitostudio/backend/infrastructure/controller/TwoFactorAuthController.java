@@ -16,7 +16,6 @@ import java.util.Optional;
  */
 @RestController
 @RequestMapping("/api/2fa")
-@CrossOrigin(origins = "*")
 public class TwoFactorAuthController {
 
     private final TwoFactorAuthUseCase twoFactorAuthUseCase;
@@ -71,18 +70,23 @@ public class TwoFactorAuthController {
     }
 
     @PostMapping("/disable")
-    public ResponseEntity<?> disable2FA() {
+    public ResponseEntity<?> disable2FA(@RequestBody Map<String, String> request) {
         Optional<Long> userId = getAuthenticatedUserId();
         if (userId.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", "Usuario no encontrado"));
         }
 
-        twoFactorAuthUseCase.disable(userId.get());
-        return ResponseEntity.ok(Map.of("message", "La AutenticaciÃ³n de 2 Factores ha sido deshabilitada."));
+        try {
+            twoFactorAuthUseCase.disable(userId.get(), request.get("code"));
+            return ResponseEntity.ok(Map.of("message", "La Autenticación de 2 Factores ha sido deshabilitada."));
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
     }
 
     private Optional<Long> getAuthenticatedUserId() {
+        if (SecurityContextHolder.getContext().getAuthentication() == null) return Optional.empty();
         String principal = SecurityContextHolder.getContext().getAuthentication().getName();
         try {
             return Optional.of(Long.parseLong(principal));

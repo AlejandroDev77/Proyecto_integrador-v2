@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
 import { ValidationErrors, parseApiErrors } from "../shared";
 import { Layers, X, Save, Clock, ListOrdered, FileText } from "lucide-react";
 
@@ -63,9 +62,9 @@ export default function ModalEditarEtapaProduccion({
 
     let idUsuarioLocal = null;
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        const p: any = jwtDecode(token);
+        const p: any = JSON.parse(token);
         idUsuarioLocal = p.id_usu || null;
       }
     } catch {
@@ -74,7 +73,7 @@ export default function ModalEditarEtapaProduccion({
 
     try {
       const res = await fetch(
-        `http://localhost:8080/api/etapa-produccion/${etapaproduccionSeleccionado.id_eta}`,
+        `/api/etapa-produccion/${etapaproduccionSeleccionado.id_eta}`,
         {
           method: "PUT",
           headers: {

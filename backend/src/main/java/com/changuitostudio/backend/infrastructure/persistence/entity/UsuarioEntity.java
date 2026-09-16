@@ -33,6 +33,9 @@ public class UsuarioEntity {
     @Column(name = "is_2fa_enabled")
     private Boolean is2faEnabled;
 
+    @Column(name = "google_subject", unique = true, length = 255)
+    private String googleSubject;
+
     @Column(name = "id_rol", insertable = false, updatable = false)
     private Long idRol;
 
@@ -123,5 +126,8 @@ public class UsuarioEntity {
     public void setRol(RolEntity rol) {
         this.rol = rol;
     }
+
+    public String getGoogleSubject() { return googleSubject; }
+    public void setGoogleSubject(String googleSubject) { this.googleSubject = googleSubject; }
 }
 

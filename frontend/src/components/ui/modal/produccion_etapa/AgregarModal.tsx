@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
+import { normalizePageResponse } from "../../../../utils/pagination";
 import {
   Layers,
   Factory,
@@ -430,19 +430,12 @@ export default function ModalAgregarProduccionEtapa({
         });
         if (search) params.append("filter[cod_pro]", search);
         const res = await fetch(
-          `http://localhost:8080/api/produccion?${params}`
+          `/api/produccion?${params}`
         );
         const payload = await res.json();
-        const items = payload?.data ?? payload;
-        setProducciones(Array.isArray(items) ? items : []);
-        if (payload?.meta || payload?.last_page) {
-          setProduccionesPagination({
-            currentPage:
-              payload?.meta?.current_page ?? payload?.current_page ?? page,
-            lastPage: payload?.meta?.last_page ?? payload?.last_page ?? 1,
-            total: payload?.meta?.total ?? payload?.total ?? items.length,
-          });
-        }
+        const result = normalizePageResponse<Produccion>(payload);
+        setProducciones(result.items);
+        setProduccionesPagination(result.pagination);
       } catch {
         setProducciones([]);
       } finally {
@@ -458,11 +451,10 @@ export default function ModalAgregarProduccionEtapa({
       const params = new URLSearchParams();
       if (search) params.append("filter[nom_eta]", search);
       const res = await fetch(
-        `http://localhost:8080/api/etapa-produccion?${params}`
+        `/api/etapa-produccion?${params}`
       );
       const payload = await res.json();
-      const items = payload?.data ?? payload;
-      setEtapas(Array.isArray(items) ? items : []);
+      setEtapas(normalizePageResponse<Etapa>(payload).items);
     } catch {
       setEtapas([]);
     } finally {
@@ -480,19 +472,12 @@ export default function ModalAgregarProduccionEtapa({
         });
         if (search) params.append("filter[nom_emp]", search);
         const res = await fetch(
-          `http://localhost:8080/api/empleados?${params}`
+          `/api/empleados?${params}`
         );
         const payload = await res.json();
-        const items = payload?.data ?? payload;
-        setEmpleados(Array.isArray(items) ? items : []);
-        if (payload?.meta || payload?.last_page) {
-          setEmpleadosPagination({
-            currentPage:
-              payload?.meta?.current_page ?? payload?.current_page ?? page,
-            lastPage: payload?.meta?.last_page ?? payload?.last_page ?? 1,
-            total: payload?.meta?.total ?? payload?.total ?? items.length,
-          });
-        }
+        const result = normalizePageResponse<Empleado>(payload);
+        setEmpleados(result.items);
+        setEmpleadosPagination(result.pagination);
       } catch {
         setEmpleados([]);
       } finally {
@@ -543,9 +528,9 @@ export default function ModalAgregarProduccionEtapa({
     if (!selectedProduccion || !selectedEtapa || !selectedEmpleado) return;
     let idUsuarioLocal = null;
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        const payload: any = jwtDecode(token);
+        const payload: any = JSON.parse(token);
         idUsuarioLocal = payload.id_usu || null;
       }
     } catch {
@@ -564,7 +549,7 @@ export default function ModalAgregarProduccionEtapa({
         id_eta: selectedEtapa.id_eta,
         id_emp: selectedEmpleado.id_emp,
       };
-      const res = await fetch("http://localhost:8080/api/produccion-etapa", {
+      const res = await fetch("/api/produccion-etapa", {
         method: "POST",
         headers,
         body: JSON.stringify(produccionEtapaData),
@@ -572,7 +557,7 @@ export default function ModalAgregarProduccionEtapa({
       if (!res.ok) throw new Error("Error al crear la etapa de producción");
 
       const updatedRes = await fetch(
-        "http://localhost:8080/api/produccion-etapa"
+        "/api/produccion-etapa"
       );
       const updatedPayload: any = await updatedRes.json();
       const updatedItems = updatedPayload?.data ?? updatedPayload;
@@ -667,7 +652,7 @@ export default function ModalAgregarProduccionEtapa({
                         <ProduccionCard
                           key={p.id_pro}
                           produccion={p}
-                          isSelected={selectedProduccion?.id_pro === p.id_pro}
+                          isSelected={!!selectedProduccion && selectedProduccion.id_pro === p.id_pro}
                           onSelect={() => setSelectedProduccion(p)}
                         />
                       ))
@@ -710,7 +695,7 @@ export default function ModalAgregarProduccionEtapa({
                       <EtapaCard
                         key={e.id_eta}
                         etapa={e}
-                        isSelected={selectedEtapa?.id_eta === e.id_eta}
+                        isSelected={!!selectedEtapa && selectedEtapa.id_eta === e.id_eta}
                         onSelect={() => setSelectedEtapa(e)}
                       />
                     ))
@@ -748,7 +733,7 @@ export default function ModalAgregarProduccionEtapa({
                         <EmpleadoCard
                           key={e.id_emp}
                           empleado={e}
-                          isSelected={selectedEmpleado?.id_emp === e.id_emp}
+                          isSelected={!!selectedEmpleado && selectedEmpleado.id_emp === e.id_emp}
                           onSelect={() => setSelectedEmpleado(e)}
                         />
                       ))

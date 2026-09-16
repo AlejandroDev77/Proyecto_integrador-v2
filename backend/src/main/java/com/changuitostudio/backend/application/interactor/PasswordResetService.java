@@ -10,6 +10,7 @@ import com.changuitostudio.backend.application.gateway.PasswordEncoderGateway;
 
 
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Value;
 
 public class PasswordResetService implements PasswordResetUseCase {
 
@@ -17,24 +18,28 @@ public class PasswordResetService implements PasswordResetUseCase {
     private final TokenRepository tokenRepository;
     private final EmailSender emailSender;
     private final PasswordEncoderGateway passwordEncoder;
+    private final String frontendUrl;
 
     public PasswordResetService(UsuarioRepository usuarioRepository,
                                 TokenRepository tokenRepository,
                                 EmailSender emailSender,
-                                PasswordEncoderGateway passwordEncoder) {
+                                PasswordEncoderGateway passwordEncoder,
+                                String frontendUrl) {
         this.usuarioRepository = usuarioRepository;
         this.tokenRepository = tokenRepository;
         this.emailSender = emailSender;
         this.passwordEncoder = passwordEncoder;
+        this.frontendUrl = frontendUrl;
     }
 
     @Override
     public void requestPasswordReset(String email) {
+        if (email == null || email.isBlank()) return;
         usuarioRepository.buscarPorEmail(email).ifPresent(usuario -> {
             String token = UUID.randomUUID().toString();
             tokenRepository.guardarToken(token, usuario.getIdUsu(), "PASSWORD_RESET", 1);
 
-            String resetUrl = "http://localhost:5173/reset-password?token=" + token;
+            String resetUrl = frontendUrl + "/reset-password?token=" + token;
             String mensaje = "Hola " + usuario.getNomUsu() + ",\n\n" +
                     "Recibimos una solicitud para restablecer tu contraseÃƒÂ±a. Haz clic en el siguiente enlace:\n" +
                     resetUrl + "\n\n" +
@@ -48,6 +53,9 @@ public class PasswordResetService implements PasswordResetUseCase {
 
     @Override
     public void resetPassword(String token, String newPassword) {
+        if (newPassword == null || newPassword.length() < 12 || newPassword.length() > 72) {
+            throw new IllegalArgumentException("La contraseña debe tener entre 12 y 72 caracteres.");
+        }
         TokenRepository.TokenData tokenData = tokenRepository.buscarPorToken(token)
                 .orElseThrow(() -> new IllegalArgumentException("Token invÃƒÂ¡lido o expirado."));
 

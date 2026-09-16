@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { jwtDecode } from "jwt-decode";
-import { UserTokenPayload } from "../types/auth";
+import { clearAuthIdentity, getAuthIdentity, getAuthIdentityValue } from "../utils/authIdentity";
 
 interface AuthContextType {
   id_rol: number | null;
@@ -28,26 +27,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const checkAuth = () => {
-    const storedToken = localStorage.getItem("token");
-    if (storedToken) {
-      try {
-        const decoded: UserTokenPayload = jwtDecode(storedToken);
-        
-        // Comprobar si expiró
-        if (decoded.exp && decoded.exp * 1000 < Date.now()) {
-          throw new Error("Token expirado");
-        }
-
-        setToken(storedToken);
-        setIdUsu(decoded.id_usu);
-        setIdRol(decoded.id_rol);
-      } catch (error) {
-        // Token inválido o expirado, eliminar
-        localStorage.removeItem("token");
-        setToken(null);
-        setIdUsu(null);
-        setIdRol(null);
-      }
+    // Borra JWT de instalaciones antiguas. La cookie HttpOnly no se puede leer desde JavaScript.
+    localStorage.removeItem("token");
+    const identity = getAuthIdentity();
+    if (identity) {
+      setToken(getAuthIdentityValue());
+      setIdUsu(identity.id_usu);
+      setIdRol(identity.id_rol);
     }
     setIsLoading(false);
   };
@@ -56,14 +42,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIdUsu(id_usu);
     setIdRol(id_rol);
     setToken(token);
-    localStorage.setItem("token", token);
   };
 
   const logout = () => {
     setIdRol(null);
     setIdUsu(null);
     setToken(null);
-    localStorage.removeItem("token");
+    clearAuthIdentity();
   };
 
   const value: AuthContextType = {

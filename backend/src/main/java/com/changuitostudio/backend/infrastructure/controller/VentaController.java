@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/ventas")
+@RequestMapping({"/api/ventas", "/api/venta"})
 public class VentaController {
 
     private final ManageVentaUseCase manageVentaUseCase;

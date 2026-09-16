@@ -167,7 +167,7 @@ export default function ModalAgregarUsuario({ showModal, setShowModal, setUsuari
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto">
                     {roles.length > 0 ? (
                       roles.map((r) => (
-                        <RolCard key={r.id_rol} rol={r} isSelected={selectedRol?.id_rol === r.id_rol} onSelect={() => setSelectedRol(r)} />
+                        <RolCard key={r.id_rol} rol={r} isSelected={!!selectedRol && selectedRol.id_rol === r.id_rol} onSelect={() => setSelectedRol(r)} />
                       ))
                     ) : (
                       <div className="col-span-2 flex flex-col items-center py-8 text-gray-500">

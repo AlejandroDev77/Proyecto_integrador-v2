@@ -21,6 +21,7 @@ import java.util.Optional;
 
 
 @Component
+@org.springframework.transaction.annotation.Transactional
 public class CategoriaJpaAdapter implements CategoriaRepository {
 
     private final CategoriaJpaRepository jpaRepository;

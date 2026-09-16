@@ -661,7 +661,7 @@ function Room3DScene(props: Room3DProps) {
   return (
     <>
       {/* Environment map for realistic reflections and lighting on 3D models */}
-      <Environment preset="apartment" />
+      <Environment files="/assets/lebombo_1k.hdr" />
 
       {/* Lighting — even and bright, no hard shadows (like IKEA) */}
       <ambientLight intensity={1.0} />

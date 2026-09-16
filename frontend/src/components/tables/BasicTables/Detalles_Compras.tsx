@@ -51,7 +51,7 @@ export default function DetallesCompras() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8080/api/detalle-compras/${id_det_comp}`, {
+      const res = await fetch(`/api/detalle-compras/${id_det_comp}`, {
         method: "DELETE",
         headers,
       });

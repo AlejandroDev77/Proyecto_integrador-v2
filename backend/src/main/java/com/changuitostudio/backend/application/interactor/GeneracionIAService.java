@@ -21,6 +21,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.RejectedExecutionException;
+import jakarta.annotation.PreDestroy;
+import java.net.InetAddress;
 
 /**
  * Servicio de Generación IA — integración con Tripo3D API v3.
@@ -42,6 +48,8 @@ public class GeneracionIAService implements ManageGeneracionIAUseCase {
     private final CloudflareR2Service r2Service;
     private final ObjectMapper objectMapper;
     private final HttpClient httpClient;
+    private final ThreadPoolExecutor generationExecutor;
+    private static final int MAX_MODEL_BYTES = 50 * 1024 * 1024;
 
     @Value("${app.tripo3d.api-key}")
     private String tripoApiKey;
@@ -57,6 +65,8 @@ public class GeneracionIAService implements ManageGeneracionIAUseCase {
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(30))
                 .build();
+        this.generationExecutor = new ThreadPoolExecutor(2, 2, 0L, TimeUnit.MILLISECONDS,
+                new ArrayBlockingQueue<>(10), new ThreadPoolExecutor.AbortPolicy());
     }
 
     // ─── CRUD ────────────────────────────────────────────────────────────────
@@ -79,7 +89,12 @@ public class GeneracionIAService implements ManageGeneracionIAUseCase {
         GeneracionIA guardado = generacionIARepository.guardar(generacionIA);
 
         // Lanzar proceso de generación 3D de forma asíncrona
-        CompletableFuture.runAsync(() -> generarModelo3D(guardado));
+        try {
+            CompletableFuture.runAsync(() -> generarModelo3D(guardado), generationExecutor);
+        } catch (RejectedExecutionException e) {
+            marcarError(guardado, "Capacidad temporal agotada");
+            throw new IllegalStateException("Hay demasiadas generaciones en proceso. Intenta más tarde.");
+        }
 
         return guardado;
     }
@@ -192,7 +207,6 @@ public class GeneracionIAService implements ManageGeneracionIAUseCase {
             }
 
             System.out.println("[Tripo3D v3] POST " + endpoint);
-            System.out.println("[Tripo3D v3] Body: " + bodyJson);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(endpoint))
@@ -203,15 +217,13 @@ public class GeneracionIAService implements ManageGeneracionIAUseCase {
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            System.out.println("[Tripo3D v3] Respuesta crear tarea (" + response.statusCode() + "): " + response.body());
-
             if (response.statusCode() != 200) {
-                throw new RuntimeException("Error HTTP " + response.statusCode() + ": " + response.body());
+                throw new RuntimeException("Tripo3D respondió HTTP " + response.statusCode());
             }
 
             JsonNode json = objectMapper.readTree(response.body());
             if (json.path("code").asInt() != 0) {
-                throw new RuntimeException("Error de Tripo3D: " + response.body());
+                throw new RuntimeException("Tripo3D rechazó la generación.");
             }
 
             return json.path("data").path("task_id").asText();
@@ -296,8 +308,18 @@ public class GeneracionIAService implements ManageGeneracionIAUseCase {
      * Las URLs de Tripo3D expiran en ~5 minutos — se descarga inmediatamente.
      */
     private byte[] descargarArchivo(String url) throws Exception {
+        URI uri = URI.create(url);
+        if (!"https".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null) {
+            throw new IllegalArgumentException("URL de descarga insegura.");
+        }
+        for (InetAddress address : InetAddress.getAllByName(uri.getHost())) {
+            if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress()
+                    || address.isSiteLocalAddress() || address.isMulticastAddress()) {
+                throw new IllegalArgumentException("El proveedor devolvió una dirección no permitida.");
+            }
+        }
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
+                .uri(uri)
                 .GET()
                 .timeout(Duration.ofSeconds(120))
                 .build();
@@ -308,7 +330,11 @@ public class GeneracionIAService implements ManageGeneracionIAUseCase {
             throw new RuntimeException("Error descargando archivo (HTTP " + response.statusCode() + "): " + url);
         }
 
-        return response.body().readAllBytes();
+        try (InputStream input = response.body()) {
+            byte[] data = input.readNBytes(MAX_MODEL_BYTES + 1);
+            if (data.length > MAX_MODEL_BYTES) throw new IllegalArgumentException("El modelo generado excede 50 MB.");
+            return data;
+        }
     }
 
     /**
@@ -322,5 +348,10 @@ public class GeneracionIAService implements ManageGeneracionIAUseCase {
         } catch (Exception e) {
             System.err.println("[BD] No se pudo marcar error: " + e.getMessage());
         }
+    }
+
+    @PreDestroy
+    void shutdownExecutor() {
+        generationExecutor.shutdownNow();
     }
 }

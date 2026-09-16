@@ -23,6 +23,7 @@ import java.util.Optional;
 
 
 @Component
+@org.springframework.transaction.annotation.Transactional
 public class RolJpaAdapter implements RolRepository {
 
     private final RolJpaRepository jpaRepository;

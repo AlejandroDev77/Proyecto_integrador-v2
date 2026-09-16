@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
+import { normalizePageResponse } from "../../../../utils/pagination";
 import {
   Factory,
   ShoppingBag,
@@ -419,18 +419,11 @@ export default function ModalAgregarProduccion({
         per_page: "8",
       });
       if (search) params.append("filter[cod_ven]", search);
-      const res = await fetch(`http://localhost:8080/api/venta?${params}`);
+      const res = await fetch(`/api/venta?${params}`);
       const payload = await res.json();
-      const items = payload?.data ?? payload;
-      setVentas(Array.isArray(items) ? items : []);
-      if (payload?.meta || payload?.last_page) {
-        setVentasPagination({
-          currentPage:
-            payload?.meta?.current_page ?? payload?.current_page ?? page,
-          lastPage: payload?.meta?.last_page ?? payload?.last_page ?? 1,
-          total: payload?.meta?.total ?? payload?.total ?? items.length,
-        });
-      }
+      const result = normalizePageResponse<Venta>(payload);
+      setVentas(result.items);
+      setVentasPagination(result.pagination);
     } catch {
       setVentas([]);
     } finally {
@@ -448,19 +441,12 @@ export default function ModalAgregarProduccion({
         });
         if (search) params.append("filter[cod_cot]", search);
         const res = await fetch(
-          `http://localhost:8080/api/cotizacion?${params}`
+          `/api/cotizaciones?${params}`
         );
         const payload = await res.json();
-        const items = payload?.data ?? payload;
-        setCotizaciones(Array.isArray(items) ? items : []);
-        if (payload?.meta || payload?.last_page) {
-          setCotizacionesPagination({
-            currentPage:
-              payload?.meta?.current_page ?? payload?.current_page ?? page,
-            lastPage: payload?.meta?.last_page ?? payload?.last_page ?? 1,
-            total: payload?.meta?.total ?? payload?.total ?? items.length,
-          });
-        }
+        const result = normalizePageResponse<Cotizacion>(payload);
+        setCotizaciones(result.items);
+        setCotizacionesPagination(result.pagination);
       } catch {
         setCotizaciones([]);
       } finally {
@@ -480,19 +466,12 @@ export default function ModalAgregarProduccion({
         });
         if (search) params.append("filter[nom_emp]", search);
         const res = await fetch(
-          `http://localhost:8080/api/empleados?${params}`
+          `/api/empleados?${params}`
         );
         const payload = await res.json();
-        const items = payload?.data ?? payload;
-        setEmpleados(Array.isArray(items) ? items : []);
-        if (payload?.meta || payload?.last_page) {
-          setEmpleadosPagination({
-            currentPage:
-              payload?.meta?.current_page ?? payload?.current_page ?? page,
-            lastPage: payload?.meta?.last_page ?? payload?.last_page ?? 1,
-            total: payload?.meta?.total ?? payload?.total ?? items.length,
-          });
-        }
+        const result = normalizePageResponse<Empleado>(payload);
+        setEmpleados(result.items);
+        setEmpleadosPagination(result.pagination);
       } catch {
         setEmpleados([]);
       } finally {
@@ -551,9 +530,9 @@ export default function ModalAgregarProduccion({
       return;
     let idUsuarioLocal = null;
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        const payload: any = jwtDecode(token);
+        const payload: any = JSON.parse(token);
         idUsuarioLocal = payload.id_usu || null;
       }
     } catch {
@@ -572,14 +551,14 @@ export default function ModalAgregarProduccion({
         id_cot: selectedCotizacion.id_cot,
         id_emp: selectedEmpleado.id_emp,
       };
-      const res = await fetch("http://localhost:8080/api/produccion", {
+      const res = await fetch("/api/produccion", {
         method: "POST",
         headers,
         body: JSON.stringify(produccionData),
       });
       if (!res.ok) throw new Error("Error al crear la producción");
 
-      const updatedRes = await fetch("http://localhost:8080/api/produccion");
+      const updatedRes = await fetch("/api/produccion");
       const updatedPayload: any = await updatedRes.json();
       const updatedItems = updatedPayload?.data ?? updatedPayload;
       setProducciones(Array.isArray(updatedItems) ? updatedItems : []);
@@ -679,7 +658,7 @@ export default function ModalAgregarProduccion({
                         <VentaCard
                           key={v.id_ven}
                           venta={v}
-                          isSelected={selectedVenta?.id_ven === v.id_ven}
+                          isSelected={!!selectedVenta && selectedVenta.id_ven === v.id_ven}
                           onSelect={() => setSelectedVenta(v)}
                         />
                       ))
@@ -723,7 +702,7 @@ export default function ModalAgregarProduccion({
                         <CotizacionCard
                           key={c.id_cot}
                           cotizacion={c}
-                          isSelected={selectedCotizacion?.id_cot === c.id_cot}
+                          isSelected={!!selectedCotizacion && selectedCotizacion.id_cot === c.id_cot}
                           onSelect={() => setSelectedCotizacion(c)}
                         />
                       ))
@@ -767,7 +746,7 @@ export default function ModalAgregarProduccion({
                         <EmpleadoCard
                           key={e.id_emp}
                           empleado={e}
-                          isSelected={selectedEmpleado?.id_emp === e.id_emp}
+                          isSelected={!!selectedEmpleado && selectedEmpleado.id_emp === e.id_emp}
                           onSelect={() => setSelectedEmpleado(e)}
                         />
                       ))

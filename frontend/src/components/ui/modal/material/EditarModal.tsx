@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
 import { ValidationErrors, parseApiErrors } from "../shared";
 import {
   Package,
@@ -14,19 +13,8 @@ import {
   Check,
   UploadCloud,
 } from "lucide-react";
-
-interface Material {
-  id_mat: number;
-  cod_mat?: string;
-  nom_mat: string;
-  desc_mat: string;
-  stock_mat: number;
-  stock_min: number;
-  est_mat: boolean;
-  unidad_medida: string;
-  costo_mat: number;
-  img_mat: string;
-}
+import type { Material } from "../../../../types/entities";
+export type { Material };
 interface Props {
   showModal: boolean;
   setShowModal: (show: boolean) => void;
@@ -99,9 +87,9 @@ export default function ModalEditarMaterial({
 
     let idUsuarioLocal = null;
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        const p: any = jwtDecode(token);
+        const p: any = JSON.parse(token);
         idUsuarioLocal = p.id_usu || null;
       }
     } catch {
@@ -122,7 +110,7 @@ export default function ModalEditarMaterial({
       }
 
       const res = await fetch(
-        `http://localhost:8080/api/materiales/${materialSeleccionado.id_mat}`,
+        `/api/materiales/${materialSeleccionado.id_mat}`,
         {
           method: "PUT",
           headers: {
@@ -176,7 +164,7 @@ export default function ModalEditarMaterial({
   const existingImgUrl = materialSeleccionado.img_mat?.startsWith("http")
     ? materialSeleccionado.img_mat
     : materialSeleccionado.img_mat
-    ? `http://localhost:8080/storage/${materialSeleccionado.img_mat}`
+    ? `/storage/${materialSeleccionado.img_mat}`
     : null;
 
   return (

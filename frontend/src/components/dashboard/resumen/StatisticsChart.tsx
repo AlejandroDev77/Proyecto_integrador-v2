@@ -2,7 +2,6 @@ import Chart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
 import { useEffect, useState } from "react";
 import { useDashboard } from "../../../context/DashboardContext";
-import { motion } from "framer-motion";
 
 const MONTH_NAMES = [
   "Enero",
@@ -177,17 +176,10 @@ export default function StatisticsChart() {
   }
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.2 }}
-      className="relative overflow-hidden rounded-[2rem] bg-white/60 px-5 pb-5 pt-5 dark:bg-gray-900/60 backdrop-blur-xl border border-white/50 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-shadow duration-300 sm:px-6 sm:pt-6"
-    >
-      <div className="absolute top-0 left-0 w-64 h-64 bg-[#a67c52]/10 dark:bg-[#a67c52]/20 rounded-full mix-blend-multiply filter blur-[80px] -ml-20 -mt-20 pointer-events-none" />
-      
-      <div className="relative z-10 flex flex-col gap-5 mb-6 sm:flex-row sm:justify-between sm:items-center">
+    <section className="overflow-hidden rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-6">
+      <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="w-full">
-          <h3 className="text-xl font-black text-gray-900 dark:text-white drop-shadow-sm">
+          <h3 className="text-base font-semibold text-gray-900 dark:text-white">
             Estadísticas de Ganancias
           </h3>
           <p className="mt-1 text-gray-500 text-sm dark:text-gray-400">
@@ -216,11 +208,11 @@ export default function StatisticsChart() {
         </div>
       </div>
 
-      <div className="relative z-10 max-w-full overflow-x-auto custom-scrollbar">
+      <div className="max-w-full overflow-x-auto custom-scrollbar">
         <div className="min-w-[600px] xl:min-w-full">
           <Chart options={options} series={series} type="area" height={310} />
         </div>
       </div>
-    </motion.div>
+    </section>
   );
 }

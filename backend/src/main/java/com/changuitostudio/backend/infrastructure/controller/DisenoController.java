@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import com.changuitostudio.backend.application.gateway.StorageGateway;
 import com.changuitostudio.backend.domain.model.Cotizacion;
+import com.changuitostudio.backend.shared.UploadValidator;
 
 import java.util.Map;
 
@@ -79,9 +80,11 @@ public class DisenoController {
         diseno.setCotizacion(cotizacion);
 
         if (imgDis != null && !imgDis.isEmpty()) {
+            UploadValidator.image(imgDis);
             diseno.setImgDis(storageGateway.save(imgDis, "images"));
         }
         if (archivo3d != null && !archivo3d.isEmpty()) {
+            UploadValidator.model(archivo3d);
             diseno.setArchivo3d(storageGateway.save(archivo3d, "models"));
         }
 
@@ -107,9 +110,11 @@ public class DisenoController {
         diseno.setCotizacion(cotizacion);
 
         if (imgDis != null && !imgDis.isEmpty()) {
+            UploadValidator.image(imgDis);
             diseno.setImgDis(storageGateway.save(imgDis, "images"));
         }
         if (archivo3d != null && !archivo3d.isEmpty()) {
+            UploadValidator.model(archivo3d);
             diseno.setArchivo3d(storageGateway.save(archivo3d, "models"));
         }
 

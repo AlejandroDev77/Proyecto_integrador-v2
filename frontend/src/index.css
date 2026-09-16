@@ -541,6 +541,71 @@ span.flatpickr-weekday,
   @apply right-0;
 }
 
+/* Selector de rango del dashboard: se abre sobre el contenido y ocupa menos espacio. */
+.dashboard-range-calendar.flatpickr-calendar {
+  z-index: 70;
+  width: 280px;
+  padding: 0.75rem !important;
+}
+.dashboard-range-calendar .flatpickr-rContainer,
+.dashboard-range-calendar .flatpickr-days,
+.dashboard-range-calendar .dayContainer {
+  width: 100%;
+  min-width: 0;
+}
+.dashboard-range-calendar .flatpickr-day {
+  max-width: 14.2857%;
+}
+.dashboard-range-calendar .flatpickr-weekdays {
+  margin-top: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+.dashboard-range-calendar .flatpickr-months .flatpickr-prev-month,
+.dashboard-range-calendar .flatpickr-months .flatpickr-next-month {
+  top: 0.8rem !important;
+}
+.dashboard-range-calendar .flatpickr-months .flatpickr-prev-month.flatpickr-prev-month {
+  left: 0.8rem !important;
+}
+.dashboard-range-calendar .flatpickr-months .flatpickr-next-month.flatpickr-next-month {
+  right: 0.8rem !important;
+}
+
+/* Modales de tablas: base neutra y naranja reservado como acento. */
+.fixed.inset-0.z-50 > div[class*="bg-white"] > div[class*="bg-gradient-to-r"] {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  border-bottom: 2px solid #fed7aa;
+}
+
+.dark .fixed.inset-0.z-50 > div[class*="bg-white"] > div[class*="bg-gradient-to-r"] {
+  background-color: #1d2939 !important;
+  border-bottom-color: rgb(251 101 20 / 30%);
+}
+
+.fixed.inset-0.z-50 > div[class*="bg-white"] > div[class*="bg-gradient-to-r"] :is(h1, h2, h3) {
+  color: #1d2939 !important;
+}
+
+.dark .fixed.inset-0.z-50 > div[class*="bg-white"] > div[class*="bg-gradient-to-r"] :is(h1, h2, h3) {
+  color: #ffffff !important;
+}
+
+.fixed.inset-0.z-50 > div[class*="bg-white"] > div[class*="bg-gradient-to-r"] button {
+  color: #667085 !important;
+}
+
+.fixed.inset-0.z-50 > div[class*="bg-white"] > div[class*="bg-gradient-to-r"] button:hover {
+  background-color: #fff6ed !important;
+  color: #c4320a !important;
+}
+
+.fixed.inset-0.z-50 > div[class*="bg-white"] :is(input, select, textarea):focus {
+  border-color: #fb6514 !important;
+  box-shadow: 0 0 0 3px rgb(251 101 20 / 15%) !important;
+  outline: none;
+}
+
 .fc .fc-view-harness {
   @apply max-w-full overflow-x-auto custom-scrollbar;
 }
@@ -1029,4 +1094,3 @@ input[type="range"]::-moz-range-thumb:hover {
 .dark .card-3d-hover:hover {
   box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.4);
 }
-

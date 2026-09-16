@@ -23,6 +23,7 @@ import java.util.Optional;
 
 
 @Component
+@org.springframework.transaction.annotation.Transactional
 public class PermisoJpaAdapter implements PermisoRepository {
 
     private final PermisoJpaRepository jpaRepository;

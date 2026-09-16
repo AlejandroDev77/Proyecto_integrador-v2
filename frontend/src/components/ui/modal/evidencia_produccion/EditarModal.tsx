@@ -20,6 +20,7 @@ import {
   UploadCloud,
 } from "lucide-react";
 import Swal from "sweetalert2";
+import { normalizePageResponse } from "../../../../utils/pagination";
 
 interface ProduccionEtapa {
   id_pro_eta: number;
@@ -288,12 +289,12 @@ const ModalEditarEvidencia: React.FC<ModalEditarEvidenciaProps> = ({
     setLoadingEtapa(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/produccion-etapa?page=${page}&per_page=6${
+        `/api/produccion-etapa?page=${page}&per_page=6${
           search ? `&filter[nom_eta]=${encodeURIComponent(search)}` : ""
         }`
       );
       const p = await res.json();
-      setProduccionEtapas(p?.data || []);
+      setProduccionEtapas(normalizePageResponse<ProduccionEtapa>(p).items);
       setEtapaPag({
         currentPage: p.current_page || 1,
         lastPage: p.last_page || 1,
@@ -310,12 +311,12 @@ const ModalEditarEvidencia: React.FC<ModalEditarEvidenciaProps> = ({
     setLoadingEmp(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/empleados?page=${page}&per_page=6${
+        `/api/empleados?page=${page}&per_page=6${
           search ? `&filter[nom_emp]=${encodeURIComponent(search)}` : ""
         }`
       );
       const p = await res.json();
-      setEmpleados(p?.data || []);
+      setEmpleados(normalizePageResponse<Empleado>(p).items);
       setEmpPag({
         currentPage: p.current_page || 1,
         lastPage: p.last_page || 1,
@@ -403,7 +404,7 @@ const ModalEditarEvidencia: React.FC<ModalEditarEvidenciaProps> = ({
       if (archivo) fd.append("archivo", archivo);
 
       const res = await fetch(
-        `http://localhost:8080/api/evidencia-produccion/${evidenciaSeleccionado.id_evi}`,
+        `/api/evidencia-produccion/${evidenciaSeleccionado.id_evi}`,
         { method: "POST", body: fd }
       );
       if (!res.ok) throw new Error("Error al actualizar");
@@ -456,7 +457,7 @@ const ModalEditarEvidencia: React.FC<ModalEditarEvidenciaProps> = ({
       case "video":
         return "video/*,.glb,.gltf";
       case "documento":
-        return ".pdf,.doc,.docx,.xls,.xlsx,.txt";
+        return ".pdf,.jpg,.jpeg,.png,.webp";
       default:
         return "*";
     }
@@ -779,7 +780,7 @@ const ModalEditarEvidencia: React.FC<ModalEditarEvidenciaProps> = ({
                         <EmpleadoCard
                           key={e.id_emp}
                           empleado={e}
-                          isSelected={selectedEmpleado?.id_emp === e.id_emp}
+                          isSelected={!!selectedEmpleado && selectedEmpleado.id_emp === e.id_emp}
                           onSelect={() => setSelectedEmpleado(e)}
                         />
                       ))

@@ -2,7 +2,6 @@ import React, { useEffect, useState, useCallback } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
 import { ValidationErrors, parseApiErrors } from "../shared";
 import {
   CreditCard,
@@ -208,7 +207,7 @@ const ModalEditarPago: React.FC<Props> = ({
   const fetchVentas = useCallback(async (page = 1, search = "") => {
     setLoadingVenta(true);
     try {
-      const url = `http://localhost:8080/api/ventas?page=${page}&per_page=6&filter[est_ven]=Pendiente${
+      const url = `/api/ventas?page=${page}&per_page=6&filter[est_ven]=Pendiente${
         search ? `&filter[cod_ven]=${encodeURIComponent(search)}` : ""
       }`;
       const res = await fetch(url);
@@ -251,7 +250,7 @@ const ModalEditarPago: React.FC<Props> = ({
       });
       const idVenta = pagoSeleccionado.id_ven || (pagoSeleccionado.venta as any)?.id_ven || (pagoSeleccionado.venta as any)?.id;
       if (idVenta) {
-        fetch(`http://localhost:8080/api/ventas/${idVenta}`)
+        fetch(`/api/ventas/${idVenta}`)
           .then((r) => r.json())
           .then((v) => setSelectedVenta(v?.data ?? v))
           .catch(() => {});
@@ -270,9 +269,9 @@ const ModalEditarPago: React.FC<Props> = ({
 
     let idUsuarioLocal = null;
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        const p: any = jwtDecode(token);
+        const p: any = JSON.parse(token);
         idUsuarioLocal = p.id_usu || null;
       }
     } catch {
@@ -282,7 +281,7 @@ const ModalEditarPago: React.FC<Props> = ({
     try {
       const idPago = pagoSeleccionado.id_pag || (pagoSeleccionado as any).id;
       const res = await fetch(
-        `http://localhost:8080/api/pagos/${idPago}`,
+        `/api/pagos/${idPago}`,
         {
           method: "PUT",
           headers: {
@@ -294,7 +293,7 @@ const ModalEditarPago: React.FC<Props> = ({
             fec_pag: form.fecha,
             metodo_pag: form.metodo,
             referencia_pag: form.referencia,
-            monto: parseFloat(form.monto as string),
+            monto: form.monto,
             venta: { id: selectedVenta.id_ven || (selectedVenta as any).id },
           }),
         }

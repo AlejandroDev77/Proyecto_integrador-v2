@@ -43,20 +43,20 @@ public class LoginService implements LoginUseCase {
         Usuario usuario = usuarioRepository.buscarPorNombre(nombreUsuario)
                 .orElseThrow(CredencialesInvalidasException::new);
 
-        if (!passwordEncoder.matches(password, usuario.getPasUsu())) {
+        if (!Boolean.TRUE.equals(usuario.getEstUsu()) || !passwordEncoder.matches(password, usuario.getPasUsu())) {
             throw new CredencialesInvalidasException();
         }
 
         // Si tiene 2FA habilitado
         if (Boolean.TRUE.equals(usuario.getIs2faEnabled())) {
-            String tempToken = jwtProvider.generate2faTempToken(usuario.getIdUsu());
+            String tempToken = jwtProvider.generate2faTempToken(usuario.getIdUsu(), usuario.getPasUsu());
             return LoginResult.requires2fa(tempToken);
         }
 
         List<String> permisos = obtenerPermisos(usuario.getIdRol());
         String token = jwtProvider.generateToken(
                 usuario.getIdUsu(), usuario.getIdRol(), usuario.getCodUsu(),
-                usuario.getNomUsu(), usuario.getEmailUsu(), permisos);
+                usuario.getNomUsu(), usuario.getEmailUsu(), permisos, usuario.getPasUsu());
 
         return LoginResult.success(token);
     }
@@ -66,40 +66,61 @@ public class LoginService implements LoginUseCase {
         try {
             GoogleAuthProvider.GoogleUserInfo googleUser = googleAuthProvider.verifyToken(googleIdToken);
 
-            Usuario usuario = usuarioRepository.buscarPorEmail(googleUser.email())
-                    .orElseGet(() -> crearUsuarioGoogle(googleUser));
+            if (!googleUser.emailVerified()) {
+                throw new CredencialesInvalidasException("La cuenta de Google no tiene un correo verificado.");
+            }
+
+            Usuario usuario = usuarioRepository.buscarPorGoogleSubject(googleUser.subject()).orElse(null);
+            if (usuario == null) {
+                usuario = usuarioRepository.buscarPorEmail(googleUser.email()).orElse(null);
+                if (usuario != null && !usuario.getCodUsu().startsWith("G-")) {
+                    throw new CredencialesInvalidasException("Esta cuenta debe vincular Google desde una sesión autenticada.");
+                }
+                if (usuario == null) usuario = crearUsuarioGoogle(googleUser);
+                else {
+                    usuario.setGoogleSubject(googleUser.subject());
+                    usuario = usuarioRepository.guardar(usuario);
+                }
+            }
 
             if (!Boolean.TRUE.equals(usuario.getEstUsu())) {
                 throw new CredencialesInvalidasException("Tu cuenta se encuentra deshabilitada.");
             }
 
             if (Boolean.TRUE.equals(usuario.getIs2faEnabled())) {
-                String tempToken = jwtProvider.generate2faTempToken(usuario.getIdUsu());
+                String tempToken = jwtProvider.generate2faTempToken(usuario.getIdUsu(), usuario.getPasUsu());
                 return LoginResult.requires2fa(tempToken);
             }
 
             List<String> permisos = obtenerPermisos(usuario.getIdRol());
             String token = jwtProvider.generateToken(
                     usuario.getIdUsu(), usuario.getIdRol(), usuario.getCodUsu(),
-                    usuario.getNomUsu(), usuario.getEmailUsu(), permisos);
+                    usuario.getNomUsu(), usuario.getEmailUsu(), permisos, usuario.getPasUsu());
 
             return LoginResult.success(token);
         } catch (CredencialesInvalidasException e) {
             throw e;
         } catch (Exception e) {
-            throw new CredencialesInvalidasException("No se pudo verificar el token de Google: " + e.getMessage());
+            throw new CredencialesInvalidasException("No se pudo verificar el token de Google.");
         }
     }
 
     @Override
     public LoginResult verify2fa(String tempToken, String code) {
-        if (!jwtProvider.validateToken(tempToken)) {
+        if (!jwtProvider.is2faTempToken(tempToken)) {
             throw new CredencialesInvalidasException("Token temporal invÃ¡lido o expirado.");
         }
 
         Long idUsu = Long.parseLong(jwtProvider.getSubjectFromToken(tempToken));
         Usuario usuario = usuarioRepository.buscarPorId(idUsu)
                 .orElseThrow(() -> new UsuarioNoEncontradoException(idUsu));
+
+        if (!Boolean.TRUE.equals(usuario.getEstUsu()) || !Boolean.TRUE.equals(usuario.getIs2faEnabled())) {
+            throw new CredencialesInvalidasException("La cuenta no está habilitada para completar este acceso.");
+        }
+        if (!jwtProvider.matchesCredentialVersion(tempToken, usuario.getPasUsu())) {
+            throw new CredencialesInvalidasException("El acceso temporal fue revocado.");
+        }
 
         if (!tfaCoreService.isOtpValid(usuario.getSecret2fa(), code)) {
             throw new CredencialesInvalidasException("CÃ³digo 2FA incorrecto.");
@@ -108,7 +129,7 @@ public class LoginService implements LoginUseCase {
         List<String> permisos = obtenerPermisos(usuario.getIdRol());
         String token = jwtProvider.generateToken(
                 usuario.getIdUsu(), usuario.getIdRol(), usuario.getCodUsu(),
-                usuario.getNomUsu(), usuario.getEmailUsu(), permisos);
+                usuario.getNomUsu(), usuario.getEmailUsu(), permisos, usuario.getPasUsu());
 
         return LoginResult.success(token);
     }
@@ -131,6 +152,7 @@ public class LoginService implements LoginUseCase {
         nuevo.setPasUsu(""); // No tiene password, usa Google
         nuevo.setEstUsu(true);
         nuevo.setIdRol(3L); // Rol cliente por defecto
+        nuevo.setGoogleSubject(googleUser.subject());
 
         String codigo = usuarioRepository.generarCodigoUnico();
         nuevo.setCodUsu("G-" + codigo.replace("USU-", ""));

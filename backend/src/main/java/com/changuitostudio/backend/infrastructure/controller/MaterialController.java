@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import com.changuitostudio.backend.application.gateway.StorageGateway;
+import com.changuitostudio.backend.shared.UploadValidator;
 
 import java.util.Map;
 @RestController
@@ -81,6 +82,7 @@ public class MaterialController {
         material.setEstMat("1".equals(estMat));
 
         if (imgMat != null && !imgMat.isEmpty()) {
+            UploadValidator.image(imgMat);
             String url = storageGateway.save(imgMat, "materiales");
             material.setImgMat(url);
         }
@@ -111,6 +113,7 @@ public class MaterialController {
         material.setEstMat("1".equals(estMat));
 
         if (imgMat != null && !imgMat.isEmpty()) {
+            UploadValidator.image(imgMat);
             String url = storageGateway.save(imgMat, "materiales");
             material.setImgMat(url);
         }

@@ -56,15 +56,13 @@ export function useSignUp() {
     setErrorMessage(null);
     try {
       const { loginWithGoogle, getRedirectRoute } = await import("../../services/authService");
-      const { useAuth } = await import("../../context/AuthContext");
-      
       const response = await loginWithGoogle(credential);
       if ("requires_2fa" in response && response.requires_2fa) {
         setErrorMessage("Debes iniciar sesión normal para verificar el 2FA.");
         return; 
       }
-      const { token, id_usu, id_rol } = response as import("../../types/auth").LoginResponse;
-      localStorage.setItem("token", token);
+      const { token, id_rol } = response as import("../../types/auth").LoginResponse;
+      sessionStorage.setItem("auth_identity", token);
       const route = await getRedirectRoute(id_rol);
       navigate(route);
       setTimeout(() => window.location.reload(), 100);

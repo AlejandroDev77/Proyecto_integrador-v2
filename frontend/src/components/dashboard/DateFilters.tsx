@@ -3,6 +3,7 @@ import flatpickr from "flatpickr";
 import { Spanish } from "flatpickr/dist/l10n/es.js";
 import "flatpickr/dist/flatpickr.css";
 import { useDashboard } from "../../context/DashboardContext";
+import { CalendarDays, X } from "lucide-react";
 
 const MONTHS = [
   { value: 1, label: "Enero" },
@@ -53,7 +54,13 @@ export default function DateFilters() {
         locale: Spanish,
         dateFormat: "Y-m-d",
         allowInput: false,
-        static: true,
+        // Se monta en body para que el calendario no quede recortado por el encabezado.
+        static: false,
+        appendTo: document.body,
+        position: "below",
+        onReady: (_, __, instance) => {
+          instance.calendarContainer.classList.add("dashboard-range-calendar");
+        },
         onChange: (selectedDates) => {
           if (selectedDates.length === 2) {
             const formatDate = (d: Date) => {
@@ -80,15 +87,15 @@ export default function DateFilters() {
   }, [setDateRange]);
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="flex flex-wrap items-center gap-2">
       {/* Year Selector */}
-      <div className="flex items-center gap-2">
-        <label className="text-xs font-medium text-white/70">Año:</label>
+      <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 dark:border-gray-700 dark:bg-gray-800">
+        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Año</label>
         <select
           value={selectedYear}
           onChange={(e) => setSelectedYear(Number(e.target.value))}
           disabled={loading}
-          className="appearance-none bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg px-3 py-1.5 pr-8 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-white/50 transition-all cursor-pointer disabled:opacity-50"
+          className="cursor-pointer bg-transparent py-2 text-sm font-semibold text-gray-800 outline-none dark:text-white disabled:opacity-50"
         >
           {years.map((year) => (
             <option key={year} value={year} className="text-gray-900">
@@ -99,15 +106,15 @@ export default function DateFilters() {
       </div>
 
       {/* Month Selector */}
-      <div className="flex items-center gap-2">
-        <label className="text-xs font-medium text-white/70">Mes:</label>
+      <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 dark:border-gray-700 dark:bg-gray-800">
+        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Mes</label>
         <select
           value={selectedMonth ?? ""}
           onChange={(e) =>
             setSelectedMonth(e.target.value ? Number(e.target.value) : null)
           }
           disabled={loading || Boolean(isUsingDateRange)}
-          className="appearance-none bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg px-3 py-1.5 pr-8 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-white/50 transition-all cursor-pointer disabled:opacity-50"
+          className="cursor-pointer bg-transparent py-2 text-sm font-semibold text-gray-800 outline-none dark:text-white disabled:opacity-50"
         >
           <option value="" className="text-gray-900">
             Todo el año
@@ -125,61 +132,35 @@ export default function DateFilters() {
       </div>
 
       {/* Separator */}
-      <div className="w-px h-6 bg-white/20 hidden sm:block" />
+      <span className="mx-1 hidden h-6 w-px bg-gray-200 dark:bg-gray-700 sm:block" />
 
       {/* Date Range with Flatpickr */}
-      <div className="flex items-center gap-2">
-        <label className="text-xs font-medium text-white/70">Rango:</label>
-        <div className="relative">
+      <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 dark:border-gray-700 dark:bg-gray-800">
+        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Rango</label>
+        <div className="relative flex items-center">
+          <CalendarDays className="pointer-events-none absolute left-0 h-4 w-4 text-gray-400" />
           <input
             ref={dateRangeRef}
             type="text"
             placeholder="Seleccionar fechas"
             disabled={loading}
-            className="bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg px-3 py-1.5 text-xs font-medium text-white focus:outline-none focus:ring-2 focus:ring-white/50 transition-all disabled:opacity-50 w-48 placeholder:text-white/50"
+            className="w-36 cursor-pointer bg-transparent py-2 pl-6 text-sm font-medium text-gray-800 outline-none placeholder:text-gray-400 dark:text-white disabled:opacity-50 sm:w-40"
           />
-          <span className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-white/50">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
-          </span>
         </div>
         {isUsingDateRange && (
           <button
             onClick={clearDateRange}
-            className="p-1.5 bg-red-500/20 hover:bg-red-500/40 rounded-lg text-white/80 transition-all"
+            className="rounded-md p-1 text-gray-400 transition hover:bg-gray-200 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white"
             title="Limpiar rango"
           >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <X className="h-4 w-4" />
           </button>
         )}
       </div>
 
       {/* Loading indicator */}
       {loading && (
-        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+        <div className="h-4 w-4 animate-spin rounded-full border-2 border-orange-600 border-t-transparent" />
       )}
     </div>
   );

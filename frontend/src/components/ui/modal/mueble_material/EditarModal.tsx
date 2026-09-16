@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
+import { normalizePageResponse } from "../../../../utils/pagination";
 import {
   Package,
   Layers,
@@ -20,19 +20,25 @@ import {
 } from "lucide-react";
 
 interface MuebleMaterial {
+  id?: number;
   id_mue_mat: number;
   id_mue: number;
   mueble?: {
+    id?: number;
     id_mue: number;
     cod_mue?: string;
     nom_mue: string;
-    img_mue: string;
+    img_mue?: string;
+    imagen?: string;
+    codigo?: string;
+    nombre?: string;
     precio_venta: number;
     precio_costo: number;
     stock: number;
   };
   id_mat: number;
   material?: {
+    id?: number;
     id_mat: number;
     cod_mat?: string;
     nom_mat: string;
@@ -304,20 +310,12 @@ export default function ModalEditarMuebleMaterial({
         });
         if (search) params.append("filter[nom_mue]", search);
 
-        const res = await fetch(`http://localhost:8080/api/mueble?${params}`);
+        const res = await fetch(`/api/mueble?${params}`);
         const payload = await res.json();
 
-        const items = payload?.data ?? payload;
-        setMuebles(Array.isArray(items) ? items : []);
-
-        if (payload?.meta || payload?.last_page) {
-          setMueblesPagination({
-            currentPage:
-              payload?.meta?.current_page ?? payload?.current_page ?? page,
-            lastPage: payload?.meta?.last_page ?? payload?.last_page ?? 1,
-            total: payload?.meta?.total ?? payload?.total ?? items.length,
-          });
-        }
+        const result = normalizePageResponse<MuebleData>(payload);
+        setMuebles(result.items);
+        setMueblesPagination(result.pagination);
       } catch (error) {
         console.error("Error fetching muebles:", error);
         setMuebles([]);
@@ -340,24 +338,14 @@ export default function ModalEditarMuebleMaterial({
         if (search) params.append("filter[nom_mat]", search);
 
         const res = await fetch(
-          `http://localhost:8080/api/materiales?${params}`
+          `/api/materiales?${params}`
         );
         const payload = await res.json();
 
-        const items = payload?.data ?? payload;
-        const filtered = Array.isArray(items)
-          ? items.filter((m: MaterialData) => m.est_mat !== false)
-          : [];
+        const result = normalizePageResponse<MaterialData>(payload);
+        const filtered = result.items.filter((m) => m.est_mat !== false);
         setMateriales(filtered);
-
-        if (payload?.meta || payload?.last_page) {
-          setMaterialesPagination({
-            currentPage:
-              payload?.meta?.current_page ?? payload?.current_page ?? page,
-            lastPage: payload?.meta?.last_page ?? payload?.last_page ?? 1,
-            total: payload?.meta?.total ?? payload?.total ?? filtered.length,
-          });
-        }
+        setMaterialesPagination({ ...result.pagination, total: filtered.length });
       } catch (error) {
         console.error("Error fetching materiales:", error);
         setMateriales([]);
@@ -372,9 +360,9 @@ export default function ModalEditarMuebleMaterial({
   useEffect(() => {
     if (showModal && mueblematerialSeleccionado) {
       setFormData({
-        id_mue_mat: mueblematerialSeleccionado.id_mue_mat || mueblematerialSeleccionado.id,
-        id_mue: mueblematerialSeleccionado.id_mue || mueblematerialSeleccionado.mueble?.id_mue || mueblematerialSeleccionado.mueble?.id,
-        id_mat: mueblematerialSeleccionado.id_mat || mueblematerialSeleccionado.material?.id_mat || mueblematerialSeleccionado.material?.id,
+        id_mue_mat: mueblematerialSeleccionado.id_mue_mat ?? mueblematerialSeleccionado.id ?? 0,
+        id_mue: mueblematerialSeleccionado.id_mue ?? mueblematerialSeleccionado.mueble?.id_mue ?? mueblematerialSeleccionado.mueble?.id ?? 0,
+        id_mat: mueblematerialSeleccionado.id_mat ?? mueblematerialSeleccionado.material?.id_mat ?? mueblematerialSeleccionado.material?.id ?? 0,
         cantidad: mueblematerialSeleccionado.cantidad,
       });
 
@@ -423,9 +411,9 @@ export default function ModalEditarMuebleMaterial({
 
     let idUsuarioLocal = null;
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        const payload: any = jwtDecode(token);
+        const payload: any = JSON.parse(token);
         idUsuarioLocal = payload.id_usu || null;
       }
     } catch (e) {
@@ -441,7 +429,7 @@ export default function ModalEditarMuebleMaterial({
 
     try {
       const res = await fetch(
-        `http://localhost:8080/api/mueble-material/${formData.id_mue_mat}`,
+        `/api/mueble-material/${formData.id_mue_mat}`,
         {
           method: "PUT",
           headers,
@@ -457,7 +445,7 @@ export default function ModalEditarMuebleMaterial({
 
       // Refrescar datos
       const updatedRes = await fetch(
-        "http://localhost:8080/api/mueble-material"
+        "/api/mueble-material"
       );
       const updatedPayload: any = await updatedRes.json();
       

@@ -1,9 +1,11 @@
 package com.changuitostudio.backend.infrastructure.storage;
 
 import com.changuitostudio.backend.application.gateway.StorageGateway;
+import com.changuitostudio.backend.shared.ImageUploadOptimizer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -14,10 +16,13 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.core.sync.RequestBody;
 
 import java.net.URI;
+import java.text.Normalizer;
+import java.util.Arrays;
 import java.util.UUID;
 
 @Service
 @Primary
+@ConditionalOnExpression("!'${app.r2.endpoint:}'.isBlank()")
 public class CloudflareR2StorageAdapter implements StorageGateway {
 
     private final S3Client s3Client;
@@ -44,26 +49,45 @@ public class CloudflareR2StorageAdapter implements StorageGateway {
 
     @Override
     public String save(MultipartFile archivo, String folder) {
+        return save(archivo, folder, null);
+    }
+
+    @Override
+    public String save(MultipartFile archivo, String folder, String nombreBase) {
         try {
-            String extension = "";
-            String originalName = archivo.getOriginalFilename();
-            if (originalName != null && originalName.contains(".")) {
-                extension = originalName.substring(originalName.lastIndexOf("."));
-            }
-            String fileName = folder + "/" + UUID.randomUUID().toString() + extension;
+            ImageUploadOptimizer.OptimizedUpload upload = ImageUploadOptimizer.optimize(archivo);
+            String extension = upload.extension().isBlank() ? "" : "." + upload.extension();
+            String safeFolder = Arrays.stream(folder.split("/"))
+                    .map(this::safeSegment)
+                    .filter(segment -> !segment.isBlank())
+                    .reduce((left, right) -> left + "/" + right)
+                    .orElse("archivos");
+            String baseName = nombreBase == null || nombreBase.isBlank()
+                    ? "archivo"
+                    : safeSegment(nombreBase);
+            String fileName = safeFolder + "/" + baseName + "-" + UUID.randomUUID() + extension;
             
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucket)
                     .key(fileName)
-                    .contentType(archivo.getContentType())
+                    .contentType(upload.contentType())
                     .build();
                     
-            s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(archivo.getInputStream(), archivo.getSize()));
+            s3Client.putObject(putObjectRequest, RequestBody.fromBytes(upload.bytes()));
             
             return publicUrl + "/" + fileName;
         } catch (Exception e) {
             throw new RuntimeException("Failed to upload to Cloudflare R2: " + e.getMessage(), e);
         }
+    }
+
+    private String safeSegment(String value) {
+        String normalized = Normalizer.normalize(value, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+        String result = normalized.toLowerCase()
+                .replaceAll("[^a-z0-9]+", "-")
+                .replaceAll("(^-+|-+$)", "");
+        return result.isBlank() ? "archivo" : result;
     }
 
     @Override

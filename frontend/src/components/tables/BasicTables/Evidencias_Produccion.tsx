@@ -61,7 +61,7 @@ export default function EvidenciasProduccion() {
     if (!confirm.isConfirmed) return;
 
     try {
-      const res = await fetch(`http://localhost:8080/api/evidencia-produccion/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/evidencia-produccion/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Error");
       setEvidenciasProduccion((prev) => prev.filter((e) => e.id_evi !== id));
       Swal.fire({
@@ -195,7 +195,7 @@ export default function EvidenciasProduccion() {
                             )}
                             {evi.archivo_evi && (
                               <a
-                                href={evi.archivo_evi.startsWith("http") ? evi.archivo_evi : `http://localhost:8080/storage/${evi.archivo_evi}`}
+                                href={evi.archivo_evi.startsWith("http") ? evi.archivo_evi : `/storage/${evi.archivo_evi}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-1.5 w-fit px-2 py-1 bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 rounded text-xs font-medium hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors"

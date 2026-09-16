@@ -11,6 +11,7 @@ public class Usuario {
     private Long idRol;
     private String secret2fa;
     private Boolean is2faEnabled;
+    private String googleSubject;
 
     // Datos del rol
     private String nomRol;
@@ -19,7 +20,8 @@ public class Usuario {
     }
 
     public Usuario(Long idUsu, String nomUsu, String emailUsu, String pasUsu,
-            Boolean estUsu, String codUsu, Long idRol, String nomRol, String secret2fa, Boolean is2faEnabled) {
+            Boolean estUsu, String codUsu, Long idRol, String nomRol, String secret2fa, Boolean is2faEnabled,
+            String googleSubject) {
         this.idUsu = idUsu;
         this.nomUsu = nomUsu;
         this.emailUsu = emailUsu;
@@ -30,6 +32,7 @@ public class Usuario {
         this.nomRol = nomRol;
         this.secret2fa = secret2fa;
         this.is2faEnabled = is2faEnabled;
+        this.googleSubject = googleSubject;
     }
 
     // Captadores y Colocadores
@@ -115,4 +118,7 @@ public class Usuario {
     public void setNomRol(String nomRol) {
         this.nomRol = nomRol;
     }
+
+    public String getGoogleSubject() { return googleSubject; }
+    public void setGoogleSubject(String googleSubject) { this.googleSubject = googleSubject; }
 }

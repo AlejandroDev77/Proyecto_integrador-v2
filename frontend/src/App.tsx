@@ -48,6 +48,7 @@ import ClientPortalLayout from "./layout/ClientPortalLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Landing from "./pages/Landing/Landing";
 import Products from "./pages/Products/Products";
+import RoomDesignerPage from "./pages/Products/RoomDesignerPage";
 import UserPublicProfile from "./pages/UserPublicProfile";
 import Permisos from "./pages/Tables/Permisos";
 import Roles from "./pages/Tables/Roles";
@@ -88,6 +89,7 @@ export default function App() {
             <Routes>
               {/* Rutas publicas */}
               <Route path="/products" element={<Products />} />
+              <Route path="/products/rooms/:roomId" element={<RoomDesignerPage />} />
               <Route path="/" element={<Landing />} />
               <Route path="/pago-movil/:id" element={<MobilePaymentSimulation />} />
 

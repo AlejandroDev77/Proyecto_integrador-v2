@@ -1,5 +1,5 @@
 import axiosClient from "../api/axios";
-import { jwtDecode } from "jwt-decode";
+import { clearAuthIdentity, getAuthIdentity, setAuthIdentity } from "../utils/authIdentity";
 import { 
   UserTokenPayload, 
   LoginResponse, 
@@ -19,19 +19,14 @@ export async function login(username: string, password: string): Promise<LoginRe
       return response.data as Requires2FAResponse;
     }
 
-    const { access_token } = response.data;
-
-    // Guardar el token
-    localStorage.setItem("token", access_token);
-
-    // Decodificar el token para obtener el usuario y sus permisos
-    const decoded = jwtDecode<UserTokenPayload>(access_token);
+    const user = response.data.user;
+    const identity = setAuthIdentity(user);
     
     return { 
-      token: access_token, 
-      id_usu: decoded.id_usu, 
-      id_rol: decoded.id_rol, 
-      permisos: decoded.permisos || [] 
+      token: identity,
+      id_usu: user.id_usu,
+      id_rol: user.id_rol,
+      permisos: user.permisos || []
     } as LoginResponse;
   } catch (error: any) {
     if (error.response && error.response.data) {
@@ -48,16 +43,14 @@ export async function loginWith2fa(tempToken: string, code: string): Promise<Log
       code: code
     });
 
-    const { access_token } = response.data;
-    localStorage.setItem("token", access_token);
-
-    const decoded = jwtDecode<UserTokenPayload>(access_token);
+    const user = response.data.user;
+    const identity = setAuthIdentity(user);
     
     return { 
-      token: access_token, 
-      id_usu: decoded.id_usu, 
-      id_rol: decoded.id_rol, 
-      permisos: decoded.permisos || [] 
+      token: identity,
+      id_usu: user.id_usu,
+      id_rol: user.id_rol,
+      permisos: user.permisos || []
     };
   } catch (error: any) {
     throw new Error(error.response?.data?.message || "Código incorrecto o token expirado.");
@@ -74,16 +67,14 @@ export async function loginWithGoogle(credential: string): Promise<LoginResponse
       return response.data as Requires2FAResponse;
     }
 
-    const { access_token } = response.data;
-    localStorage.setItem("token", access_token);
-
-    const decoded = jwtDecode<UserTokenPayload>(access_token);
+    const user = response.data.user;
+    const identity = setAuthIdentity(user);
     
     return { 
-      token: access_token, 
-      id_usu: decoded.id_usu, 
-      id_rol: decoded.id_rol, 
-      permisos: decoded.permisos || [] 
+      token: identity,
+      id_usu: user.id_usu,
+      id_rol: user.id_rol,
+      permisos: user.permisos || []
     } as LoginResponse;
   } catch (error: any) {
     throw new Error(error.response?.data?.message || "Error al iniciar sesión con Google");
@@ -93,15 +84,9 @@ export async function loginWithGoogle(credential: string): Promise<LoginResponse
 /**
  * Obtiene la ruta de redirección desde el backend según el rol del usuario
  */
-export async function getRedirectRoute(id_rol: number): Promise<string> {
+export async function getRedirectRoute(_id_rol: number): Promise<string> {
   try {
-    const token = localStorage.getItem("token");
-    const response = await axiosClient.get<AuthRedirectResponse>(
-      `/api/roles/${id_rol}/redirect-route`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+    const response = await axiosClient.get<AuthRedirectResponse>("/api/me/redirect-route");
     return response.data.route || "/signin";
   } catch (error) {
     console.error("Error obteniendo ruta de redirección", error);
@@ -126,38 +111,16 @@ export async function register(userData: RegisterRequest) {
 }
 
 export function getUser(): UserTokenPayload | null {
-  const token = localStorage.getItem("token");
-  if (!token) return null;
-  
-  try {
-    const decoded = jwtDecode<UserTokenPayload>(token);
-    // Verificar si el token ya expiró
-    if (decoded.exp && decoded.exp * 1000 < Date.now()) {
-      localStorage.removeItem("token");
-      return null;
-    }
-    return decoded;
-  } catch {
-    localStorage.removeItem("token");
-    return null;
-  }
+  return getAuthIdentity();
 }
 
 export async function logout() {
-  const token = localStorage.getItem("token");
   try {
-    if (token) {
-      await axiosClient.post(
-        "/api/logout",
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-    }
+    await axiosClient.post("/api/logout", {});
   } catch (error) {
     // Silently proceed to remove token
   }
+  clearAuthIdentity();
   localStorage.removeItem("token");
 }
 

@@ -10,6 +10,7 @@ import com.changuitostudio.backend.application.interactor.negocio.CodigoGenerato
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.time.LocalDateTime;
 
@@ -27,7 +28,7 @@ public class EvidenciaProduccionService implements ManageEvidenciaProduccionUseC
 
     public EvidenciaProduccionService(
             EvidenciaProduccionRepository repository,
-            StorageGateway storageGateway,
+            @Qualifier("localStorageAdapter") StorageGateway storageGateway,
             ProduccionEtapaRepository produccionEtapaRepository,
             EmpleadoRepository empleadoRepository,
             CodigoGeneratorService codigoGenerator

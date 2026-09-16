@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
+import { normalizePageResponse } from "../../../../utils/pagination";
+import { csrfHeaders } from "../../../../utils/csrf";
 import { ValidationErrors, parseApiErrors } from "../shared";
 import {
   Armchair,
@@ -24,22 +25,8 @@ import {
   Box,
   UploadCloud,
 } from "lucide-react";
-
-export interface Mueble {
-  id_mue: number;
-  nom_mue: string;
-  desc_mue: string;
-  precio_venta: number;
-  precio_costo: number;
-  stock: number;
-  stock_min: number;
-  dimensiones: string;
-  est_mue: boolean;
-  img_mue?: string;
-  modelo_3d?: string;
-  id_cat: number;
-  categoria?: { nom_cat: string } | null;
-}
+import type { Mueble } from "../../../../types/entities";
+export type { Mueble };
 interface Categoria {
   id_cat: number;
   nom_cat: string;
@@ -244,12 +231,12 @@ export default function ModalEditarMueble({
     setLoadingCat(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/categoria-mueble?page=${page}&per_page=6${
+        `/api/categoria-mueble?page=${page}&per_page=6${
           search ? `&filter[nom_cat]=${encodeURIComponent(search)}` : ""
         }`
       );
       const p = await res.json();
-      setCategorias(p?.data || []);
+      setCategorias(normalizePageResponse<Categoria>(p).items);
       setCatPag({
         currentPage: p.current_page || 1,
         lastPage: p.last_page || 1,
@@ -317,8 +304,8 @@ export default function ModalEditarMueble({
 
     let uid = null;
     try {
-      const token = localStorage.getItem("token");
-      if (token) uid = (jwtDecode(token) as any).id_usu;
+      const token = sessionStorage.getItem("auth_identity");
+      if (token) uid = (JSON.parse(token) as any).id_usu;
     } catch {}
 
     try {
@@ -336,11 +323,12 @@ export default function ModalEditarMueble({
       if (modelo3dFile) formData.append("modelo_3d", modelo3dFile);
 
       const res = await fetch(
-        `http://localhost:8080/api/mueble/${muebleSeleccionado.id_mue}`,
+        `/api/mueble/${muebleSeleccionado.id_mue}`,
         {
           method: "PUT",
           headers: {
             Accept: "application/json",
+            ...(await csrfHeaders()),
             ...(uid ? { "X-USER-ID": uid } : {}),
           },
           body: formData,
@@ -395,7 +383,7 @@ export default function ModalEditarMueble({
   const existingImgUrl = muebleSeleccionado.img_mue?.startsWith("http")
     ? muebleSeleccionado.img_mue
     : muebleSeleccionado.img_mue
-    ? `http://localhost:8080/storage/${muebleSeleccionado.img_mue}`
+    ? `/storage/${muebleSeleccionado.img_mue}`
     : null;
   const existingModelo3d = muebleSeleccionado.modelo_3d;
 
@@ -636,7 +624,7 @@ export default function ModalEditarMueble({
                         <CategoriaCard
                           key={c.id_cat}
                           categoria={c}
-                          isSelected={selectedCategoria?.id_cat === c.id_cat}
+                          isSelected={!!selectedCategoria && selectedCategoria.id_cat === c.id_cat}
                           onSelect={() => setSelectedCategoria(c)}
                         />
                       ))

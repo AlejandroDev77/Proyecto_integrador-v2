@@ -17,6 +17,8 @@ public interface UsuarioRepository {
 
     Optional<Usuario> buscarPorEmail(String email);
 
+    Optional<Usuario> buscarPorGoogleSubject(String subject);
+
     Usuario guardar(Usuario usuario);
 
     void eliminarPorId(Long id);

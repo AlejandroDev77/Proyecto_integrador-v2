@@ -3,6 +3,8 @@ package com.changuitostudio.backend.infrastructure.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import java.time.Duration;
 
 import com.changuitostudio.backend.application.gateway.*;
 import com.changuitostudio.backend.application.interactor.*;
@@ -14,7 +16,10 @@ public class BeanConfig {
 
     @Bean
     public RestTemplate restTemplate() {
-        return new RestTemplate();
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(Duration.ofSeconds(5));
+        factory.setReadTimeout(Duration.ofSeconds(30));
+        return new RestTemplate(factory);
     }
 
     @Bean
@@ -46,8 +51,9 @@ public class BeanConfig {
     public PasswordResetUseCase passwordResetUseCase(UsuarioRepository usuarioRepository,
                                                      TokenRepository tokenRepository,
                                                      EmailSender emailSender,
-                                                     PasswordEncoderGateway passwordEncoder) {
-        return new PasswordResetService(usuarioRepository, tokenRepository, emailSender, passwordEncoder);
+                                                     PasswordEncoderGateway passwordEncoder,
+                                                     @org.springframework.beans.factory.annotation.Value("${app.frontend-url}") String frontendUrl) {
+        return new PasswordResetService(usuarioRepository, tokenRepository, emailSender, passwordEncoder, frontendUrl);
     }
 
     @Bean

@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
+@org.springframework.transaction.annotation.Transactional
 public class DisenoJpaAdapter implements DisenoRepository {
 
     private final DisenoJpaRepository repository;

@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Component
+@org.springframework.transaction.annotation.Transactional
 public class GeneracionIAJpaAdapter implements GeneracionIARepository {
 
     private final JpaGeneracionIARepository jpaRepository;

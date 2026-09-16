@@ -2,10 +2,9 @@ import axiosClient from "../api/axios";
 
 const API_URL = "/api/cliente";
 
-// Get auth headers from localStorage
+// Axios envía automáticamente la cookie HttpOnly de sesión; no hay Bearer en JavaScript.
 function getAuthHeaders() {
-  const token = localStorage.getItem("token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  return {};
 }
 
 /**

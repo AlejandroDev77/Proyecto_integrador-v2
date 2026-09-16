@@ -1,12 +1,4 @@
 import { useState, useRef, useEffect } from "react";
-import { jwtDecode } from "jwt-decode";
-
-interface CustomJwtPayload {
-  id_rol: number;
-  id_usu: number;
-  nom_usu: string;
-  email_usu: string;
-}
 
 
 export interface Message {
@@ -26,8 +18,7 @@ export const useChatbot = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // El chatbot ahora es público y se muestra en todas las páginas, incluido el landing page.
-    setShouldShow(true);
+    setShouldShow(Boolean(sessionStorage.getItem("auth_identity")));
   }, []);
 
   const toggleChat = () => setIsOpen(!isOpen);
@@ -54,17 +45,11 @@ export const useChatbot = () => {
     setIsLoading(true);
 
     try {
-      const token = localStorage.getItem("token"); // Ajusta esto según cómo guardes tu JWT
-      
       const headers: HeadersInit = {
         "Content-Type": "application/json",
       };
 
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-
-      const response = await fetch("http://localhost:8080/api/chat/message", {
+      const response = await fetch("/api/chat/message", {
         method: "POST",
         headers,
         body: JSON.stringify({ message: newUserMessage.text }),

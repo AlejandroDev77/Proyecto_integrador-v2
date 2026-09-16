@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
+import { normalizePageResponse } from "../../../../utils/pagination";
 import {
   RotateCcw,
   X,
@@ -35,20 +35,7 @@ interface Devolucion {
   venta?: { fec_ven: string };
   empleado?: { nom_emp: string; ap_pat_emp: string; ap_mat_emp: string };
 }
-interface Venta {
-  id_ven: number;
-  fec_ven: string;
-  est_ven: string;
-  cod_ven?: string;
-  total_ven: number;
-}
-interface Empleado {
-  id_emp: number;
-  nom_emp: string;
-  ap_pat_emp?: string;
-  ap_mat_emp?: string;
-  cod_emp?: string;
-}
+import type { Venta, Empleado } from "../../../../types/entities";
 interface Props {
   showModal: boolean;
   setShowModal: (show: boolean) => void;
@@ -271,21 +258,14 @@ const ModalEditarDevolucion: React.FC<Props> = ({
   const fetchVentas = useCallback(async (page = 1, search = "") => {
     setLoadingVenta(true);
     try {
-      const url = `http://localhost:8080/api/venta?page=${page}&per_page=6${
+      const url = `/api/venta?page=${page}&per_page=6${
         search ? `&search=${encodeURIComponent(search)}` : ""
       }`;
       const res = await fetch(url);
       const payload = await res.json();
-      if (payload?.data) {
-        setVentas(payload.data);
-        setVentaPagination({
-          currentPage: payload.current_page || 1,
-          lastPage: payload.last_page || 1,
-          total: payload.total || 0,
-        });
-      } else {
-        setVentas(Array.isArray(payload) ? payload : []);
-      }
+      const result = normalizePageResponse<Venta>(payload);
+      setVentas(result.items);
+      setVentaPagination(result.pagination);
     } catch {
       setVentas([]);
     } finally {
@@ -296,21 +276,14 @@ const ModalEditarDevolucion: React.FC<Props> = ({
   const fetchEmpleados = useCallback(async (page = 1, search = "") => {
     setLoadingEmp(true);
     try {
-      const url = `http://localhost:8080/api/empleados?page=${page}&per_page=6${
+      const url = `/api/empleados?page=${page}&per_page=6${
         search ? `&search=${encodeURIComponent(search)}` : ""
       }`;
       const res = await fetch(url);
       const payload = await res.json();
-      if (payload?.data) {
-        setEmpleados(payload.data);
-        setEmpPagination({
-          currentPage: payload.current_page || 1,
-          lastPage: payload.last_page || 1,
-          total: payload.total || 0,
-        });
-      } else {
-        setEmpleados(Array.isArray(payload) ? payload : []);
-      }
+      const result = normalizePageResponse<Empleado>(payload);
+      setEmpleados(result.items);
+      setEmpPagination(result.pagination);
     } catch {
       setEmpleados([]);
     } finally {
@@ -345,7 +318,7 @@ const ModalEditarDevolucion: React.FC<Props> = ({
       });
       if (devolucionSeleccionado.id_ven) {
         fetch(
-          `http://localhost:8080/api/venta/${devolucionSeleccionado.id_ven}`
+          `/api/venta/${devolucionSeleccionado.id_ven}`
         )
           .then((r) => r.json())
           .then((v) => setSelectedVenta(v?.data ?? v))
@@ -353,7 +326,7 @@ const ModalEditarDevolucion: React.FC<Props> = ({
       }
       if (devolucionSeleccionado.id_emp) {
         fetch(
-          `http://localhost:8080/api/empleados/${devolucionSeleccionado.id_emp}`
+          `/api/empleados/${devolucionSeleccionado.id_emp}`
         )
           .then((r) => r.json())
           .then((e) => setSelectedEmpleado(e?.data ?? e))
@@ -372,9 +345,9 @@ const ModalEditarDevolucion: React.FC<Props> = ({
 
     let idUsuarioLocal = null;
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        const p: any = jwtDecode(token);
+        const p: any = JSON.parse(token);
         idUsuarioLocal = p.id_usu || null;
       }
     } catch {
@@ -390,7 +363,7 @@ const ModalEditarDevolucion: React.FC<Props> = ({
           })()
         : null;
       const res = await fetch(
-        `http://localhost:8080/api/devolucion/${devolucionSeleccionado.id_dev}`,
+        `/api/devolucion/${devolucionSeleccionado.id_dev}`,
         {
           method: "PUT",
           headers: {
@@ -653,7 +626,7 @@ const ModalEditarDevolucion: React.FC<Props> = ({
                     <VentaCard
                       key={v.id_ven}
                       venta={v}
-                      isSelected={selectedVenta?.id_ven === v.id_ven}
+                      isSelected={!!selectedVenta && selectedVenta.id_ven === v.id_ven}
                       onSelect={() => setSelectedVenta(v)}
                     />
                   ))
@@ -684,7 +657,7 @@ const ModalEditarDevolucion: React.FC<Props> = ({
                     <EmpleadoCard
                       key={e.id_emp}
                       empleado={e}
-                      isSelected={selectedEmpleado?.id_emp === e.id_emp}
+                      isSelected={!!selectedEmpleado && selectedEmpleado.id_emp === e.id_emp}
                       onSelect={() => setSelectedEmpleado(e)}
                     />
                   ))

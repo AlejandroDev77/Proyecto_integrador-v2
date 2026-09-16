@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getLogs } from "../../services/LogService";
+import { getLogs, LogFilters } from "../../services/LogService";
 
 interface log {
     id: number;
@@ -20,6 +20,9 @@ interface log {
 export function useLogs() {
   const [logs, setLogs] = useState<log[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [action, setAction] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [totalPages, setTotalPages] = useState(1);
@@ -32,7 +35,13 @@ export function useLogs() {
     const fetch = async () => {
       setLoading(true);
       try {
-        const data = await getLogs(currentPage, itemsPerPage);
+        const filters: LogFilters = {
+          ...(searchTerm.trim() ? { search: searchTerm.trim() } : {}),
+          ...(action ? { action } : {}),
+          ...(fromDate ? { from_date: fromDate } : {}),
+          ...(toDate ? { to_date: toDate } : {}),
+        };
+        const data = await getLogs(currentPage, itemsPerPage, filters);
         const realData = data.data && data.success !== undefined ? data.data : data;
         const itemsArray = realData.content || realData.data || (Array.isArray(realData) ? realData : []);
         setLogs(itemsArray);
@@ -46,21 +55,28 @@ export function useLogs() {
     };
 
     fetch();
-  }, [currentPage, itemsPerPage]);
+  }, [currentPage, itemsPerPage, searchTerm, action, fromDate, toDate]);
 
-  const filtered = logs.filter((c) =>
-    `${c.cod_usu} ${c.action}`
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase())
-  );
-
-  const paginatedData = filtered; // server already paginates
+  const clearFilters = () => {
+    setSearchTerm("");
+    setAction("");
+    setFromDate("");
+    setToDate("");
+    setCurrentPage(1);
+  };
 
   return {
     logs,
     setLogs,
     searchTerm,
     setSearchTerm,
+    action,
+    setAction,
+    fromDate,
+    setFromDate,
+    toDate,
+    setToDate,
+    clearFilters,
     currentPage,
     setCurrentPage,
     itemsPerPage,
@@ -71,7 +87,7 @@ export function useLogs() {
     totalItems,
     totalPages,
     loading,
-    paginatedData,
+    paginatedData: logs,
     
     handleSearch: (e: React.ChangeEvent<HTMLInputElement>) => {
       setSearchTerm(e.target.value);

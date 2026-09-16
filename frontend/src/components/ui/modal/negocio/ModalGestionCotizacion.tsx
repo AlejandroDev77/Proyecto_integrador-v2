@@ -66,7 +66,7 @@ interface Props {
   onUpdate?: () => void;
 }
 
-const API = "http://localhost:8080/api";
+const API = "/api";
 
 export default function ModalGestionCotizacion({
   showModal,

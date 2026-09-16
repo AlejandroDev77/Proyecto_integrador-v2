@@ -35,6 +35,7 @@ public class MuebleJpaAdapter implements MuebleRepository {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PageResult<Mueble> buscarTodos(int page, int size, Map<String, String> filters, String sort) {
         Specification<MuebleEntity> spec = MuebleSpecifications.fromFilters(filters);
         Pageable pageable = buildPageable(page, size, sort);
@@ -50,6 +51,7 @@ public class MuebleJpaAdapter implements MuebleRepository {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<Mueble> buscarPorId(Long id) {
         return jpaRepository.findById(id).map(MuebleMapper::toDomain);
     }

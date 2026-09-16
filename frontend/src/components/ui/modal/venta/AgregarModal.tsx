@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
 import { ValidationErrors, parseApiErrors } from "../shared";
 import { Venta, Cliente, Empleado } from "../../../../types/venta";
 import {
@@ -557,7 +556,7 @@ export default function ModalAgregarVenta({
           per_page: "8",
         });
         if (search) params.append("filter[nom_cli]", search);
-        const res = await fetch(`http://localhost:8080/api/clientes?${params}`);
+        const res = await fetch(`/api/clientes?${params}`);
         const payload = await res.json();
         const pageResult = payload?.data;
         const items = pageResult?.content || pageResult || [];
@@ -586,7 +585,7 @@ export default function ModalAgregarVenta({
         });
         if (search) params.append("filter[nom_emp]", search);
         const res = await fetch(
-          `http://localhost:8080/api/empleados?${params}`
+          `/api/empleados?${params}`
         );
         const payload = await res.json();
         const pageResult = payload?.data;
@@ -615,7 +614,7 @@ export default function ModalAgregarVenta({
           per_page: "8",
         });
         if (search) params.append("filter[nom_mue]", search);
-        const res = await fetch(`http://localhost:8080/api/mueble?${params}`);
+        const res = await fetch(`/api/mueble?${params}`);
         const payload = await res.json();
         const pageResult = payload?.data;
         const items = pageResult?.content || pageResult || [];
@@ -740,9 +739,9 @@ export default function ModalAgregarVenta({
 
     let idUsuarioLocal = null;
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        const payload: any = jwtDecode(token);
+        const payload: any = JSON.parse(token);
         idUsuarioLocal = payload.id_usu || null;
       }
     } catch (e) {
@@ -768,7 +767,7 @@ export default function ModalAgregarVenta({
         empleado: { id: selectedEmpleado.id_emp || (selectedEmpleado as any).id },
       };
 
-      const res = await fetch("http://localhost:8080/api/ventas", {
+      const res = await fetch("/api/ventas", {
         method: "POST",
         headers: { ...headers, Accept: "application/json" },
         body: JSON.stringify(ventaData),
@@ -802,7 +801,7 @@ export default function ModalAgregarVenta({
           descuento_item: det.descuento,
           subtotal: det.subtotal,
         };
-        await fetch("http://localhost:8080/api/detalle-ventas", {
+        await fetch("/api/detalle-ventas", {
           method: "POST",
           headers: { ...headers, Accept: "application/json" },
           body: JSON.stringify(detalleData),
@@ -818,7 +817,7 @@ export default function ModalAgregarVenta({
           referencia_pag: pago.referencia_pag,
           monto: pago.monto,
         };
-        await fetch("http://localhost:8080/api/pagos", {
+        await fetch("/api/pagos", {
           method: "POST",
           headers: { ...headers, Accept: "application/json" },
           body: JSON.stringify(pagoData),
@@ -826,7 +825,7 @@ export default function ModalAgregarVenta({
       }
 
       // Refresh ventas
-      const updatedRes = await fetch("http://localhost:8080/api/ventas");
+      const updatedRes = await fetch("/api/ventas");
       const updatedPayload: any = await updatedRes.json();
       const pageResult = updatedPayload?.data;
       const updatedItems = pageResult?.content || pageResult || [];
@@ -929,7 +928,7 @@ export default function ModalAgregarVenta({
                         <ClienteCard
                           key={c.id_cli || (c as any).id || idx}
                           cliente={c}
-                          isSelected={selectedCliente?.id_cli === c.id_cli}
+                          isSelected={!!selectedCliente && selectedCliente.id_cli === c.id_cli}
                           onSelect={() => setSelectedCliente(c)}
                         />
                       ))
@@ -974,7 +973,7 @@ export default function ModalAgregarVenta({
                         <EmpleadoCard
                           key={e.id_emp || (e as any).id || idx}
                           empleado={e}
-                          isSelected={selectedEmpleado?.id_emp === e.id_emp}
+                          isSelected={!!selectedEmpleado && selectedEmpleado.id_emp === e.id_emp}
                           onSelect={() => setSelectedEmpleado(e)}
                         />
                       ))

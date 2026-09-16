@@ -205,7 +205,7 @@ const ModalEditarDiseño: React.FC<Props> = ({
   const fetchCotizaciones = useCallback(async (page = 1, search = "") => {
     setLoadingCot(true);
     try {
-      const url = `http://localhost:8080/api/cotizaciones?page=${page}&per_page=6${
+      const url = `/api/cotizaciones?page=${page}&per_page=6${
         search ? `&search=${encodeURIComponent(search)}` : ""
       }`;
       const res = await fetch(url);
@@ -248,7 +248,7 @@ const ModalEditarDiseño: React.FC<Props> = ({
       const idCot = diseñoSeleccionado.id_cot || (diseñoSeleccionado.cotizacion as any)?.id;
       if (idCot) {
         fetch(
-          `http://localhost:8080/api/cotizaciones/${idCot}`
+          `/api/cotizaciones/${idCot}`
         )
           .then((r) => r.json())
           .then((c) => setSelectedCotizacion(c?.data ?? c))
@@ -319,7 +319,7 @@ const ModalEditarDiseño: React.FC<Props> = ({
       }
 
       const res = await fetch(
-        `http://localhost:8080/api/disenos/${diseñoSeleccionado.id_dis || (diseñoSeleccionado as any).id}`,
+        `/api/disenos/${diseñoSeleccionado.id_dis || (diseñoSeleccionado as any).id}`,
         { method: "PUT", headers, body: formData }
       );
 
@@ -486,7 +486,7 @@ const ModalEditarDiseño: React.FC<Props> = ({
                     <CotizacionCard
                       key={c.id_cot || c.id || idx}
                       cotizacion={c}
-                      isSelected={(selectedCotizacion?.id_cot || (selectedCotizacion as any)?.id) === (c.id_cot || c.id)}
+                      isSelected={!!selectedCotizacion && (selectedCotizacion.id_cot || (selectedCotizacion as any).id) === (c.id_cot || c.id)}
                       onSelect={() => setSelectedCotizacion(c)}
                     />
                   ))

@@ -43,7 +43,7 @@ export default function EtapaProduccion() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8080/api/etapa-produccion/${id_eta}`, {
+      const res = await fetch(`/api/etapa-produccion/${id_eta}`, {
         method: "DELETE",
         headers,
       });

@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -102,6 +103,10 @@ public class ClientePortalController {
 
     @GetMapping("/por-usuario/{idUsu}")
     public ResponseEntity<?> getClienteByUsuario(@PathVariable Long idUsu) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || (!auth.getName().equals(idUsu.toString()) && auth.getAuthorities().stream().noneMatch(a -> "ROLE_ADMIN".equals(a.getAuthority())))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", "No autorizado"));
+        }
         return clienteJpaRepository.findByUsuarioIdUsu(idUsu)
                 .map(entity -> {
                     Map<String, Object> data = new LinkedHashMap<>();
@@ -193,6 +198,7 @@ public class ClientePortalController {
             for (Map<String, Object> prod : productos) {
                 Long idMue = toLong(prod.get("id_mue"));
                 int cantidad = toInt(prod.get("cantidad"));
+                if (cantidad < 1 || cantidad > 100) return badRequest("Cantidad inválida.");
                 String personalizacion = (String) prod.get("personalizacion");
 
                 MuebleEntity mueble = (idMue != null && idMue > 0) ? muebleJpaRepository.findById(idMue).orElse(null) : null;
@@ -230,7 +236,8 @@ public class ClientePortalController {
                     "cotizacion", cotizacion
             ));
         } catch (Exception e) {
-            return badRequest(e.getMessage());
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return badRequest("No se pudo registrar la cotización.");
         }
     }
 
@@ -289,14 +296,8 @@ public class ClientePortalController {
     @Transactional
     public ResponseEntity<?> compraDirecta(@RequestBody Map<String, Object> body) {
         try {
-            Long idCli = toLong(body.get("id_cli"));
-            if (idCli == null) {
-                ClienteEntity authCliente = getAuthenticatedCliente();
-                if (authCliente != null) {
-                    idCli = authCliente.getId();
-                }
-            }
-            if (idCli == null) return badRequest("Cliente es requerido.");
+            ClienteEntity cliente = getAuthenticatedCliente();
+            if (cliente == null) return ResponseEntity.status(401).body(Map.of("message", "No autenticado"));
 
             String metodoPago = (String) body.get("metodo_pago");
             String direccionEntrega = (String) body.get("direccion_entrega");
@@ -307,24 +308,27 @@ public class ClientePortalController {
             if (direccionEntrega == null || direccionEntrega.length() < 5) return badRequest("Dirección de entrega es requerida.");
             if (detalles == null || detalles.isEmpty()) return badRequest("Debe incluir al menos un producto.");
 
-            ClienteEntity cliente = clienteJpaRepository.findById(idCli).orElse(null);
-            if (cliente == null) return badRequest("Cliente no encontrado.");
-
             EmpleadoEntity defaultEmpleado = empleadoJpaRepository.findById(1L)
                     .orElseGet(() -> empleadoJpaRepository.findAll().stream().findFirst().orElse(null));
 
             if (defaultEmpleado == null) return badRequest("No hay empleados registrados para autorizar.");
 
+            if (detalles.size() > 50) return badRequest("Demasiados productos en una compra.");
+            Map<Long, MuebleEntity> muebles = new LinkedHashMap<>();
             for (Map<String, Object> det : detalles) {
                 Long idMue = toLong(det.get("id_mue"));
                 int cantidad = toInt(det.get("cantidad"));
-                MuebleEntity mueble = muebleJpaRepository.findById(idMue).orElseThrow();
+                if (idMue == null || cantidad < 1 || cantidad > 100) return badRequest("Producto o cantidad inválida.");
+                MuebleEntity mueble = muebleJpaRepository.findLockedByIdMue(idMue).orElseThrow();
                 if (mueble.getStock() < cantidad) return badRequest("Stock insuficiente para " + mueble.getNomMue());
+                muebles.put(idMue, mueble);
             }
 
             double total = 0;
             for (Map<String, Object> det : detalles) {
-                total += toDouble(det.get("precio_unitario")) * toInt(det.get("cantidad"));
+                MuebleEntity mueble = muebles.get(toLong(det.get("id_mue")));
+                if (mueble.getPrecioVenta() == null || mueble.getPrecioVenta() < 0) return badRequest("Precio del producto inválido.");
+                total += mueble.getPrecioVenta() * toInt(det.get("cantidad"));
             }
 
             String codVen = codigoGenerator.generateUniqueCode("VEN", ventaJpaRepository::existsByCodVen);
@@ -342,8 +346,8 @@ public class ClientePortalController {
             for (Map<String, Object> det : detalles) {
                 Long idMue = toLong(det.get("id_mue"));
                 int cantidad = toInt(det.get("cantidad"));
-                double precio = toDouble(det.get("precio_unitario"));
-                MuebleEntity mueble = muebleJpaRepository.findById(idMue).orElseThrow();
+                MuebleEntity mueble = muebles.get(idMue);
+                double precio = mueble.getPrecioVenta();
                 
                 DetalleVentaEntity detalleVenta = new DetalleVentaEntity();
                 detalleVenta.setCodDetVen(codigoGenerator.generateUniqueCode("DVEN", detalleVentaJpaRepository::existsByCodDetVen));
@@ -375,32 +379,17 @@ public class ClientePortalController {
                 muebleJpaRepository.save(mueble);
             }
 
-            String metPago = switch (metodoPago) {
-                case "efectivo" -> "Efectivo";
-                case "transferencia" -> "Transferencia";
-                case "qr" -> "QR";
-                default -> "Efectivo";
-            };
-
-            PagoEntity pago = new PagoEntity();
-            pago.setCodPag(codigoGenerator.generateUniqueCode("PAG", pagoJpaRepository::existsByCodPag));
-            pago.setMonto(total);
-            pago.setFecPag(LocalDate.now());
-            pago.setMetodoPag(metPago);
-            pago.setReferenciaPag("Portal - " + direccionEntrega);
-            pago.setVenta(venta);
-            pagoJpaRepository.save(pago);
-
             return ResponseEntity.ok(Map.of(
                 "success", true,
-                "message", "Compra registrada exitosamente",
+                "message", "Pedido registrado; el pago queda pendiente de confirmación",
                 "id_ven", venta.getId(),
                 "cod_ven", venta.getCodVen(),
                 "total", total
             ));
 
         } catch (Exception e) {
-            return badRequest(e.getMessage());
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return badRequest("No se pudo registrar la compra.");
         }
     }
 

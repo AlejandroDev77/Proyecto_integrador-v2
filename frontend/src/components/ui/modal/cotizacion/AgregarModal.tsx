@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
+import { normalizePageResponse } from "../../../../utils/pagination";
 import {
   FileText,
   Users,
@@ -36,22 +36,7 @@ interface Cotizacion {
   id_emp: number;
 }
 
-interface Cliente {
-  id_cli: number;
-  nom_cli: string;
-  ap_pat_cli: string;
-  ap_mat_cli: string;
-  cod_cli?: string;
-  ci_cli?: string;
-}
-
-interface Empleado {
-  id_emp: number;
-  nom_emp: string;
-  ap_pat_emp: string;
-  ap_mat_emp: string;
-  cod_emp?: string;
-}
+import type { Cliente, Empleado } from "../../../../types/entities";
 
 interface Mueble {
   id_mue: number;
@@ -538,18 +523,11 @@ export default function ModalAgregarCotizacion({
           per_page: "8",
         });
         if (search) params.append("filter[nom_cli]", search);
-        const res = await fetch(`http://localhost:8080/api/clientes?${params}`);
+        const res = await fetch(`/api/clientes?${params}`);
         const payload = await res.json();
-        const items = payload?.data ?? payload;
-        setClientes(Array.isArray(items) ? items : []);
-        if (payload?.meta || payload?.last_page) {
-          setClientesPagination({
-            currentPage:
-              payload?.meta?.current_page ?? payload?.current_page ?? page,
-            lastPage: payload?.meta?.last_page ?? payload?.last_page ?? 1,
-            total: payload?.meta?.total ?? payload?.total ?? items.length,
-          });
-        }
+        const result = normalizePageResponse<Cliente>(payload);
+        setClientes(result.items);
+        setClientesPagination(result.pagination);
       } catch {
         setClientes([]);
       } finally {
@@ -569,19 +547,12 @@ export default function ModalAgregarCotizacion({
         });
         if (search) params.append("filter[nom_emp]", search);
         const res = await fetch(
-          `http://localhost:8080/api/empleados?${params}`
+          `/api/empleados?${params}`
         );
         const payload = await res.json();
-        const items = payload?.data ?? payload;
-        setEmpleados(Array.isArray(items) ? items : []);
-        if (payload?.meta || payload?.last_page) {
-          setEmpleadosPagination({
-            currentPage:
-              payload?.meta?.current_page ?? payload?.current_page ?? page,
-            lastPage: payload?.meta?.last_page ?? payload?.last_page ?? 1,
-            total: payload?.meta?.total ?? payload?.total ?? items.length,
-          });
-        }
+        const result = normalizePageResponse<Empleado>(payload);
+        setEmpleados(result.items);
+        setEmpleadosPagination(result.pagination);
       } catch {
         setEmpleados([]);
       } finally {
@@ -600,18 +571,11 @@ export default function ModalAgregarCotizacion({
           per_page: "8",
         });
         if (search) params.append("filter[nom_mue]", search);
-        const res = await fetch(`http://localhost:8080/api/mueble?${params}`);
+        const res = await fetch(`/api/mueble?${params}`);
         const payload = await res.json();
-        const items = payload?.data ?? payload;
-        setMuebles(Array.isArray(items) ? items : []);
-        if (payload?.meta || payload?.last_page) {
-          setMueblesPagination({
-            currentPage:
-              payload?.meta?.current_page ?? payload?.current_page ?? page,
-            lastPage: payload?.meta?.last_page ?? payload?.last_page ?? 1,
-            total: payload?.meta?.total ?? payload?.total ?? items.length,
-          });
-        }
+        const result = normalizePageResponse<Mueble>(payload);
+        setMuebles(result.items);
+        setMueblesPagination(result.pagination);
       } catch {
         setMuebles([]);
       } finally {
@@ -720,9 +684,9 @@ export default function ModalAgregarCotizacion({
 
     let idUsuarioLocal = null;
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        const payload: any = jwtDecode(token);
+        const payload: any = JSON.parse(token);
         idUsuarioLocal = payload.id_usu || null;
       }
     } catch {
@@ -748,7 +712,7 @@ export default function ModalAgregarCotizacion({
         id_emp: selectedEmpleado.id_emp,
       };
 
-      const res = await fetch("http://localhost:8080/api/cotizacion", {
+      const res = await fetch("/api/cotizaciones", {
         method: "POST",
         headers,
         body: JSON.stringify(cotizacionData),
@@ -768,7 +732,7 @@ export default function ModalAgregarCotizacion({
           precio_unitario: det.precio,
           subtotal: det.subtotal,
         };
-        await fetch("http://localhost:8080/api/detalle-cotizacion", {
+        await fetch("/api/detalle-cotizacion", {
           method: "POST",
           headers,
           body: JSON.stringify(detalleData),
@@ -776,7 +740,7 @@ export default function ModalAgregarCotizacion({
       }
 
       // Refresh cotizaciones
-      const updatedRes = await fetch("http://localhost:8080/api/cotizacion");
+      const updatedRes = await fetch("/api/cotizaciones");
       const updatedPayload: any = await updatedRes.json();
       const updatedItems = updatedPayload?.data ?? updatedPayload;
       setCotizaciones(Array.isArray(updatedItems) ? updatedItems : []);
@@ -870,7 +834,7 @@ export default function ModalAgregarCotizacion({
                         <ClienteCard
                           key={c.id_cli}
                           cliente={c}
-                          isSelected={selectedCliente?.id_cli === c.id_cli}
+                          isSelected={!!selectedCliente && selectedCliente.id_cli === c.id_cli}
                           onSelect={() => setSelectedCliente(c)}
                         />
                       ))
@@ -915,7 +879,7 @@ export default function ModalAgregarCotizacion({
                         <EmpleadoCard
                           key={e.id_emp}
                           empleado={e}
-                          isSelected={selectedEmpleado?.id_emp === e.id_emp}
+                          isSelected={!!selectedEmpleado && selectedEmpleado.id_emp === e.id_emp}
                           onSelect={() => setSelectedEmpleado(e)}
                         />
                       ))

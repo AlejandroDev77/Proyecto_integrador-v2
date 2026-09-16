@@ -2,7 +2,6 @@ import React, { useEffect, useState, useCallback } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
 import {
   ShoppingCart,
   X,
@@ -20,6 +19,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
+import type { Proveedor, Empleado } from "../../../../types/entities";
 
 // Interfaces
 interface CompraMaterial {
@@ -32,19 +32,6 @@ interface CompraMaterial {
   id_emp: number;
   proveedor?: { nom_prov: string };
   empleado?: { nom_emp: string };
-}
-interface Proveedor {
-  id_prov: number;
-  nom_prov: string;
-  contacto_prov?: string;
-  cod_prov?: string;
-}
-interface Empleado {
-  id_emp: number;
-  nom_emp: string;
-  ap_pat_emp?: string;
-  ap_mat_emp?: string;
-  cod_emp?: string;
 }
 interface Props {
   showModal: boolean;
@@ -259,7 +246,7 @@ const ModalEditarCompraMaterial: React.FC<Props> = ({
   const fetchProveedores = useCallback(async (page = 1, search = "") => {
     setLoadingProv(true);
     try {
-      const url = `http://localhost:8080/api/proveedores?page=${page}&per_page=6${
+      const url = `/api/proveedores?page=${page}&per_page=6${
         search ? `&search=${encodeURIComponent(search)}` : ""
       }`;
       const res = await fetch(url);
@@ -286,7 +273,7 @@ const ModalEditarCompraMaterial: React.FC<Props> = ({
   const fetchEmpleados = useCallback(async (page = 1, search = "") => {
     setLoadingEmp(true);
     try {
-      const url = `http://localhost:8080/api/empleados?page=${page}&per_page=6${
+      const url = `/api/empleados?page=${page}&per_page=6${
         search ? `&search=${encodeURIComponent(search)}` : ""
       }`;
       const res = await fetch(url);
@@ -341,13 +328,13 @@ const ModalEditarCompraMaterial: React.FC<Props> = ({
 
       // Preseleccionar proveedor y empleado
       if (provId) {
-        fetch(`http://localhost:8080/api/proveedores/${provId}`)
+        fetch(`/api/proveedores/${provId}`)
           .then((r) => r.json())
           .then((p) => setSelectedProveedor(p?.data ?? p))
           .catch(() => {});
       }
       if (empId) {
-        fetch(`http://localhost:8080/api/empleados/${empId}`)
+        fetch(`/api/empleados/${empId}`)
           .then((r) => r.json())
           .then((e) => setSelectedEmpleado(e?.data ?? e))
           .catch(() => {});
@@ -369,9 +356,9 @@ const ModalEditarCompraMaterial: React.FC<Props> = ({
 
     let idUsuarioLocal = null;
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        const p: any = jwtDecode(token);
+        const p: any = JSON.parse(token);
         idUsuarioLocal = p.id_usu || null;
       }
     } catch {
@@ -380,7 +367,7 @@ const ModalEditarCompraMaterial: React.FC<Props> = ({
 
     try {
       const res = await fetch(
-        `http://localhost:8080/api/compras-materiales/${compramaterialSeleccionado.id_comp}`,
+        `/api/compras-materiales/${compramaterialSeleccionado.id_comp}`,
         {
           method: "PUT",
           headers: {

@@ -9,6 +9,11 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import com.changuitostudio.backend.infrastructure.storage.CloudflareR2Service;
+import com.changuitostudio.backend.shared.UploadValidator;
+import java.io.IOException;
+import java.util.UUID;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -19,9 +24,11 @@ import java.util.Map;
 public class GeneracionIAController {
 
     private final ManageGeneracionIAUseCase useCase;
+    private final CloudflareR2Service r2Service;
 
-    public GeneracionIAController(ManageGeneracionIAUseCase useCase) {
+    public GeneracionIAController(ManageGeneracionIAUseCase useCase, CloudflareR2Service r2Service) {
         this.useCase = useCase;
+        this.r2Service = r2Service;
     }
 
     @GetMapping
@@ -64,6 +71,16 @@ public class GeneracionIAController {
         
         GeneracionIA creado = useCase.crear(dominio);
         return ResponseEntity.status(HttpStatus.CREATED).body(toResponseDTO(creado));
+    }
+
+    @PostMapping(value = "/referencias", consumes = "multipart/form-data")
+    public ResponseEntity<Map<String, String>> uploadReference(@RequestParam("archivo") MultipartFile archivo) throws IOException {
+        UploadValidator.image(archivo);
+        String contentType = archivo.getContentType() == null ? "application/octet-stream" : archivo.getContentType();
+        String original = archivo.getOriginalFilename() == null ? "imagen.jpg" : archivo.getOriginalFilename();
+        String extension = original.contains(".") ? original.substring(original.lastIndexOf('.') + 1).toLowerCase() : "jpg";
+        String url = r2Service.uploadBytesWithUUID(archivo.getBytes(), "ia-referencias", extension, contentType);
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("url", url));
     }
 
     @GetMapping("/{id}")

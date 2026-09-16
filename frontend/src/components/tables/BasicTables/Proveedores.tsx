@@ -56,7 +56,7 @@ export default function Proveedores() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8080/api/proveedor/${id_prov}`, {
+      const res = await fetch(`/api/proveedor/${id_prov}`, {
         method: "DELETE",
         headers,
       });

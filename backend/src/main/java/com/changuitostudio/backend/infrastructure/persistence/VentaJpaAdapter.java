@@ -19,6 +19,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
+@org.springframework.transaction.annotation.Transactional
 public class VentaJpaAdapter implements VentaRepository {
 
     private final VentaJpaRepository repository;

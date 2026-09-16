@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,7 +17,7 @@ public class LocalStorageAdapter implements StorageGateway {
     @Value("${app.storage.location:storage}")
     private String storageLocation;
 
-    @Value("${app.base-url:http://localhost:8080}")
+    @Value("${app.base-url:http://localhost}")
     private String baseUrl;
 
     @Override
@@ -26,7 +25,7 @@ public class LocalStorageAdapter implements StorageGateway {
         try {
             // Asegurar que el directorio existe
             Path root = Paths.get(storageLocation).toAbsolutePath().normalize();
-            Path targetDir = root.resolve(folder);
+            Path targetDir = resolveInsideStorage(root, folder);
             
             if (!Files.exists(targetDir)) {
                 Files.createDirectories(targetDir);
@@ -35,7 +34,7 @@ public class LocalStorageAdapter implements StorageGateway {
             // Generar nombre único
             String extension = getExtension(archivo.getOriginalFilename());
             String fileName = UUID.randomUUID().toString() + (extension.isEmpty() ? "" : "." + extension);
-            Path targetFile = targetDir.resolve(fileName);
+            Path targetFile = resolveInsideStorage(root, root.relativize(targetDir).resolve(fileName).toString());
 
             // Guardar archivo
             Files.copy(archivo.getInputStream(), targetFile);
@@ -54,7 +53,8 @@ public class LocalStorageAdapter implements StorageGateway {
         try {
             if (path.startsWith(baseUrl + "/storage/")) {
                 String relativePath = path.replace(baseUrl + "/storage/", "");
-                Path fileToDelete = Paths.get(storageLocation).resolve(relativePath);
+                Path root = Paths.get(storageLocation).toAbsolutePath().normalize();
+                Path fileToDelete = resolveInsideStorage(root, relativePath);
                 Files.deleteIfExists(fileToDelete);
             }
         } catch (IOException e) {
@@ -68,5 +68,13 @@ public class LocalStorageAdapter implements StorageGateway {
             return "";
         }
         return filename.substring(filename.lastIndexOf(".") + 1);
+    }
+
+    private Path resolveInsideStorage(Path root, String relativePath) {
+        Path resolved = root.resolve(relativePath).normalize();
+        if (!resolved.startsWith(root)) {
+            throw new IllegalArgumentException("Ruta de almacenamiento no válida");
+        }
+        return resolved;
     }
 }

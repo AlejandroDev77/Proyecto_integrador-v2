@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
 import {
   ShoppingCart,
   ShoppingBag,
@@ -32,19 +31,7 @@ interface DetalleVenta {
   venta?: { fec_ven: string; est_ven: string };
   mueble?: { nom_mue: string };
 }
-interface Mueble {
-  id_mue: number;
-  nom_mue: string;
-  cod_mue?: string;
-  precio_mue?: number;
-}
-interface Venta {
-  id_ven: number;
-  fec_ven: string;
-  est_ven: string;
-  cod_ven?: string;
-  total_ven?: number;
-}
+import type { MuebleReferencia as Mueble, VentaReferencia as Venta } from "../../../../types/entities";
 interface Props {
   showModal: boolean;
   setShowModal: (show: boolean) => void;
@@ -318,7 +305,7 @@ export default function ModalAgregarDetalleVenta({
     setLoadingVenta(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/ventas?page=${page}&per_page=8&filter[est_ven]=Pendiente${
+        `/api/ventas?page=${page}&per_page=8&filter[est_ven]=Pendiente${
           search ? `&search=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -342,7 +329,7 @@ export default function ModalAgregarDetalleVenta({
     setLoadingMueble(true);
     try {
       const res = await fetch(
-        `http://localhost:8080/api/mueble?page=${page}&per_page=8${
+        `/api/mueble?page=${page}&per_page=8${
           search ? `&filter[nom_mue]=${encodeURIComponent(search)}` : ""
         }`
       );
@@ -420,14 +407,14 @@ export default function ModalAgregarDetalleVenta({
 
     let uid = null;
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("auth_identity");
       if (token) {
-        uid = (jwtDecode(token) as any).id_usu;
+        uid = (JSON.parse(token) as any).id_usu;
       }
     } catch {}
 
     try {
-      const res = await fetch("http://localhost:8080/api/detalle-ventas", {
+      const res = await fetch("/api/detalle-ventas", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

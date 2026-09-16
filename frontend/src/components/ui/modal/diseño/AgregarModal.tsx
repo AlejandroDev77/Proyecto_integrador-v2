@@ -292,7 +292,7 @@ export default function ModalAgregarDiseño({
         });
         if (search) params.append("filter[cod_cot]", search);
         const res = await fetch(
-          `http://localhost:8080/api/cotizaciones?${params}`
+          `/api/cotizaciones?${params}`
         );
         const payload = await res.json();
         const realData = payload?.data && payload?.success !== undefined ? payload.data : payload;
@@ -365,7 +365,7 @@ export default function ModalAgregarDiseño({
       const headers: Record<string, string> = {};
       if (idUsuarioLocal) headers["X-USER-ID"] = idUsuarioLocal;
 
-      const res = await fetch("http://localhost:8080/api/disenos", {
+      const res = await fetch("/api/disenos", {
         method: "POST",
         headers,
         body: formData,
@@ -456,7 +456,7 @@ export default function ModalAgregarDiseño({
                         <CotizacionCard
                           key={c.id_cot || c.id || idx}
                           cotizacion={c}
-                          isSelected={(selectedCotizacion?.id_cot || (selectedCotizacion as any)?.id) === (c.id_cot || c.id)}
+                          isSelected={!!selectedCotizacion && (selectedCotizacion.id_cot || (selectedCotizacion as any).id) === (c.id_cot || c.id)}
                           onSelect={() => setSelectedCotizacion(c)}
                         />
                       ))

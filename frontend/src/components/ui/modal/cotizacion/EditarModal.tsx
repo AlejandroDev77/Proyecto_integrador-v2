@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
+import { normalizePageResponse } from "../../../../utils/pagination";
 import {
   Edit3,
   Users,
@@ -33,22 +33,7 @@ interface Cotizacion {
   id_emp: number;
 }
 
-interface Cliente {
-  id_cli: number;
-  nom_cli: string;
-  ap_pat_cli: string;
-  ap_mat_cli: string;
-  cod_cli?: string;
-  ci_cli?: string;
-}
-
-interface Empleado {
-  id_emp: number;
-  nom_emp: string;
-  ap_pat_emp: string;
-  ap_mat_emp: string;
-  cod_emp?: string;
-}
+import type { Cliente, Empleado } from "../../../../types/entities";
 
 interface Props {
   showModal: boolean;
@@ -268,18 +253,11 @@ const ModalEditarCotizacion = ({
           per_page: "6",
         });
         if (search) params.append("filter[nom_cli]", search);
-        const res = await fetch(`http://localhost:8080/api/clientes?${params}`);
+        const res = await fetch(`/api/clientes?${params}`);
         const payload = await res.json();
-        const items = payload?.data ?? payload;
-        setClientes(Array.isArray(items) ? items : []);
-        if (payload?.meta || payload?.last_page) {
-          setClientesPagination({
-            currentPage:
-              payload?.meta?.current_page ?? payload?.current_page ?? page,
-            lastPage: payload?.meta?.last_page ?? payload?.last_page ?? 1,
-            total: payload?.meta?.total ?? payload?.total ?? items.length,
-          });
-        }
+        const result = normalizePageResponse<Cliente>(payload);
+        setClientes(result.items);
+        setClientesPagination(result.pagination);
       } catch {
         setClientes([]);
       } finally {
@@ -299,19 +277,12 @@ const ModalEditarCotizacion = ({
         });
         if (search) params.append("filter[nom_emp]", search);
         const res = await fetch(
-          `http://localhost:8080/api/empleados?${params}`
+          `/api/empleados?${params}`
         );
         const payload = await res.json();
-        const items = payload?.data ?? payload;
-        setEmpleados(Array.isArray(items) ? items : []);
-        if (payload?.meta || payload?.last_page) {
-          setEmpleadosPagination({
-            currentPage:
-              payload?.meta?.current_page ?? payload?.current_page ?? page,
-            lastPage: payload?.meta?.last_page ?? payload?.last_page ?? 1,
-            total: payload?.meta?.total ?? payload?.total ?? items.length,
-          });
-        }
+        const result = normalizePageResponse<Empleado>(payload);
+        setEmpleados(result.items);
+        setEmpleadosPagination(result.pagination);
       } catch {
         setEmpleados([]);
       } finally {
@@ -359,9 +330,9 @@ const ModalEditarCotizacion = ({
     try {
       let idUsuarioLocal = null;
       try {
-        const token = localStorage.getItem("token");
+        const token = sessionStorage.getItem("auth_identity");
         if (token) {
-          const payload: any = jwtDecode(token);
+          const payload: any = JSON.parse(token);
           idUsuarioLocal = payload.id_usu || null;
         }
       } catch {
@@ -374,7 +345,7 @@ const ModalEditarCotizacion = ({
       };
 
       const res = await fetch(
-        `http://localhost:8080/api/cotizacion/${cotizacionSeleccionada.id_cot}`,
+        `/api/cotizaciones/${cotizacionSeleccionada.id_cot}`,
         {
           method: "PUT",
           headers,
@@ -388,7 +359,7 @@ const ModalEditarCotizacion = ({
       await res.json();
 
       // Refrescar todas las cotizaciones desde la API para obtener relaciones correctas
-      const updatedRes = await fetch("http://localhost:8080/api/cotizacion");
+      const updatedRes = await fetch("/api/cotizaciones");
       const updatedPayload: any = await updatedRes.json();
       const updatedItems = updatedPayload?.data ?? updatedPayload;
       setCotizaciones(Array.isArray(updatedItems) ? updatedItems : []);
